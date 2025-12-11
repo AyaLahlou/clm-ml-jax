@@ -1,3 +1,6 @@
 [submodule "fortran-static-analysis"]
 	path = fortran-static-analysis
 	url = https://github.com/AyaLahlou/Fortran-Analyzer.git
+[submodule "CLM-ml_v1"]
+	path = CLM-ml_v1
+	url = https://github.com/gbonan/CLM-ml_v1.git
