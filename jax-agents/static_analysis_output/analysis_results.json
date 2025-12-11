@@ -1,0 +1,4037 @@
+{
+  "config": {
+    "project_name": "CLM-ml_v1 Analysis",
+    "project_root": "/burg-archive/home/al4385/CLM-ml_v1",
+    "analysis_timestamp": 1762295373.0234447,
+    "analysis_duration": 5.091747760772705
+  },
+  "parsing": {
+    "modules": {
+      "CanopyStateType": {
+        "name": "CanopyStateType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 68,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+            "line_start": 36,
+            "line_end": 43,
+            "parent": "CanopyStateType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+            "line_start": 46,
+            "line_end": 66,
+            "parent": "CanopyStateType",
+            "attributes": {}
+          }
+        ]
+      },
+      "EnergyFluxType": {
+        "name": "EnergyFluxType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 73,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+            "line_start": 40,
+            "line_end": 47,
+            "parent": "EnergyFluxType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+            "line_start": 50,
+            "line_end": 71,
+            "parent": "EnergyFluxType",
+            "attributes": {}
+          }
+        ]
+      },
+      "FrictionVelocityMod": {
+        "name": "FrictionVelocityMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 66,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+            "line_start": 35,
+            "line_end": 42,
+            "parent": "FrictionVelocityMod",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+            "line_start": 45,
+            "line_end": 64,
+            "parent": "FrictionVelocityMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "SoilStateInitTimeConstMod": {
+        "name": "SoilStateInitTimeConstMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateInitTimeConstMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "PatchType",
+            "only": [
+              "patch"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "pftconMod",
+            "only": [
+              "pftcon"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "csol_bedrock"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevsoi",
+              " nlevgrnd"
+            ]
+          },
+          {
+            "module": "clm_varctl",
+            "only": [
+              "iulog"
+            ]
+          },
+          {
+            "module": "MLclm_varctl",
+            "only": [
+              "clm_phys",
+              " root_type"
+            ]
+          },
+          {
+            "module": "TowerDataMod",
+            "only": [
+              "tower_num",
+              " tower_tex",
+              " tower_clay",
+              " tower_sand",
+              " tower_organic"
+            ]
+          },
+          {
+            "module": "SoilTexMod",
+            "only": null
+          }
+        ],
+        "subroutines": [
+          "SoilStateInitTimeConst"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 332,
+        "entities": [
+          {
+            "name": "SoilStateInitTimeConst",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateInitTimeConstMod.F90",
+            "line_start": 26,
+            "line_end": 330,
+            "parent": "SoilStateInitTimeConstMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "SoilStateType": {
+        "name": "SoilStateType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevgrnd",
+              " nlevsno",
+              " nlevsoi"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 106,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+            "line_start": 57,
+            "line_end": 64,
+            "parent": "SoilStateType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+            "line_start": 67,
+            "line_end": 104,
+            "parent": "SoilStateType",
+            "attributes": {}
+          }
+        ]
+      },
+      "SoilTemperatureMod": {
+        "name": "SoilTemperatureMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          },
+          {
+            "module": "TemperatureType",
+            "only": [
+              "temperature_type"
+            ]
+          },
+          {
+            "module": "WaterStateType",
+            "only": [
+              "waterstate_type"
+            ]
+          },
+          {
+            "module": "MLCanopyFluxesType",
+            "only": [
+              "mlcanopy_type"
+            ]
+          },
+          {
+            "module": "clm_time_manager",
+            "only": [
+              "get_step_size"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevgrnd",
+              " nlevsno"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevsno",
+              " nlevgrnd"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "denh2o",
+              " denice",
+              " tfrz",
+              " tkwat",
+              " tkice",
+              " tkair",
+              " cpice",
+              " cpliq",
+              " thk_bedrock",
+              " csol_bedrock"
+            ]
+          },
+          {
+            "module": "clm_varctl",
+            "only": [
+              "iulog"
+            ]
+          }
+        ],
+        "subroutines": [
+          "SoilTemperature",
+          "SoilThermProp",
+          "tridiag"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 398,
+        "entities": [
+          {
+            "name": "SoilTemperature",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+            "line_start": 36,
+            "line_end": 185,
+            "parent": "SoilTemperatureMod",
+            "attributes": {}
+          },
+          {
+            "name": "SoilThermProp",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+            "line_start": 188,
+            "line_end": 346,
+            "parent": "SoilTemperatureMod",
+            "attributes": {}
+          },
+          {
+            "name": "tridiag",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+            "line_start": 349,
+            "line_end": 396,
+            "parent": "SoilTemperatureMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "SoilWaterMovementMod": {
+        "name": "SoilWaterMovementMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          },
+          {
+            "module": "WaterStateType",
+            "only": [
+              "waterstate_type"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevsoi"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "denh2o"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          },
+          {
+            "module": "WaterStateType",
+            "only": [
+              "waterstate_type"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "SoilWater",
+          "soilwater_moisture_form",
+          "compute_hydraulic_properties"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 166,
+        "entities": [
+          {
+            "name": "SoilWater",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+            "line_start": 25,
+            "line_end": 47,
+            "parent": "SoilWaterMovementMod",
+            "attributes": {}
+          },
+          {
+            "name": "soilwater_moisture_form",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+            "line_start": 50,
+            "line_end": 109,
+            "parent": "SoilWaterMovementMod",
+            "attributes": {}
+          },
+          {
+            "name": "compute_hydraulic_properties",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+            "line_start": 112,
+            "line_end": 164,
+            "parent": "SoilWaterMovementMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "SolarAbsorbedType": {
+        "name": "SolarAbsorbedType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 63,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+            "line_start": 34,
+            "line_end": 41,
+            "parent": "SolarAbsorbedType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+            "line_start": 44,
+            "line_end": 61,
+            "parent": "SolarAbsorbedType",
+            "attributes": {}
+          }
+        ]
+      },
+      "SurfaceAlbedoMod": {
+        "name": "SurfaceAlbedoMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "WaterStateType",
+            "only": [
+              "waterstate_type"
+            ]
+          },
+          {
+            "module": "SurfaceAlbedoType",
+            "only": [
+              "surfalb_type"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "numrad",
+              " ivis",
+              " inir"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "TowerDataMod",
+            "only": [
+              "tower_isoicol",
+              " tower_num"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "numrad",
+              " ivis",
+              " inir"
+            ]
+          }
+        ],
+        "subroutines": [
+          "SurfaceAlbedoInitTimeConst",
+          "SoilAlbedo"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 136,
+        "entities": [
+          {
+            "name": "SurfaceAlbedoInitTimeConst",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+            "line_start": 29,
+            "line_end": 83,
+            "parent": "SurfaceAlbedoMod",
+            "attributes": {}
+          },
+          {
+            "name": "SoilAlbedo",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+            "line_start": 86,
+            "line_end": 134,
+            "parent": "SurfaceAlbedoMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "SurfaceAlbedoType": {
+        "name": "SurfaceAlbedoType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "numrad"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 74,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+            "line_start": 39,
+            "line_end": 46,
+            "parent": "SurfaceAlbedoType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+            "line_start": 49,
+            "line_end": 72,
+            "parent": "SurfaceAlbedoType",
+            "attributes": {}
+          }
+        ]
+      },
+      "SurfaceResistanceMod": {
+        "name": "SurfaceResistanceMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          },
+          {
+            "module": "WaterStateType",
+            "only": [
+              "waterstate_type"
+            ]
+          },
+          {
+            "module": "TemperatureType",
+            "only": [
+              "temperature_type"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "denh2o",
+              " denice"
+            ]
+          }
+        ],
+        "subroutines": [
+          "calc_soilevap_resis",
+          "calc_soil_resistance_sl14"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 123,
+        "entities": [
+          {
+            "name": "calc_soilevap_resis",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+            "line_start": 29,
+            "line_end": 57,
+            "parent": "SurfaceResistanceMod",
+            "attributes": {}
+          },
+          {
+            "name": "calc_soil_resistance_sl14",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+            "line_start": 60,
+            "line_end": 121,
+            "parent": "SurfaceResistanceMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "TemperatureType": {
+        "name": "TemperatureType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevgrnd",
+              " nlevsno"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 70,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+            "line_start": 37,
+            "line_end": 44,
+            "parent": "TemperatureType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+            "line_start": 47,
+            "line_end": 68,
+            "parent": "TemperatureType",
+            "attributes": {}
+          }
+        ]
+      },
+      "WaterFluxType": {
+        "name": "WaterFluxType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 63,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+            "line_start": 34,
+            "line_end": 41,
+            "parent": "WaterFluxType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+            "line_start": 44,
+            "line_end": 61,
+            "parent": "WaterFluxType",
+            "attributes": {}
+          }
+        ]
+      },
+      "WaterStateType": {
+        "name": "WaterStateType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevgrnd",
+              " nlevsno"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 80,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+            "line_start": 42,
+            "line_end": 49,
+            "parent": "WaterStateType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+            "line_start": 52,
+            "line_end": 78,
+            "parent": "WaterStateType",
+            "attributes": {}
+          }
+        ]
+      },
+      "lnd_comp_mct": {
+        "name": "lnd_comp_mct",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "clm_initializeMod",
+            "only": [
+              "initialize1",
+              " initialize2"
+            ]
+          },
+          {
+            "module": "clm_driver",
+            "only": [
+              "clm_drv"
+            ]
+          }
+        ],
+        "subroutines": [
+          "lnd_init_mct",
+          "lnd_run_mct"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 63,
+        "entities": [
+          {
+            "name": "lnd_init_mct",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+            "line_start": 23,
+            "line_end": 39,
+            "parent": "lnd_comp_mct",
+            "attributes": {}
+          },
+          {
+            "name": "lnd_run_mct",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+            "line_start": 42,
+            "line_end": 61,
+            "parent": "lnd_comp_mct",
+            "attributes": {}
+          }
+        ]
+      },
+      "ColumnType": {
+        "name": "ColumnType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ColumnType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevgrnd",
+              " nlevsno"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 55,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ColumnType.F90",
+            "line_start": 37,
+            "line_end": 53,
+            "parent": "ColumnType",
+            "attributes": {}
+          }
+        ]
+      },
+      "GridcellType": {
+        "name": "GridcellType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/GridcellType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "nan => spval"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 48,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/GridcellType.F90",
+            "line_start": 33,
+            "line_end": 46,
+            "parent": "GridcellType",
+            "attributes": {}
+          }
+        ]
+      },
+      "PatchType": {
+        "name": "PatchType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/PatchType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 133,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/PatchType.F90",
+            "line_start": 117,
+            "line_end": 131,
+            "parent": "PatchType",
+            "attributes": {}
+          }
+        ]
+      },
+      "abortutils": {
+        "name": "abortutils",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varctl",
+            "only": [
+              "iulog"
+            ]
+          }
+        ],
+        "subroutines": [
+          "endrun",
+          "handle_err"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 46,
+        "entities": [
+          {
+            "name": "endrun",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90",
+            "line_start": 22,
+            "line_end": 34,
+            "parent": "abortutils",
+            "attributes": {}
+          },
+          {
+            "name": "handle_err",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90",
+            "line_start": 36,
+            "line_end": 44,
+            "parent": "abortutils",
+            "attributes": {}
+          }
+        ]
+      },
+      "atm2lndType": {
+        "name": "atm2lndType",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "numrad"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 91,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90",
+            "line_start": 48,
+            "line_end": 55,
+            "parent": "atm2lndType",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90",
+            "line_start": 58,
+            "line_end": 89,
+            "parent": "atm2lndType",
+            "attributes": {}
+          }
+        ]
+      },
+      "clm_driver": {
+        "name": "clm_driver",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_driver.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "clm_instMod",
+            "only": null
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevgrnd",
+              " nlevsno"
+            ]
+          },
+          {
+            "module": "clmDataMod",
+            "only": [
+              "clmData"
+            ]
+          },
+          {
+            "module": "filterMod",
+            "only": [
+              "filter",
+              " setExposedvegpFilter"
+            ]
+          },
+          {
+            "module": "SurfaceAlbedoMod",
+            "only": [
+              "SoilAlbedo"
+            ]
+          },
+          {
+            "module": "SurfaceResistanceMod",
+            "only": [
+              "calc_soilevap_resis"
+            ]
+          },
+          {
+            "module": "SoilTemperatureMod",
+            "only": [
+              "SoilTemperature",
+              " SoilThermProp"
+            ]
+          },
+          {
+            "module": "SoilWaterMovementMod",
+            "only": [
+              "SoilWater"
+            ]
+          },
+          {
+            "module": "MLCanopyFluxesMod",
+            "only": [
+              "MLCanopyFluxes"
+            ]
+          }
+        ],
+        "subroutines": [
+          "clm_drv"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 122,
+        "entities": [
+          {
+            "name": "clm_drv",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_driver.F90",
+            "line_start": 24,
+            "line_end": 120,
+            "parent": "clm_driver",
+            "attributes": {}
+          }
+        ]
+      },
+      "clm_initializeMod": {
+        "name": "clm_initializeMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "clm_varpar_init"
+            ]
+          },
+          {
+            "module": "pftconMod",
+            "only": [
+              "pftcon"
+            ]
+          },
+          {
+            "module": "GridcellType",
+            "only": [
+              "grc"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "PatchType",
+            "only": [
+              "patch"
+            ]
+          },
+          {
+            "module": "initGridCellsMod",
+            "only": [
+              "initGridCells"
+            ]
+          },
+          {
+            "module": "filterMod",
+            "only": [
+              "allocFilters",
+              " filter"
+            ]
+          },
+          {
+            "module": "clm_instMod",
+            "only": [
+              "clm_instInit"
+            ]
+          },
+          {
+            "module": "MLCanopyTurbulenceMod",
+            "only": [
+              "LookupPsihatINI   !!! CLMml !!!"
+            ]
+          }
+        ],
+        "subroutines": [
+          "initialize1",
+          "initialize2"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 88,
+        "entities": [
+          {
+            "name": "initialize1",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+            "line_start": 31,
+            "line_end": 68,
+            "parent": "clm_initializeMod",
+            "attributes": {}
+          },
+          {
+            "name": "initialize2",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+            "line_start": 71,
+            "line_end": 86,
+            "parent": "clm_initializeMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "clm_instMod": {
+        "name": "clm_instMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "atm2lndType",
+            "only": [
+              "atm2lnd_type"
+            ]
+          },
+          {
+            "module": "SoilStateType",
+            "only": [
+              "soilstate_type"
+            ]
+          },
+          {
+            "module": "WaterStateType",
+            "only": [
+              "waterstate_type"
+            ]
+          },
+          {
+            "module": "CanopyStateType",
+            "only": [
+              "canopystate_type"
+            ]
+          },
+          {
+            "module": "TemperatureType",
+            "only": [
+              "temperature_type"
+            ]
+          },
+          {
+            "module": "EnergyFluxType",
+            "only": [
+              "energyflux_type"
+            ]
+          },
+          {
+            "module": "WaterFluxType",
+            "only": [
+              "waterflux_type"
+            ]
+          },
+          {
+            "module": "FrictionVelocityMod",
+            "only": [
+              "frictionvel_type"
+            ]
+          },
+          {
+            "module": "SurfaceAlbedoType",
+            "only": [
+              "surfalb_type"
+            ]
+          },
+          {
+            "module": "SolarAbsorbedType",
+            "only": [
+              "solarabs_type"
+            ]
+          },
+          {
+            "module": "SurfaceAlbedoMod",
+            "only": [
+              "SurfaceAlbedoInitTimeConst"
+            ]
+          },
+          {
+            "module": "SoilStateInitTimeConstMod",
+            "only": [
+              "SoilStateInitTimeConst"
+            ]
+          },
+          {
+            "module": "initVerticalMod",
+            "only": [
+              "initVertical"
+            ]
+          },
+          {
+            "module": "MLCanopyFluxesType",
+            "only": [
+              "mlcanopy_type !!! CLMml !!!"
+            ]
+          },
+          {
+            "module": "ncdio_pio",
+            "only": [
+              "file_desc_t"
+            ]
+          }
+        ],
+        "subroutines": [
+          "clm_instInit",
+          "clm_instRest"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 107,
+        "entities": [
+          {
+            "name": "clm_instInit",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90",
+            "line_start": 56,
+            "line_end": 80,
+            "parent": "clm_instMod",
+            "attributes": {}
+          },
+          {
+            "name": "clm_instRest",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90",
+            "line_start": 83,
+            "line_end": 105,
+            "parent": "clm_instMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "clm_varcon": {
+        "name": "clm_varcon",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varcon.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          }
+        ],
+        "subroutines": [],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 45,
+        "entities": []
+      },
+      "clm_varctl": {
+        "name": "clm_varctl",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varctl.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          }
+        ],
+        "subroutines": [],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 15,
+        "entities": []
+      },
+      "clm_varpar": {
+        "name": "clm_varpar",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varpar.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "MLclm_varctl",
+            "only": [
+              "clm_phys"
+            ]
+          }
+        ],
+        "subroutines": [
+          "clm_varpar_init"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 52,
+        "entities": [
+          {
+            "name": "clm_varpar_init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varpar.F90",
+            "line_start": 29,
+            "line_end": 50,
+            "parent": "clm_varpar",
+            "attributes": {}
+          }
+        ]
+      },
+      "decompMod": {
+        "name": "decompMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          }
+        ],
+        "subroutines": [
+          "get_clump_bounds"
+        ],
+        "functions": [],
+        "types": [
+          "bounds_type"
+        ],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 49,
+        "entities": [
+          {
+            "name": "get_clump_bounds",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90",
+            "line_start": 22,
+            "line_end": 47,
+            "parent": "decompMod",
+            "attributes": {}
+          },
+          {
+            "name": "bounds_type",
+            "entity_type": "type",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90",
+            "line_start": 12,
+            "line_end": 17,
+            "parent": "decompMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "filterMod": {
+        "name": "filterMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "ispval",
+              " nan => spval"
+            ]
+          }
+        ],
+        "subroutines": [
+          "allocFilters",
+          "setFilters",
+          "setExposedvegpFilter"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 112,
+        "entities": [
+          {
+            "name": "allocFilters",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+            "line_start": 47,
+            "line_end": 64,
+            "parent": "filterMod",
+            "attributes": {}
+          },
+          {
+            "name": "setFilters",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+            "line_start": 67,
+            "line_end": 81,
+            "parent": "filterMod",
+            "attributes": {}
+          },
+          {
+            "name": "setExposedvegpFilter",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+            "line_start": 84,
+            "line_end": 110,
+            "parent": "filterMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "histFileMod": {
+        "name": "histFileMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          }
+        ],
+        "subroutines": [
+          "hist_addfld1d",
+          "hist_addfld2d"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 109,
+        "entities": [
+          {
+            "name": "hist_addfld1d",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90",
+            "line_start": 23,
+            "line_end": 63,
+            "parent": "histFileMod",
+            "attributes": {}
+          },
+          {
+            "name": "hist_addfld2d",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90",
+            "line_start": 66,
+            "line_end": 107,
+            "parent": "histFileMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "initGridCellsMod": {
+        "name": "initGridCellsMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "TowerDataMod",
+            "only": [
+              "tower_pft",
+              " tower_num"
+            ]
+          },
+          {
+            "module": "initSubgridMod",
+            "only": [
+              "add_patch"
+            ]
+          }
+        ],
+        "subroutines": [
+          "initGridcells",
+          "set_landunit_veg_compete"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 58,
+        "entities": [
+          {
+            "name": "initGridcells",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+            "line_start": -1,
+            "line_end": -1,
+            "parent": "initGridCellsMod",
+            "attributes": {}
+          },
+          {
+            "name": "set_landunit_veg_compete",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+            "line_start": -1,
+            "line_end": -1,
+            "parent": "initGridCellsMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "initSubgridMod": {
+        "name": "initSubgridMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initSubgridMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "PatchType",
+            "only": [
+              "patch"
+            ]
+          }
+        ],
+        "subroutines": [
+          "add_patch"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 46,
+        "entities": [
+          {
+            "name": "add_patch",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initSubgridMod.F90",
+            "line_start": 21,
+            "line_end": 44,
+            "parent": "initSubgridMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "initVerticalMod": {
+        "name": "initVerticalMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initVerticalMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "decompMod",
+            "only": [
+              "bounds_type"
+            ]
+          },
+          {
+            "module": "ColumnType",
+            "only": [
+              "col"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "nlevsoi",
+              " nlevgrnd"
+            ]
+          },
+          {
+            "module": "clm_varcon",
+            "only": [
+              "zmin_bedrock"
+            ]
+          },
+          {
+            "module": "MLclm_varctl",
+            "only": [
+              "clm_phys"
+            ]
+          },
+          {
+            "module": "TowerDataMod",
+            "only": [
+              "tower_num",
+              " tower_zbed"
+            ]
+          }
+        ],
+        "subroutines": [
+          "initVertical"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 158,
+        "entities": [
+          {
+            "name": "initVertical",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initVerticalMod.F90",
+            "line_start": 23,
+            "line_end": 156,
+            "parent": "initVerticalMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "ncdio_pio": {
+        "name": "ncdio_pio",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "handle_err"
+            ]
+          }
+        ],
+        "subroutines": [
+          "ncd_pio_openfile",
+          "ncd_pio_closefile",
+          "ncd_inqdid",
+          "ncd_inqdlen",
+          "ncd_defvar",
+          "ncd_inqvdlen",
+          "ncd_io_1d",
+          "ncd_io_2d"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 205,
+        "entities": [
+          {
+            "name": "ncd_pio_openfile",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": 44,
+            "line_end": 61,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_pio_closefile",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": 64,
+            "line_end": 79,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_inqdid",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": 82,
+            "line_end": 99,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_inqdlen",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": 102,
+            "line_end": 119,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_defvar",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": -1,
+            "line_end": -1,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_inqvdlen",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": -1,
+            "line_end": -1,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_io_1d",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": 140,
+            "line_end": 170,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          },
+          {
+            "name": "ncd_io_2d",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+            "line_start": 173,
+            "line_end": 203,
+            "parent": "ncdio_pio",
+            "attributes": {}
+          }
+        ]
+      },
+      "pftconMod": {
+        "name": "pftconMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "clm_varpar",
+            "only": [
+              "mxpft",
+              " numrad",
+              " ivis",
+              " inir"
+            ]
+          }
+        ],
+        "subroutines": [
+          "Init",
+          "InitAllocate",
+          "InitRead"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 494,
+        "entities": [
+          {
+            "name": "Init",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+            "line_start": 68,
+            "line_end": 75,
+            "parent": "pftconMod",
+            "attributes": {}
+          },
+          {
+            "name": "InitAllocate",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+            "line_start": 78,
+            "line_end": 122,
+            "parent": "pftconMod",
+            "attributes": {}
+          },
+          {
+            "name": "InitRead",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+            "line_start": 125,
+            "line_end": 492,
+            "parent": "pftconMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "clm_time_manager": {
+        "name": "clm_time_manager",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "clm_varctl",
+            "only": [
+              "iulog"
+            ]
+          }
+        ],
+        "subroutines": [
+          "get_curr_date",
+          "get_prev_date",
+          "get_curr_time"
+        ],
+        "functions": [
+          "get_curr_calday",
+          "get_prev_calday"
+        ],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 504,
+        "entities": [
+          {
+            "name": "get_curr_date",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+            "line_start": 152,
+            "line_end": 233,
+            "parent": "clm_time_manager",
+            "attributes": {}
+          },
+          {
+            "name": "get_prev_date",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+            "line_start": 236,
+            "line_end": 318,
+            "parent": "clm_time_manager",
+            "attributes": {}
+          },
+          {
+            "name": "get_curr_time",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+            "line_start": 321,
+            "line_end": 340,
+            "parent": "clm_time_manager",
+            "attributes": {}
+          },
+          {
+            "name": "get_curr_calday",
+            "entity_type": "function",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+            "line_start": 343,
+            "line_end": 412,
+            "parent": "clm_time_manager",
+            "attributes": {}
+          },
+          {
+            "name": "get_prev_calday",
+            "entity_type": "function",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+            "line_start": 415,
+            "line_end": 462,
+            "parent": "clm_time_manager",
+            "attributes": {}
+          }
+        ]
+      },
+      "clm_varorb": {
+        "name": "clm_varorb",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_varorb.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          }
+        ],
+        "subroutines": [],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 21,
+        "entities": []
+      },
+      "fileutils": {
+        "name": "fileutils",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+        "uses": [
+          {
+            "module": "abortutils",
+            "only": [
+              "endrun"
+            ]
+          },
+          {
+            "module": "clm_varctl",
+            "only": [
+              "iulog"
+            ]
+          },
+          {
+            "module": "shr_file_mod",
+            "only": [
+              "shr_file_getUnit"
+            ]
+          },
+          {
+            "module": "shr_file_mod",
+            "only": [
+              "shr_file_freeUnit"
+            ]
+          }
+        ],
+        "subroutines": [
+          "getfil",
+          "opnfil",
+          "relavu"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 175,
+        "entities": [
+          {
+            "name": "getfil",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+            "line_start": 50,
+            "line_end": 104,
+            "parent": "fileutils",
+            "attributes": {}
+          },
+          {
+            "name": "opnfil",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+            "line_start": 107,
+            "line_end": 141,
+            "parent": "fileutils",
+            "attributes": {}
+          },
+          {
+            "name": "relavu",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+            "line_start": 158,
+            "line_end": 173,
+            "parent": "fileutils",
+            "attributes": {}
+          }
+        ]
+      },
+      "restUtilMod": {
+        "name": "restUtilMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          },
+          {
+            "module": "ncdio_pio",
+            "only": [
+              "file_desc_t"
+            ]
+          },
+          {
+            "module": "ncdio_pio",
+            "only": [
+              "file_desc_t"
+            ]
+          }
+        ],
+        "subroutines": [
+          "restartvar_1d",
+          "restartvar_2d"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 93,
+        "entities": [
+          {
+            "name": "restartvar_1d",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+            "line_start": 26,
+            "line_end": 57,
+            "parent": "restUtilMod",
+            "attributes": {}
+          },
+          {
+            "name": "restartvar_2d",
+            "entity_type": "subroutine",
+            "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+            "line_start": 60,
+            "line_end": 91,
+            "parent": "restUtilMod",
+            "attributes": {}
+          }
+        ]
+      },
+      "spmdMod": {
+        "name": "spmdMod",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/spmdMod.F90",
+        "uses": [
+          {
+            "module": "shr_kind_mod",
+            "only": [
+              "r8 => shr_kind_r8"
+            ]
+          }
+        ],
+        "subroutines": [],
+        "functions": [],
+        "types": [],
+        "variables": [],
+        "interfaces": [],
+        "line_count": 16,
+        "entities": []
+      }
+    },
+    "files": {
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90": {
+        "module_name": "CanopyStateType",
+        "line_count": 68,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90": {
+        "module_name": "EnergyFluxType",
+        "line_count": 73,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90": {
+        "module_name": "FrictionVelocityMod",
+        "line_count": 66,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateInitTimeConstMod.F90": {
+        "module_name": "SoilStateInitTimeConstMod",
+        "line_count": 332,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90": {
+        "module_name": "SoilStateType",
+        "line_count": 106,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90": {
+        "module_name": "SoilTemperatureMod",
+        "line_count": 398,
+        "subroutines": 3,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90": {
+        "module_name": "SoilWaterMovementMod",
+        "line_count": 166,
+        "subroutines": 3,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90": {
+        "module_name": "SolarAbsorbedType",
+        "line_count": 63,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90": {
+        "module_name": "SurfaceAlbedoMod",
+        "line_count": 136,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90": {
+        "module_name": "SurfaceAlbedoType",
+        "line_count": 74,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90": {
+        "module_name": "SurfaceResistanceMod",
+        "line_count": 123,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90": {
+        "module_name": "TemperatureType",
+        "line_count": 70,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90": {
+        "module_name": "WaterFluxType",
+        "line_count": 63,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90": {
+        "module_name": "WaterStateType",
+        "line_count": 80,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90": {
+        "module_name": "lnd_comp_mct",
+        "line_count": 63,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ColumnType.F90": {
+        "module_name": "ColumnType",
+        "line_count": 55,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/GridcellType.F90": {
+        "module_name": "GridcellType",
+        "line_count": 48,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/PatchType.F90": {
+        "module_name": "PatchType",
+        "line_count": 133,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90": {
+        "module_name": "abortutils",
+        "line_count": 46,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90": {
+        "module_name": "atm2lndType",
+        "line_count": 91,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_driver.F90": {
+        "module_name": "clm_driver",
+        "line_count": 122,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90": {
+        "module_name": "clm_initializeMod",
+        "line_count": 88,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90": {
+        "module_name": "clm_instMod",
+        "line_count": 107,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varcon.F90": {
+        "module_name": "clm_varcon",
+        "line_count": 45,
+        "subroutines": 0,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varctl.F90": {
+        "module_name": "clm_varctl",
+        "line_count": 15,
+        "subroutines": 0,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varpar.F90": {
+        "module_name": "clm_varpar",
+        "line_count": 52,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90": {
+        "module_name": "decompMod",
+        "line_count": 49,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 1
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90": {
+        "module_name": "filterMod",
+        "line_count": 112,
+        "subroutines": 3,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90": {
+        "module_name": "histFileMod",
+        "line_count": 109,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90": {
+        "module_name": "initGridCellsMod",
+        "line_count": 58,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initSubgridMod.F90": {
+        "module_name": "initSubgridMod",
+        "line_count": 46,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initVerticalMod.F90": {
+        "module_name": "initVerticalMod",
+        "line_count": 158,
+        "subroutines": 1,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90": {
+        "module_name": "ncdio_pio",
+        "line_count": 205,
+        "subroutines": 8,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90": {
+        "module_name": "pftconMod",
+        "line_count": 494,
+        "subroutines": 3,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90": {
+        "module_name": "clm_time_manager",
+        "line_count": 504,
+        "subroutines": 3,
+        "functions": 2,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_varorb.F90": {
+        "module_name": "clm_varorb",
+        "line_count": 21,
+        "subroutines": 0,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90": {
+        "module_name": "fileutils",
+        "line_count": 175,
+        "subroutines": 3,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90": {
+        "module_name": "restUtilMod",
+        "line_count": 93,
+        "subroutines": 2,
+        "functions": 0,
+        "types": 0
+      },
+      "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/spmdMod.F90": {
+        "module_name": "spmdMod",
+        "line_count": 16,
+        "subroutines": 0,
+        "functions": 0,
+        "types": 0
+      }
+    },
+    "dependencies": {
+      "CanopyStateType": [
+        "shr_kind_mod",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "EnergyFluxType": [
+        "shr_kind_mod",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "FrictionVelocityMod": [
+        "shr_kind_mod",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "SoilStateInitTimeConstMod": [
+        "shr_kind_mod",
+        "abortutils",
+        "decompMod",
+        "PatchType",
+        "ColumnType",
+        "pftconMod",
+        "SoilStateType",
+        "clm_varcon",
+        "clm_varpar",
+        "clm_varctl",
+        "MLclm_varctl",
+        "TowerDataMod",
+        "SoilTexMod"
+      ],
+      "SoilStateType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "SoilTemperatureMod": [
+        "shr_kind_mod",
+        "abortutils",
+        "ColumnType",
+        "decompMod",
+        "SoilStateType",
+        "TemperatureType",
+        "WaterStateType",
+        "MLCanopyFluxesType",
+        "clm_time_manager",
+        "clm_varpar",
+        "clm_varpar",
+        "clm_varcon",
+        "clm_varctl"
+      ],
+      "SoilWaterMovementMod": [
+        "shr_kind_mod",
+        "decompMod",
+        "SoilStateType",
+        "WaterStateType",
+        "clm_varpar",
+        "clm_varcon",
+        "ColumnType",
+        "SoilStateType",
+        "WaterStateType",
+        "SoilStateType"
+      ],
+      "SolarAbsorbedType": [
+        "shr_kind_mod",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "SurfaceAlbedoMod": [
+        "shr_kind_mod",
+        "decompMod",
+        "WaterStateType",
+        "SurfaceAlbedoType",
+        "clm_varpar",
+        "abortutils",
+        "TowerDataMod",
+        "clm_varpar"
+      ],
+      "SurfaceAlbedoType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "SurfaceResistanceMod": [
+        "shr_kind_mod",
+        "abortutils",
+        "decompMod",
+        "SoilStateType",
+        "WaterStateType",
+        "TemperatureType",
+        "ColumnType",
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "TemperatureType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "WaterFluxType": [
+        "shr_kind_mod",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "WaterStateType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "lnd_comp_mct": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_initializeMod",
+        "clm_driver"
+      ],
+      "ColumnType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "GridcellType": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "PatchType": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "abortutils": [
+        "shr_kind_mod",
+        "clm_varctl"
+      ],
+      "atm2lndType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "decompMod"
+      ],
+      "clm_driver": [
+        "shr_kind_mod",
+        "abortutils",
+        "ColumnType",
+        "decompMod",
+        "clm_instMod",
+        "clm_varpar",
+        "clmDataMod",
+        "filterMod",
+        "SurfaceAlbedoMod",
+        "SurfaceResistanceMod",
+        "SoilTemperatureMod",
+        "SoilWaterMovementMod",
+        "MLCanopyFluxesMod"
+      ],
+      "clm_initializeMod": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "pftconMod",
+        "GridcellType",
+        "ColumnType",
+        "PatchType",
+        "initGridCellsMod",
+        "filterMod",
+        "clm_instMod",
+        "MLCanopyTurbulenceMod"
+      ],
+      "clm_instMod": [
+        "shr_kind_mod",
+        "decompMod",
+        "atm2lndType",
+        "SoilStateType",
+        "WaterStateType",
+        "CanopyStateType",
+        "TemperatureType",
+        "EnergyFluxType",
+        "WaterFluxType",
+        "FrictionVelocityMod",
+        "SurfaceAlbedoType",
+        "SolarAbsorbedType",
+        "SurfaceAlbedoMod",
+        "SoilStateInitTimeConstMod",
+        "initVerticalMod",
+        "MLCanopyFluxesType",
+        "ncdio_pio"
+      ],
+      "clm_varcon": [
+        "shr_kind_mod"
+      ],
+      "clm_varctl": [
+        "shr_kind_mod"
+      ],
+      "clm_varpar": [
+        "shr_kind_mod",
+        "MLclm_varctl"
+      ],
+      "decompMod": [
+        "shr_kind_mod"
+      ],
+      "filterMod": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "histFileMod": [
+        "shr_kind_mod",
+        "decompMod"
+      ],
+      "initGridCellsMod": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "initSubgridMod"
+      ],
+      "initSubgridMod": [
+        "shr_kind_mod",
+        "PatchType"
+      ],
+      "initVerticalMod": [
+        "shr_kind_mod",
+        "decompMod",
+        "ColumnType",
+        "abortutils",
+        "clm_varpar",
+        "clm_varcon",
+        "MLclm_varctl",
+        "TowerDataMod"
+      ],
+      "ncdio_pio": [
+        "shr_kind_mod",
+        "abortutils"
+      ],
+      "pftconMod": [
+        "shr_kind_mod",
+        "clm_varpar"
+      ],
+      "clm_time_manager": [
+        "shr_kind_mod",
+        "abortutils",
+        "clm_varctl"
+      ],
+      "clm_varorb": [
+        "shr_kind_mod"
+      ],
+      "fileutils": [
+        "abortutils",
+        "clm_varctl",
+        "shr_file_mod",
+        "shr_file_mod"
+      ],
+      "restUtilMod": [
+        "shr_kind_mod",
+        "ncdio_pio",
+        "ncdio_pio"
+      ],
+      "spmdMod": [
+        "shr_kind_mod"
+      ]
+    },
+    "call_graph": {},
+    "entities": [
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+        "line_start": 36,
+        "line_end": 43,
+        "parent": "CanopyStateType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+        "line_start": 46,
+        "line_end": 66,
+        "parent": "CanopyStateType",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+        "line_start": 40,
+        "line_end": 47,
+        "parent": "EnergyFluxType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+        "line_start": 50,
+        "line_end": 71,
+        "parent": "EnergyFluxType",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+        "line_start": 35,
+        "line_end": 42,
+        "parent": "FrictionVelocityMod",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+        "line_start": 45,
+        "line_end": 64,
+        "parent": "FrictionVelocityMod",
+        "attributes": {}
+      },
+      {
+        "name": "SoilStateInitTimeConst",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateInitTimeConstMod.F90",
+        "line_start": 26,
+        "line_end": 330,
+        "parent": "SoilStateInitTimeConstMod",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+        "line_start": 57,
+        "line_end": 64,
+        "parent": "SoilStateType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+        "line_start": 67,
+        "line_end": 104,
+        "parent": "SoilStateType",
+        "attributes": {}
+      },
+      {
+        "name": "SoilTemperature",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+        "line_start": 36,
+        "line_end": 185,
+        "parent": "SoilTemperatureMod",
+        "attributes": {}
+      },
+      {
+        "name": "SoilThermProp",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+        "line_start": 188,
+        "line_end": 346,
+        "parent": "SoilTemperatureMod",
+        "attributes": {}
+      },
+      {
+        "name": "tridiag",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+        "line_start": 349,
+        "line_end": 396,
+        "parent": "SoilTemperatureMod",
+        "attributes": {}
+      },
+      {
+        "name": "SoilWater",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+        "line_start": 25,
+        "line_end": 47,
+        "parent": "SoilWaterMovementMod",
+        "attributes": {}
+      },
+      {
+        "name": "soilwater_moisture_form",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+        "line_start": 50,
+        "line_end": 109,
+        "parent": "SoilWaterMovementMod",
+        "attributes": {}
+      },
+      {
+        "name": "compute_hydraulic_properties",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+        "line_start": 112,
+        "line_end": 164,
+        "parent": "SoilWaterMovementMod",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+        "line_start": 34,
+        "line_end": 41,
+        "parent": "SolarAbsorbedType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+        "line_start": 44,
+        "line_end": 61,
+        "parent": "SolarAbsorbedType",
+        "attributes": {}
+      },
+      {
+        "name": "SurfaceAlbedoInitTimeConst",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+        "line_start": 29,
+        "line_end": 83,
+        "parent": "SurfaceAlbedoMod",
+        "attributes": {}
+      },
+      {
+        "name": "SoilAlbedo",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+        "line_start": 86,
+        "line_end": 134,
+        "parent": "SurfaceAlbedoMod",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+        "line_start": 39,
+        "line_end": 46,
+        "parent": "SurfaceAlbedoType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+        "line_start": 49,
+        "line_end": 72,
+        "parent": "SurfaceAlbedoType",
+        "attributes": {}
+      },
+      {
+        "name": "calc_soilevap_resis",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+        "line_start": 29,
+        "line_end": 57,
+        "parent": "SurfaceResistanceMod",
+        "attributes": {}
+      },
+      {
+        "name": "calc_soil_resistance_sl14",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+        "line_start": 60,
+        "line_end": 121,
+        "parent": "SurfaceResistanceMod",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+        "line_start": 37,
+        "line_end": 44,
+        "parent": "TemperatureType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+        "line_start": 47,
+        "line_end": 68,
+        "parent": "TemperatureType",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+        "line_start": 34,
+        "line_end": 41,
+        "parent": "WaterFluxType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+        "line_start": 44,
+        "line_end": 61,
+        "parent": "WaterFluxType",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+        "line_start": 42,
+        "line_end": 49,
+        "parent": "WaterStateType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+        "line_start": 52,
+        "line_end": 78,
+        "parent": "WaterStateType",
+        "attributes": {}
+      },
+      {
+        "name": "lnd_init_mct",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+        "line_start": 23,
+        "line_end": 39,
+        "parent": "lnd_comp_mct",
+        "attributes": {}
+      },
+      {
+        "name": "lnd_run_mct",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+        "line_start": 42,
+        "line_end": 61,
+        "parent": "lnd_comp_mct",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ColumnType.F90",
+        "line_start": 37,
+        "line_end": 53,
+        "parent": "ColumnType",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/GridcellType.F90",
+        "line_start": 33,
+        "line_end": 46,
+        "parent": "GridcellType",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/PatchType.F90",
+        "line_start": 117,
+        "line_end": 131,
+        "parent": "PatchType",
+        "attributes": {}
+      },
+      {
+        "name": "endrun",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90",
+        "line_start": 22,
+        "line_end": 34,
+        "parent": "abortutils",
+        "attributes": {}
+      },
+      {
+        "name": "handle_err",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90",
+        "line_start": 36,
+        "line_end": 44,
+        "parent": "abortutils",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90",
+        "line_start": 48,
+        "line_end": 55,
+        "parent": "atm2lndType",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90",
+        "line_start": 58,
+        "line_end": 89,
+        "parent": "atm2lndType",
+        "attributes": {}
+      },
+      {
+        "name": "clm_drv",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_driver.F90",
+        "line_start": 24,
+        "line_end": 120,
+        "parent": "clm_driver",
+        "attributes": {}
+      },
+      {
+        "name": "initialize1",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+        "line_start": 31,
+        "line_end": 68,
+        "parent": "clm_initializeMod",
+        "attributes": {}
+      },
+      {
+        "name": "initialize2",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+        "line_start": 71,
+        "line_end": 86,
+        "parent": "clm_initializeMod",
+        "attributes": {}
+      },
+      {
+        "name": "clm_instInit",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90",
+        "line_start": 56,
+        "line_end": 80,
+        "parent": "clm_instMod",
+        "attributes": {}
+      },
+      {
+        "name": "clm_instRest",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90",
+        "line_start": 83,
+        "line_end": 105,
+        "parent": "clm_instMod",
+        "attributes": {}
+      },
+      {
+        "name": "clm_varpar_init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varpar.F90",
+        "line_start": 29,
+        "line_end": 50,
+        "parent": "clm_varpar",
+        "attributes": {}
+      },
+      {
+        "name": "get_clump_bounds",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90",
+        "line_start": 22,
+        "line_end": 47,
+        "parent": "decompMod",
+        "attributes": {}
+      },
+      {
+        "name": "bounds_type",
+        "entity_type": "type",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90",
+        "line_start": 12,
+        "line_end": 17,
+        "parent": "decompMod",
+        "attributes": {}
+      },
+      {
+        "name": "allocFilters",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+        "line_start": 47,
+        "line_end": 64,
+        "parent": "filterMod",
+        "attributes": {}
+      },
+      {
+        "name": "setFilters",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+        "line_start": 67,
+        "line_end": 81,
+        "parent": "filterMod",
+        "attributes": {}
+      },
+      {
+        "name": "setExposedvegpFilter",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+        "line_start": 84,
+        "line_end": 110,
+        "parent": "filterMod",
+        "attributes": {}
+      },
+      {
+        "name": "hist_addfld1d",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90",
+        "line_start": 23,
+        "line_end": 63,
+        "parent": "histFileMod",
+        "attributes": {}
+      },
+      {
+        "name": "hist_addfld2d",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90",
+        "line_start": 66,
+        "line_end": 107,
+        "parent": "histFileMod",
+        "attributes": {}
+      },
+      {
+        "name": "initGridcells",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+        "line_start": -1,
+        "line_end": -1,
+        "parent": "initGridCellsMod",
+        "attributes": {}
+      },
+      {
+        "name": "set_landunit_veg_compete",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+        "line_start": -1,
+        "line_end": -1,
+        "parent": "initGridCellsMod",
+        "attributes": {}
+      },
+      {
+        "name": "add_patch",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initSubgridMod.F90",
+        "line_start": 21,
+        "line_end": 44,
+        "parent": "initSubgridMod",
+        "attributes": {}
+      },
+      {
+        "name": "initVertical",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initVerticalMod.F90",
+        "line_start": 23,
+        "line_end": 156,
+        "parent": "initVerticalMod",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_pio_openfile",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": 44,
+        "line_end": 61,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_pio_closefile",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": 64,
+        "line_end": 79,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_inqdid",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": 82,
+        "line_end": 99,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_inqdlen",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": 102,
+        "line_end": 119,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_defvar",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": -1,
+        "line_end": -1,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_inqvdlen",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": -1,
+        "line_end": -1,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_io_1d",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": 140,
+        "line_end": 170,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "ncd_io_2d",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+        "line_start": 173,
+        "line_end": 203,
+        "parent": "ncdio_pio",
+        "attributes": {}
+      },
+      {
+        "name": "Init",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+        "line_start": 68,
+        "line_end": 75,
+        "parent": "pftconMod",
+        "attributes": {}
+      },
+      {
+        "name": "InitAllocate",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+        "line_start": 78,
+        "line_end": 122,
+        "parent": "pftconMod",
+        "attributes": {}
+      },
+      {
+        "name": "InitRead",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+        "line_start": 125,
+        "line_end": 492,
+        "parent": "pftconMod",
+        "attributes": {}
+      },
+      {
+        "name": "get_curr_date",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+        "line_start": 152,
+        "line_end": 233,
+        "parent": "clm_time_manager",
+        "attributes": {}
+      },
+      {
+        "name": "get_prev_date",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+        "line_start": 236,
+        "line_end": 318,
+        "parent": "clm_time_manager",
+        "attributes": {}
+      },
+      {
+        "name": "get_curr_time",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+        "line_start": 321,
+        "line_end": 340,
+        "parent": "clm_time_manager",
+        "attributes": {}
+      },
+      {
+        "name": "get_curr_calday",
+        "entity_type": "function",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+        "line_start": 343,
+        "line_end": 412,
+        "parent": "clm_time_manager",
+        "attributes": {}
+      },
+      {
+        "name": "get_prev_calday",
+        "entity_type": "function",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+        "line_start": 415,
+        "line_end": 462,
+        "parent": "clm_time_manager",
+        "attributes": {}
+      },
+      {
+        "name": "getfil",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+        "line_start": 50,
+        "line_end": 104,
+        "parent": "fileutils",
+        "attributes": {}
+      },
+      {
+        "name": "opnfil",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+        "line_start": 107,
+        "line_end": 141,
+        "parent": "fileutils",
+        "attributes": {}
+      },
+      {
+        "name": "relavu",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+        "line_start": 158,
+        "line_end": 173,
+        "parent": "fileutils",
+        "attributes": {}
+      },
+      {
+        "name": "restartvar_1d",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+        "line_start": 26,
+        "line_end": 57,
+        "parent": "restUtilMod",
+        "attributes": {}
+      },
+      {
+        "name": "restartvar_2d",
+        "entity_type": "subroutine",
+        "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+        "line_start": 60,
+        "line_end": 91,
+        "parent": "restUtilMod",
+        "attributes": {}
+      }
+    ],
+    "statistics": {
+      "total_files": 39,
+      "total_lines": 4723,
+      "total_subroutines": 73,
+      "total_functions": 2,
+      "total_types": 1,
+      "total_entities": 76,
+      "average_lines_per_file": 121.1025641025641,
+      "average_subroutines_per_module": 1.8717948717948718
+    }
+  },
+  "dependencies": {
+    "module_graph_summary": {
+      "nodes": 48,
+      "edges": 171
+    },
+    "entity_graph_summary": {
+      "nodes": 76,
+      "edges": 36
+    },
+    "analysis": {
+      "circular_dependencies": [],
+      "strongly_connected_components": [],
+      "dependency_levels": {
+        "lnd_comp_mct": 0,
+        "histFileMod": 1,
+        "clm_varorb": 2,
+        "fileutils": 3,
+        "restUtilMod": 4,
+        "spmdMod": 5,
+        "clm_initializeMod": 6,
+        "clm_driver": 7,
+        "GridcellType": 8,
+        "initGridCellsMod": 9,
+        "clm_instMod": 10,
+        "filterMod": 11,
+        "SurfaceResistanceMod": 12,
+        "SoilTemperatureMod": 13,
+        "SoilWaterMovementMod": 14,
+        "initSubgridMod": 15,
+        "atm2lndType": 16,
+        "CanopyStateType": 17,
+        "EnergyFluxType": 18,
+        "WaterFluxType": 19,
+        "FrictionVelocityMod": 20,
+        "SolarAbsorbedType": 21,
+        "SurfaceAlbedoMod": 22,
+        "SoilStateInitTimeConstMod": 23,
+        "initVerticalMod": 24,
+        "ncdio_pio": 25,
+        "TemperatureType": 26,
+        "clm_time_manager": 27,
+        "WaterStateType": 28,
+        "SurfaceAlbedoType": 29,
+        "PatchType": 30,
+        "pftconMod": 31,
+        "SoilStateType": 32,
+        "ColumnType": 33,
+        "abortutils": 34,
+        "decompMod": 35,
+        "clm_varpar": 36,
+        "clm_varcon": 37,
+        "clm_varctl": 38
+      },
+      "external_dependencies": [
+        "shr_kind_mod",
+        "MLclm_varctl",
+        "TowerDataMod",
+        "SoilTexMod",
+        "MLCanopyFluxesType",
+        "clmDataMod",
+        "MLCanopyFluxesMod",
+        "MLCanopyTurbulenceMod",
+        "shr_file_mod"
+      ],
+      "orphaned_modules": [],
+      "hub_modules": [
+        "decompMod",
+        "clm_varcon",
+        "clm_varpar",
+        "abortutils",
+        "ColumnType",
+        "SoilStateType",
+        "WaterStateType",
+        "clm_varctl"
+      ],
+      "leaf_modules": []
+    },
+    "metrics": {
+      "module_graph": {
+        "nodes": 48,
+        "edges": 171,
+        "density": 0.07579787234042554,
+        "average_degree": 7.125,
+        "is_connected": true,
+        "is_dag": true,
+        "in_degree_centrality": {
+          "CanopyStateType": 0.02127659574468085,
+          "EnergyFluxType": 0.02127659574468085,
+          "FrictionVelocityMod": 0.02127659574468085,
+          "SoilStateInitTimeConstMod": 0.02127659574468085,
+          "SoilStateType": 0.10638297872340426,
+          "SoilTemperatureMod": 0.02127659574468085,
+          "SoilWaterMovementMod": 0.02127659574468085,
+          "SolarAbsorbedType": 0.02127659574468085,
+          "SurfaceAlbedoMod": 0.0425531914893617,
+          "SurfaceAlbedoType": 0.0425531914893617,
+          "SurfaceResistanceMod": 0.02127659574468085,
+          "TemperatureType": 0.06382978723404255,
+          "WaterFluxType": 0.02127659574468085,
+          "WaterStateType": 0.10638297872340426,
+          "lnd_comp_mct": 0.0,
+          "ColumnType": 0.14893617021276595,
+          "GridcellType": 0.02127659574468085,
+          "PatchType": 0.06382978723404255,
+          "abortutils": 0.19148936170212766,
+          "atm2lndType": 0.02127659574468085,
+          "clm_driver": 0.02127659574468085,
+          "clm_initializeMod": 0.02127659574468085,
+          "clm_instMod": 0.0425531914893617,
+          "clm_varcon": 0.3829787234042553,
+          "clm_varctl": 0.10638297872340426,
+          "clm_varpar": 0.2978723404255319,
+          "decompMod": 0.44680851063829785,
+          "filterMod": 0.0425531914893617,
+          "histFileMod": 0.0,
+          "initGridCellsMod": 0.02127659574468085,
+          "initSubgridMod": 0.02127659574468085,
+          "initVerticalMod": 0.02127659574468085,
+          "ncdio_pio": 0.0425531914893617,
+          "pftconMod": 0.0425531914893617,
+          "clm_time_manager": 0.02127659574468085,
+          "clm_varorb": 0.0,
+          "fileutils": 0.0,
+          "restUtilMod": 0.0,
+          "spmdMod": 0.0,
+          "shr_kind_mod": 0.8085106382978723,
+          "MLclm_varctl": 0.06382978723404255,
+          "TowerDataMod": 0.0851063829787234,
+          "SoilTexMod": 0.02127659574468085,
+          "MLCanopyFluxesType": 0.0425531914893617,
+          "clmDataMod": 0.02127659574468085,
+          "MLCanopyFluxesMod": 0.02127659574468085,
+          "MLCanopyTurbulenceMod": 0.02127659574468085,
+          "shr_file_mod": 0.02127659574468085
+        },
+        "out_degree_centrality": {
+          "CanopyStateType": 0.06382978723404255,
+          "EnergyFluxType": 0.06382978723404255,
+          "FrictionVelocityMod": 0.06382978723404255,
+          "SoilStateInitTimeConstMod": 0.2765957446808511,
+          "SoilStateType": 0.0851063829787234,
+          "SoilTemperatureMod": 0.2553191489361702,
+          "SoilWaterMovementMod": 0.14893617021276595,
+          "SolarAbsorbedType": 0.06382978723404255,
+          "SurfaceAlbedoMod": 0.14893617021276595,
+          "SurfaceAlbedoType": 0.0851063829787234,
+          "SurfaceResistanceMod": 0.1702127659574468,
+          "TemperatureType": 0.0851063829787234,
+          "WaterFluxType": 0.06382978723404255,
+          "WaterStateType": 0.0851063829787234,
+          "lnd_comp_mct": 0.0851063829787234,
+          "ColumnType": 0.06382978723404255,
+          "GridcellType": 0.0425531914893617,
+          "PatchType": 0.0425531914893617,
+          "abortutils": 0.0425531914893617,
+          "atm2lndType": 0.06382978723404255,
+          "clm_driver": 0.2765957446808511,
+          "clm_initializeMod": 0.23404255319148937,
+          "clm_instMod": 0.36170212765957444,
+          "clm_varcon": 0.02127659574468085,
+          "clm_varctl": 0.02127659574468085,
+          "clm_varpar": 0.0425531914893617,
+          "decompMod": 0.02127659574468085,
+          "filterMod": 0.0425531914893617,
+          "histFileMod": 0.0425531914893617,
+          "initGridCellsMod": 0.06382978723404255,
+          "initSubgridMod": 0.0425531914893617,
+          "initVerticalMod": 0.1702127659574468,
+          "ncdio_pio": 0.0425531914893617,
+          "pftconMod": 0.0425531914893617,
+          "clm_time_manager": 0.06382978723404255,
+          "clm_varorb": 0.02127659574468085,
+          "fileutils": 0.06382978723404255,
+          "restUtilMod": 0.0425531914893617,
+          "spmdMod": 0.02127659574468085,
+          "shr_kind_mod": 0.0,
+          "MLclm_varctl": 0.0,
+          "TowerDataMod": 0.0,
+          "SoilTexMod": 0.0,
+          "MLCanopyFluxesType": 0.0,
+          "clmDataMod": 0.0,
+          "MLCanopyFluxesMod": 0.0,
+          "MLCanopyTurbulenceMod": 0.0,
+          "shr_file_mod": 0.0
+        },
+        "betweenness_centrality": {
+          "CanopyStateType": 4.204860819106888e-05,
+          "EnergyFluxType": 4.204860819106888e-05,
+          "FrictionVelocityMod": 4.204860819106888e-05,
+          "SoilStateInitTimeConstMod": 0.00557319261065792,
+          "SoilStateType": 0.0003311327895046674,
+          "SoilTemperatureMod": 0.002564497892897523,
+          "SoilWaterMovementMod": 0.0005216363449480933,
+          "SolarAbsorbedType": 4.204860819106888e-05,
+          "SurfaceAlbedoMod": 0.0016921060746222633,
+          "SurfaceAlbedoType": 0.0003311327895046674,
+          "SurfaceResistanceMod": 0.0007914482475074521,
+          "TemperatureType": 0.0003311327895046674,
+          "WaterFluxType": 4.204860819106888e-05,
+          "WaterStateType": 0.0005624001345555462,
+          "lnd_comp_mct": 0.0,
+          "ColumnType": 0.0005421934422859492,
+          "GridcellType": 0.00016702641587007915,
+          "PatchType": 0.0010920957960735946,
+          "abortutils": 0.003006475485661425,
+          "atm2lndType": 5.781683626271971e-05,
+          "clm_driver": 0.009839140713331276,
+          "clm_initializeMod": 0.007274642820433754,
+          "clm_instMod": 0.02051341350601295,
+          "clm_varcon": 0.0,
+          "clm_varctl": 0.00023126734505087883,
+          "clm_varpar": 0.006475485661424607,
+          "decompMod": 0.0,
+          "filterMod": 0.00031092609723507047,
+          "histFileMod": 0.0,
+          "initGridCellsMod": 0.0016188714153561518,
+          "initSubgridMod": 0.0009250693802035153,
+          "initVerticalMod": 0.0009478457096403441,
+          "ncdio_pio": 0.001156336725254394,
+          "pftconMod": 0.0,
+          "clm_time_manager": 0.0,
+          "clm_varorb": 0.0,
+          "fileutils": 0.0,
+          "restUtilMod": 0.0,
+          "spmdMod": 0.0,
+          "shr_kind_mod": 0.0,
+          "MLclm_varctl": 0.0,
+          "TowerDataMod": 0.0,
+          "SoilTexMod": 0.0,
+          "MLCanopyFluxesType": 0.0,
+          "clmDataMod": 0.0,
+          "MLCanopyFluxesMod": 0.0,
+          "MLCanopyTurbulenceMod": 0.0,
+          "shr_file_mod": 0.0
+        }
+      },
+      "entity_graph": {
+        "nodes": 76,
+        "edges": 36,
+        "density": 0.00631578947368421,
+        "is_connected": false
+      }
+    }
+  },
+  "translation": {
+    "units": 120,
+    "statistics": {
+      "total_units": 120,
+      "units_by_type": {
+        "module": 39,
+        "root": 71,
+        "inner": 7,
+        "type_definition": 1,
+        "interface": 2
+      },
+      "units_by_priority": {
+        "1": 39,
+        "4": 69,
+        "6": 2,
+        "7": 7,
+        "2": 1,
+        "3": 2
+      },
+      "units_by_effort": {
+        "low": 86,
+        "medium": 27,
+        "high": 7
+      },
+      "average_lines_per_unit": 36.46666666666667,
+      "total_lines": 4376,
+      "largest_unit": "soiltemperaturemod_subroutine_SoilThermProp_022",
+      "most_complex_unit": "ncdio_pio_interface_ncd_io_092"
+    },
+    "translation_order": [
+      "clm_varctl",
+      "clm_varcon",
+      "clm_varpar",
+      "decompMod",
+      "abortutils",
+      "ColumnType",
+      "SoilStateType",
+      "pftconMod",
+      "PatchType",
+      "SurfaceAlbedoType",
+      "WaterStateType",
+      "clm_time_manager",
+      "TemperatureType",
+      "ncdio_pio",
+      "initVerticalMod",
+      "SoilStateInitTimeConstMod",
+      "SurfaceAlbedoMod",
+      "SolarAbsorbedType",
+      "FrictionVelocityMod",
+      "WaterFluxType",
+      "EnergyFluxType",
+      "CanopyStateType",
+      "atm2lndType",
+      "initSubgridMod",
+      "SoilWaterMovementMod",
+      "SoilTemperatureMod",
+      "SurfaceResistanceMod",
+      "filterMod",
+      "clm_instMod",
+      "initGridCellsMod",
+      "GridcellType",
+      "clm_driver",
+      "clm_initializeMod",
+      "spmdMod",
+      "restUtilMod",
+      "fileutils",
+      "clm_varorb",
+      "histFileMod",
+      "lnd_comp_mct"
+    ]
+  },
+  "visualizations": {
+    "module_dependencies": "/burg-archive/home/al4385/CLM-ml_v1/analysis_output/visualizations/module_dependencies.png",
+    "interactive_dependencies": "/burg-archive/home/al4385/CLM-ml_v1/analysis_output/visualizations/interactive_dependencies.html",
+    "translation_units": "/burg-archive/home/al4385/CLM-ml_v1/analysis_output/visualizations/translation_units_analysis.png",
+    "translation_priority": "/burg-archive/home/al4385/CLM-ml_v1/analysis_output/visualizations/translation_priority_chart.png",
+    "project_overview": "/burg-archive/home/al4385/CLM-ml_v1/analysis_output/visualizations/project_overview.png"
+  },
+  "recommendations": {
+    "translation_strategy": [
+      "Large project detected. Consider incremental translation approach."
+    ],
+    "dependency_issues": [
+      "Project depends on 9 external libraries. Verify availability in target language."
+    ],
+    "optimization_opportunities": [
+      "Modules ['decompMod', 'clm_varcon', 'clm_varpar'] are heavily used. Prioritize their translation."
+    ],
+    "risks": []
+  }
+}

@@ -1,0 +1,1616 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+      "line_count": 68,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "CanopyStateType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+      "line_count": 73,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "EnergyFluxType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+      "line_count": 66,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "FrictionVelocityMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateInitTimeConstMod.F90",
+      "line_count": 332,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "SoilStateInitTimeConstMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+      "line_count": 106,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "SoilStateType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+      "line_count": 398,
+      "subroutines": 3,
+      "functions": 0,
+      "types": 0,
+      "id": "SoilTemperatureMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+      "line_count": 166,
+      "subroutines": 3,
+      "functions": 0,
+      "types": 0,
+      "id": "SoilWaterMovementMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+      "line_count": 63,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "SolarAbsorbedType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+      "line_count": 136,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "SurfaceAlbedoMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+      "line_count": 74,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "SurfaceAlbedoType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+      "line_count": 123,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "SurfaceResistanceMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+      "line_count": 70,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "TemperatureType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+      "line_count": 63,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "WaterFluxType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+      "line_count": 80,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "WaterStateType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+      "line_count": 63,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "lnd_comp_mct"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ColumnType.F90",
+      "line_count": 55,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "ColumnType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/GridcellType.F90",
+      "line_count": 48,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "GridcellType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/PatchType.F90",
+      "line_count": 133,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "PatchType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/abortutils.F90",
+      "line_count": 46,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "abortutils"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/atm2lndType.F90",
+      "line_count": 91,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "atm2lndType"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_driver.F90",
+      "line_count": 122,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_driver"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+      "line_count": 88,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_initializeMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_instMod.F90",
+      "line_count": 107,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_instMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varcon.F90",
+      "line_count": 45,
+      "subroutines": 0,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_varcon"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varctl.F90",
+      "line_count": 15,
+      "subroutines": 0,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_varctl"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/clm_varpar.F90",
+      "line_count": 52,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_varpar"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/decompMod.F90",
+      "line_count": 49,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 1,
+      "id": "decompMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/filterMod.F90",
+      "line_count": 112,
+      "subroutines": 3,
+      "functions": 0,
+      "types": 0,
+      "id": "filterMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/histFileMod.F90",
+      "line_count": 109,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "histFileMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+      "line_count": 58,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "initGridCellsMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initSubgridMod.F90",
+      "line_count": 46,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "initSubgridMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/initVerticalMod.F90",
+      "line_count": 158,
+      "subroutines": 1,
+      "functions": 0,
+      "types": 0,
+      "id": "initVerticalMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+      "line_count": 205,
+      "subroutines": 8,
+      "functions": 0,
+      "types": 0,
+      "id": "ncdio_pio"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_main/pftconMod.F90",
+      "line_count": 494,
+      "subroutines": 3,
+      "functions": 0,
+      "types": 0,
+      "id": "pftconMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+      "line_count": 504,
+      "subroutines": 3,
+      "functions": 2,
+      "types": 0,
+      "id": "clm_time_manager"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/clm_varorb.F90",
+      "line_count": 21,
+      "subroutines": 0,
+      "functions": 0,
+      "types": 0,
+      "id": "clm_varorb"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/fileutils.F90",
+      "line_count": 175,
+      "subroutines": 3,
+      "functions": 0,
+      "types": 0,
+      "id": "fileutils"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+      "line_count": 93,
+      "subroutines": 2,
+      "functions": 0,
+      "types": 0,
+      "id": "restUtilMod"
+    },
+    {
+      "file_path": "/burg-archive/home/al4385/CLM-ml_v1/clm_src_utils/spmdMod.F90",
+      "line_count": 16,
+      "subroutines": 0,
+      "functions": 0,
+      "types": 0,
+      "id": "spmdMod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "shr_kind_mod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "MLclm_varctl"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "TowerDataMod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "SoilTexMod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "MLCanopyFluxesType"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "clmDataMod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "MLCanopyFluxesMod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "MLCanopyTurbulenceMod"
+    },
+    {
+      "external": true,
+      "library": "unknown",
+      "id": "shr_file_mod"
+    }
+  ],
+  "links": [
+    {
+      "dependency_type": "external_use",
+      "source": "CanopyStateType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "CanopyStateType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "CanopyStateType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "EnergyFluxType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "EnergyFluxType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "EnergyFluxType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "FrictionVelocityMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "FrictionVelocityMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "FrictionVelocityMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilStateInitTimeConstMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "patch"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "PatchType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "pftcon"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "pftconMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "soilstate_type"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "SoilStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "csol_bedrock"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevsoi",
+        " nlevgrnd"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "iulog"
+      ],
+      "source": "SoilStateInitTimeConstMod",
+      "target": "clm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilStateInitTimeConstMod",
+      "target": "MLclm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilStateInitTimeConstMod",
+      "target": "TowerDataMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilStateInitTimeConstMod",
+      "target": "SoilTexMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilStateType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevgrnd",
+        " nlevsno",
+        " nlevsoi"
+      ],
+      "source": "SoilStateType",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "SoilStateType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SoilStateType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilTemperatureMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "soilstate_type"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "SoilStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "temperature_type"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "TemperatureType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "waterstate_type"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "WaterStateType"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilTemperatureMod",
+      "target": "MLCanopyFluxesType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "get_step_size"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "clm_time_manager"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevsno",
+        " nlevgrnd"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "denh2o",
+        " denice",
+        " tfrz",
+        " tkwat",
+        " tkice",
+        " tkair",
+        " cpice",
+        " cpliq",
+        " thk_bedrock",
+        " csol_bedrock"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "iulog"
+      ],
+      "source": "SoilTemperatureMod",
+      "target": "clm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SoilWaterMovementMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SoilWaterMovementMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "soilstate_type"
+      ],
+      "source": "SoilWaterMovementMod",
+      "target": "SoilStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "waterstate_type"
+      ],
+      "source": "SoilWaterMovementMod",
+      "target": "WaterStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevsoi"
+      ],
+      "source": "SoilWaterMovementMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "denh2o"
+      ],
+      "source": "SoilWaterMovementMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "SoilWaterMovementMod",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SolarAbsorbedType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "SolarAbsorbedType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SolarAbsorbedType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SurfaceAlbedoMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SurfaceAlbedoMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "waterstate_type"
+      ],
+      "source": "SurfaceAlbedoMod",
+      "target": "WaterStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "surfalb_type"
+      ],
+      "source": "SurfaceAlbedoMod",
+      "target": "SurfaceAlbedoType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "numrad",
+        " ivis",
+        " inir"
+      ],
+      "source": "SurfaceAlbedoMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "SurfaceAlbedoMod",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SurfaceAlbedoMod",
+      "target": "TowerDataMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SurfaceAlbedoType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "numrad"
+      ],
+      "source": "SurfaceAlbedoType",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "SurfaceAlbedoType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SurfaceAlbedoType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "SurfaceResistanceMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "soilstate_type"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "SoilStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "waterstate_type"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "WaterStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "temperature_type"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "TemperatureType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "denh2o",
+        " denice"
+      ],
+      "source": "SurfaceResistanceMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "TemperatureType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevgrnd",
+        " nlevsno"
+      ],
+      "source": "TemperatureType",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "TemperatureType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "TemperatureType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "WaterFluxType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "WaterFluxType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "WaterFluxType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "WaterStateType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevgrnd",
+        " nlevsno"
+      ],
+      "source": "WaterStateType",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "WaterStateType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "WaterStateType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "lnd_comp_mct",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "lnd_comp_mct",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "initialize1",
+        " initialize2"
+      ],
+      "source": "lnd_comp_mct",
+      "target": "clm_initializeMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "clm_drv"
+      ],
+      "source": "lnd_comp_mct",
+      "target": "clm_driver"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "ColumnType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevgrnd",
+        " nlevsno"
+      ],
+      "source": "ColumnType",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "ColumnType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "GridcellType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nan => spval"
+      ],
+      "source": "GridcellType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "PatchType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "PatchType",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "abortutils",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "iulog"
+      ],
+      "source": "abortutils",
+      "target": "clm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "atm2lndType",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "numrad"
+      ],
+      "source": "atm2lndType",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "atm2lndType",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_driver",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "clm_driver",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "clm_driver",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "clm_driver",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": null,
+      "source": "clm_driver",
+      "target": "clm_instMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevgrnd",
+        " nlevsno"
+      ],
+      "source": "clm_driver",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_driver",
+      "target": "clmDataMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "filter",
+        " setExposedvegpFilter"
+      ],
+      "source": "clm_driver",
+      "target": "filterMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "SoilAlbedo"
+      ],
+      "source": "clm_driver",
+      "target": "SurfaceAlbedoMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "calc_soilevap_resis"
+      ],
+      "source": "clm_driver",
+      "target": "SurfaceResistanceMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "SoilTemperature",
+        " SoilThermProp"
+      ],
+      "source": "clm_driver",
+      "target": "SoilTemperatureMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "SoilWater"
+      ],
+      "source": "clm_driver",
+      "target": "SoilWaterMovementMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_driver",
+      "target": "MLCanopyFluxesMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_initializeMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "clm_initializeMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "clm_varpar_init"
+      ],
+      "source": "clm_initializeMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "pftcon"
+      ],
+      "source": "clm_initializeMod",
+      "target": "pftconMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "grc"
+      ],
+      "source": "clm_initializeMod",
+      "target": "GridcellType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "clm_initializeMod",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "patch"
+      ],
+      "source": "clm_initializeMod",
+      "target": "PatchType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "initGridCells"
+      ],
+      "source": "clm_initializeMod",
+      "target": "initGridCellsMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "allocFilters",
+        " filter"
+      ],
+      "source": "clm_initializeMod",
+      "target": "filterMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "clm_instInit"
+      ],
+      "source": "clm_initializeMod",
+      "target": "clm_instMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_initializeMod",
+      "target": "MLCanopyTurbulenceMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_instMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "clm_instMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "atm2lnd_type"
+      ],
+      "source": "clm_instMod",
+      "target": "atm2lndType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "soilstate_type"
+      ],
+      "source": "clm_instMod",
+      "target": "SoilStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "waterstate_type"
+      ],
+      "source": "clm_instMod",
+      "target": "WaterStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "canopystate_type"
+      ],
+      "source": "clm_instMod",
+      "target": "CanopyStateType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "temperature_type"
+      ],
+      "source": "clm_instMod",
+      "target": "TemperatureType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "energyflux_type"
+      ],
+      "source": "clm_instMod",
+      "target": "EnergyFluxType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "waterflux_type"
+      ],
+      "source": "clm_instMod",
+      "target": "WaterFluxType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "frictionvel_type"
+      ],
+      "source": "clm_instMod",
+      "target": "FrictionVelocityMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "surfalb_type"
+      ],
+      "source": "clm_instMod",
+      "target": "SurfaceAlbedoType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "solarabs_type"
+      ],
+      "source": "clm_instMod",
+      "target": "SolarAbsorbedType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "SurfaceAlbedoInitTimeConst"
+      ],
+      "source": "clm_instMod",
+      "target": "SurfaceAlbedoMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "SoilStateInitTimeConst"
+      ],
+      "source": "clm_instMod",
+      "target": "SoilStateInitTimeConstMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "initVertical"
+      ],
+      "source": "clm_instMod",
+      "target": "initVerticalMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_instMod",
+      "target": "MLCanopyFluxesType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "file_desc_t"
+      ],
+      "source": "clm_instMod",
+      "target": "ncdio_pio"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_varcon",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_varctl",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_varpar",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_varpar",
+      "target": "MLclm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "decompMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "filterMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "ispval",
+        " nan => spval"
+      ],
+      "source": "filterMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "histFileMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "histFileMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "initGridCellsMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "initGridCellsMod",
+      "target": "TowerDataMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "add_patch"
+      ],
+      "source": "initGridCellsMod",
+      "target": "initSubgridMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "initSubgridMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "patch"
+      ],
+      "source": "initSubgridMod",
+      "target": "PatchType"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "initVerticalMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "bounds_type"
+      ],
+      "source": "initVerticalMod",
+      "target": "decompMod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "col"
+      ],
+      "source": "initVerticalMod",
+      "target": "ColumnType"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "initVerticalMod",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "nlevsoi",
+        " nlevgrnd"
+      ],
+      "source": "initVerticalMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "zmin_bedrock"
+      ],
+      "source": "initVerticalMod",
+      "target": "clm_varcon"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "initVerticalMod",
+      "target": "MLclm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "initVerticalMod",
+      "target": "TowerDataMod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "ncdio_pio",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "handle_err"
+      ],
+      "source": "ncdio_pio",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "pftconMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "mxpft",
+        " numrad",
+        " ivis",
+        " inir"
+      ],
+      "source": "pftconMod",
+      "target": "clm_varpar"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_time_manager",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "clm_time_manager",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "iulog"
+      ],
+      "source": "clm_time_manager",
+      "target": "clm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "clm_varorb",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "endrun"
+      ],
+      "source": "fileutils",
+      "target": "abortutils"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "iulog"
+      ],
+      "source": "fileutils",
+      "target": "clm_varctl"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "fileutils",
+      "target": "shr_file_mod"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "restUtilMod",
+      "target": "shr_kind_mod"
+    },
+    {
+      "dependency_type": "use",
+      "only_items": [
+        "file_desc_t"
+      ],
+      "source": "restUtilMod",
+      "target": "ncdio_pio"
+    },
+    {
+      "dependency_type": "external_use",
+      "source": "spmdMod",
+      "target": "shr_kind_mod"
+    }
+  ]
+}

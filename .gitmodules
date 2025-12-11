@@ -1,0 +1,3 @@
+[submodule "fortran-static-analysis"]
+	path = fortran-static-analysis
+	url = https://github.com/AyaLahlou/Fortran-Analyzer.git

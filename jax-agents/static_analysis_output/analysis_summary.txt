@@ -1,0 +1,37 @@
+Fortran Codebase Analysis Report
+========================================
+
+Project: CLM-ml_v1 Analysis
+Analysis Date: Tue Nov  4 17:29:33 2025
+Duration: 5.09 seconds
+
+Parsing Summary:
+  Total Files: 39
+  Total Lines: 4,723
+  Modules: 39
+  Subroutines: 73
+  Functions: 2
+  Types: 1
+
+Translation Analysis:
+  Translation Units: 120
+  Low Effort Units: 86
+  Medium Effort Units: 27
+  High Effort Units: 7
+
+Dependency Analysis:
+  Module Dependencies: 171
+  Circular Dependencies: 0
+  External Dependencies: 9
+  Hub Modules: 8
+
+Recommendations:
+  Translation Strategy:
+    - Large project detected. Consider incremental translation approach.
+
+  Dependency Issues:
+    - Project depends on 9 external libraries. Verify availability in target language.
+
+  Optimization Opportunities:
+    - Modules ['decompMod', 'clm_varcon', 'clm_varpar'] are heavily used. Prioritize their translation.
+

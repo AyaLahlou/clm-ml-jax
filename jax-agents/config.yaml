@@ -1,0 +1,122 @@
+# JAX-CTSM Translation Agents Configuration
+
+# LLM Configuration
+llm:
+  model: "claude-sonnet-4-5"  # Claude 4.5 Sonnet
+  temperature: 0.0  # Deterministic for code generation
+  max_tokens: 48000  # Maximum tokens for input and output
+  timeout: 600  # seconds
+
+# Paths
+paths:
+  ctsm_root: "../CTSM"
+  jax_ctsm_root: "../jax-ctsm"
+  output_dir: "../jax-ctsm/src/jax_ctsm"
+
+# Agent Configuration
+agents:
+  orchestrator:
+    enabled: true
+    max_retries: 3
+    
+  static_analysis:
+    enabled: true
+    analysis_depth: "deep"  # shallow, medium, deep
+    extract_comments: true
+    extract_parameters: true
+    
+  translator:
+    enabled: true
+    add_docstrings: true
+    add_type_hints: true
+    add_validation_checks: true
+    
+  # Future agents
+  validation:
+    enabled: false
+    
+  repair:
+    enabled: false
+
+# JAX Conversion Patterns
+jax_patterns:
+  # Code style
+  use_immutable_state: true
+  use_pure_functions: true
+  use_namedtuples: true
+  
+  # Performance optimizations
+  use_jit: true
+  use_vmap: true
+  use_pmap: false
+  
+  # Type system
+  add_type_hints: true
+  use_strict_typing: true
+  
+  # Documentation
+  docstring_style: "google"  # google, numpy, sphinx
+  add_fortran_references: true
+  add_scientific_references: true
+  
+  # Testing
+  generate_unit_tests: true
+  generate_validation_tests: true
+  
+# Fortran Analysis Patterns
+fortran_patterns:
+  # Common CTSM patterns to recognize
+  spatial_hierarchy:
+    - "patch"
+    - "column"
+    - "landunit"
+    - "gridcell"
+    
+  common_types:
+    - "bounds_type"
+    - "temperature_type"
+    - "soilstate_type"
+    - "canopystate_type"
+    
+  common_parameters:
+    - "SHR_CONST_TKFRZ"
+    - "nlevgrnd"
+    - "spval"
+    
+  loop_patterns:
+    - "do fp = 1, num_"
+    - "do j = 1, nlev"
+    - "do p = bounds%begp, bounds%endp"
+
+# Output Configuration
+output:
+  # File organization
+  create_separate_params: true
+  create_separate_types: true
+  
+  # Code formatting
+  line_length: 100
+  use_black: true
+  
+  # Documentation
+  create_readme: true
+  create_examples: true
+  
+  # Validation
+  validate_syntax: true
+  run_type_check: true
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "logs/conversion.log"
+  console: true
+  save_prompts: true
+  save_responses: true
+
+# Cost Management
+cost_management:
+  max_cost_per_module: 10.0  # USD
+  warn_on_large_context: true
+  context_size_threshold: 50000  # tokens
+
