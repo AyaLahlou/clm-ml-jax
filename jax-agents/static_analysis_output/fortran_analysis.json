@@ -1,0 +1,1898 @@
+{
+  "project_path": "../CLM-ml_v1",
+  "analysis_summary": {
+    "total_files": 68,
+    "files_analyzed": 68,
+    "total_lines": 15664,
+    "total_modules": 67,
+    "total_subroutines": 136,
+    "total_functions": 41,
+    "total_types": 1,
+    "external_dependencies": 0
+  },
+  "modules": {
+    "SurfaceResistanceMod": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SurfaceResistanceMod.F90",
+      "uses": [
+        "WaterStateType",
+        "shr_kind_mod",
+        "abortutils",
+        "SoilStateType",
+        "ColumnType",
+        "TemperatureType",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "subroutines": [
+        "calc_soilevap_resis",
+        "calc_soil_resistance_sl14"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "WaterStateType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/WaterStateType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SurfaceAlbedoMod": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoMod.F90",
+      "uses": [
+        "WaterStateType",
+        "shr_kind_mod",
+        "abortutils",
+        "SurfaceAlbedoType",
+        "TowerDataMod",
+        "clm_varpar",
+        "decompMod"
+      ],
+      "subroutines": [
+        "SurfaceAlbedoInitTimeConst",
+        "SoilAlbedo"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SoilStateType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SoilStateType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SolarAbsorbedType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SolarAbsorbedType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SurfaceAlbedoType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SurfaceAlbedoType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SoilTemperatureMod": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SoilTemperatureMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "WaterStateType",
+        "abortutils",
+        "clm_time_manager",
+        "clm_varctl",
+        "SoilStateType",
+        "ColumnType",
+        "TemperatureType",
+        "clm_varpar",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "decompMod"
+      ],
+      "subroutines": [
+        "SoilTemperature",
+        "SoilThermProp",
+        "tridiag"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "WaterFluxType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/WaterFluxType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "CanopyStateType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/CanopyStateType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SoilWaterMovementMod": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SoilWaterMovementMod.F90",
+      "uses": [
+        "WaterStateType",
+        "shr_kind_mod",
+        "SoilStateType",
+        "ColumnType",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "subroutines": [
+        "SoilWater",
+        "soilwater_moisture_form",
+        "compute_hydraulic_properties"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "SoilStateInitTimeConstMod": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/SoilStateInitTimeConstMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varctl",
+        "abortutils",
+        "TowerDataMod",
+        "SoilStateType",
+        "ColumnType",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varpar",
+        "clm_varcon",
+        "SoilTexMod",
+        "pftconMod",
+        "decompMod"
+      ],
+      "subroutines": [
+        "SoilStateInitTimeConst"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "EnergyFluxType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/EnergyFluxType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "FrictionVelocityMod": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/FrictionVelocityMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "TemperatureType": {
+      "file": "../CLM-ml_v1/clm_src_biogeophys/TemperatureType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "lnd_comp_mct": {
+      "file": "../CLM-ml_v1/clm_src_cpl/lnd_comp_mct.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_driver",
+        "clm_initializeMod"
+      ],
+      "subroutines": [
+        "lnd_init_mct",
+        "lnd_run_mct"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "atm2lndType": {
+      "file": "../CLM-ml_v1/clm_src_main/atm2lndType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_varpar": {
+      "file": "../CLM-ml_v1/clm_src_main/clm_varpar.F90",
+      "uses": [
+        "MLclm_varctl",
+        "shr_kind_mod"
+      ],
+      "subroutines": [
+        "clm_varpar_init"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_varcon": {
+      "file": "../CLM-ml_v1/clm_src_main/clm_varcon.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "PatchType": {
+      "file": "../CLM-ml_v1/clm_src_main/PatchType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_driver": {
+      "file": "../CLM-ml_v1/clm_src_main/clm_driver.F90",
+      "uses": [
+        "clmDataMod",
+        "shr_kind_mod",
+        "abortutils",
+        "SoilTemperatureMod",
+        "filterMod",
+        "SurfaceAlbedoMod",
+        "MLCanopyFluxesMod",
+        "clm_instMod",
+        "SoilWaterMovementMod",
+        "ColumnType",
+        "clm_varpar",
+        "SurfaceResistanceMod",
+        "decompMod"
+      ],
+      "subroutines": [
+        "clm_drv"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "ColumnType": {
+      "file": "../CLM-ml_v1/clm_src_main/ColumnType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "GridcellType": {
+      "file": "../CLM-ml_v1/clm_src_main/GridcellType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "Init"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "initGridCellsMod": {
+      "file": "../CLM-ml_v1/clm_src_main/initGridCellsMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "initSubgridMod"
+      ],
+      "subroutines": [
+        "initGridcells",
+        "set_landunit_veg_compete"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_initializeMod": {
+      "file": "../CLM-ml_v1/clm_src_main/clm_initializeMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "MLCanopyTurbulenceMod",
+        "GridcellType",
+        "filterMod",
+        "initGridCellsMod",
+        "clm_instMod",
+        "ColumnType",
+        "PatchType",
+        "clm_varpar",
+        "pftconMod",
+        "decompMod"
+      ],
+      "subroutines": [
+        "initialize1",
+        "initialize2"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "filterMod": {
+      "file": "../CLM-ml_v1/clm_src_main/filterMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "allocFilters",
+        "setFilters",
+        "setExposedvegpFilter"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_instMod": {
+      "file": "../CLM-ml_v1/clm_src_main/clm_instMod.F90",
+      "uses": [
+        "CanopyStateType",
+        "WaterStateType",
+        "shr_kind_mod",
+        "EnergyFluxType",
+        "FrictionVelocityMod",
+        "SurfaceAlbedoType",
+        "WaterFluxType",
+        "SurfaceAlbedoMod",
+        "SoilStateInitTimeConstMod",
+        "MLCanopyFluxesType",
+        "SoilStateType",
+        "TemperatureType",
+        "ncdio_pio",
+        "SolarAbsorbedType",
+        "atm2lndType",
+        "initVerticalMod",
+        "decompMod"
+      ],
+      "subroutines": [
+        "clm_instInit",
+        "clm_instRest"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "decompMod": {
+      "file": "../CLM-ml_v1/clm_src_main/decompMod.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [
+        "get_clump_bounds"
+      ],
+      "functions": [],
+      "types": [
+        "bounds_type"
+      ]
+    },
+    "pftconMod": {
+      "file": "../CLM-ml_v1/clm_src_main/pftconMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varpar"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate",
+        "InitRead"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "ncdio_pio": {
+      "file": "../CLM-ml_v1/clm_src_main/ncdio_pio.F90",
+      "uses": [
+        "shr_kind_mod",
+        "abortutils"
+      ],
+      "subroutines": [
+        "ncd_pio_openfile",
+        "ncd_pio_closefile",
+        "ncd_inqdid",
+        "ncd_inqdlen",
+        "ncd_defvar",
+        "ncd_inqvdlen",
+        "ncd_io_1d",
+        "ncd_io_2d"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "initSubgridMod": {
+      "file": "../CLM-ml_v1/clm_src_main/initSubgridMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "PatchType"
+      ],
+      "subroutines": [
+        "add_patch"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_varctl": {
+      "file": "../CLM-ml_v1/clm_src_main/clm_varctl.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "histFileMod": {
+      "file": "../CLM-ml_v1/clm_src_main/histFileMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "decompMod"
+      ],
+      "subroutines": [
+        "hist_addfld1d",
+        "hist_addfld2d"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "initVerticalMod": {
+      "file": "../CLM-ml_v1/clm_src_main/initVerticalMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "abortutils",
+        "ColumnType",
+        "MLclm_varctl",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "subroutines": [
+        "initVertical"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "abortutils": {
+      "file": "../CLM-ml_v1/clm_src_main/abortutils.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varctl"
+      ],
+      "subroutines": [
+        "endrun",
+        "handle_err"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "restUtilMod": {
+      "file": "../CLM-ml_v1/clm_src_utils/restUtilMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "ncdio_pio"
+      ],
+      "subroutines": [
+        "restartvar_1d",
+        "restartvar_2d"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clm_varorb": {
+      "file": "../CLM-ml_v1/clm_src_utils/clm_varorb.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "clm_time_manager": {
+      "file": "../CLM-ml_v1/clm_src_utils/clm_time_manager.F90",
+      "uses": [
+        "shr_kind_mod",
+        "abortutils",
+        "clm_varctl"
+      ],
+      "subroutines": [
+        "get_curr_date",
+        "get_prev_date",
+        "get_curr_time"
+      ],
+      "functions": [
+        "get_step_size",
+        "get_step_size",
+        "get_nstep",
+        "get_nstep",
+        "isleap",
+        "isleap",
+        "get_curr_calday",
+        "get_prev_calday",
+        "get_prev_calday",
+        "is_end_curr_day",
+        "is_end_curr_day",
+        "is_end_curr_month",
+        "is_end_curr_month"
+      ],
+      "types": []
+    },
+    "spmdMod": {
+      "file": "../CLM-ml_v1/clm_src_utils/spmdMod.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "fileutils": {
+      "file": "../CLM-ml_v1/clm_src_utils/fileutils.F90",
+      "uses": [
+        "shr_file_mod",
+        "clm_varctl",
+        "abortutils"
+      ],
+      "subroutines": [
+        "getfil",
+        "opnfil",
+        "relavu"
+      ],
+      "functions": [
+        "get_filename",
+        "get_filename",
+        "getavu",
+        "getavu"
+      ],
+      "types": []
+    },
+    "shr_file_mod": {
+      "file": "../CLM-ml_v1/cime_src_share_util/shr_file_mod.F90",
+      "uses": [
+        "abortutils",
+        "shr_kind_mod",
+        "clm_varctl"
+      ],
+      "subroutines": [
+        "shr_file_freeUnit"
+      ],
+      "functions": [
+        "shr_file_getUnit",
+        "shr_file_getUnit"
+      ],
+      "types": []
+    },
+    "shr_orb_mod": {
+      "file": "../CLM-ml_v1/cime_src_share_util/shr_orb_mod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "shr_orb_decl",
+        "shr_orb_params"
+      ],
+      "functions": [
+        "shr_orb_cosz",
+        "shr_orb_cosz"
+      ],
+      "types": []
+    },
+    "shr_kind_mod": {
+      "file": "../CLM-ml_v1/cime_src_share_util/shr_kind_mod.F90",
+      "uses": [],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "MLLeafFluxesMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLLeafFluxesMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLWaterVaporMod",
+        "MLclm_varctl",
+        "MLCanopyFluxesType"
+      ],
+      "subroutines": [
+        "LeafFluxes"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLinitVerticalMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLinitVerticalMod.F90",
+      "uses": [
+        "CanopyStateType",
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "FrictionVelocityMod",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "atm2lndType",
+        "pftconMod",
+        "decompMod",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "initVerticalStructure",
+        "initVerticalProfiles"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLSoilFluxesMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLSoilFluxesMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLWaterVaporMod",
+        "MLCanopyFluxesType"
+      ],
+      "subroutines": [
+        "SoilFluxes"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLCanopyFluxesMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLCanopyFluxesMod.F90",
+      "uses": [
+        "MLSolarRadiationMod",
+        "ColumnType",
+        "MLCanopyWaterMod",
+        "PatchType",
+        "TemperatureType",
+        "clm_varpar",
+        "SolarAbsorbedType",
+        "decompMod",
+        "spmdMod",
+        "shr_kind_mod",
+        "clm_varctl",
+        "EnergyFluxType",
+        "SurfaceAlbedoType",
+        "clm_varorb",
+        "MLWaterVaporMod",
+        "MLLongwaveRadiationMod",
+        "MLclm_varctl",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "pftconMod",
+        "shr_orb_mod",
+        "MLLeafPhotosynthesisMod",
+        "MLCanopyNitrogenProfileMod",
+        "WaterStateType",
+        "MLLeafHeatCapacityMod",
+        "GridcellType",
+        "MLinitVerticalMod",
+        "atm2lndType",
+        "FrictionVelocityMod",
+        "MLclm_varpar",
+        "CanopyStateType",
+        "clm_time_manager",
+        "MLCanopyTurbulenceMod",
+        "abortutils",
+        "MLclm_varcon",
+        "WaterFluxType",
+        "SoilStateType",
+        "MLPlantHydraulicsMod",
+        "MLLeafBoundaryLayerMod"
+      ],
+      "subroutines": [
+        "MLCanopyFluxes",
+        "SubTimeStepFluxIntegration",
+        "CanopyFluxesDiagnostics"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLMathToolsMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLMathToolsMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLCanopyFluxesType",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "func",
+        "quadratic",
+        "tridiag",
+        "tridiag_2eq"
+      ],
+      "functions": [
+        "hybrid",
+        "zbrent",
+        "zbrent",
+        "log_gamma_function",
+        "beta_function",
+        "beta_distribution_pdf",
+        "beta_distribution_cdf",
+        "beta_function_incomplete_cf",
+        "beta_function_incomplete_cf"
+      ],
+      "types": []
+    },
+    "MLLongwaveRadiationMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLLongwaveRadiationMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "decompMod",
+        "MLclm_varpar",
+        "pftconMod"
+      ],
+      "subroutines": [
+        "LongwaveRadiation",
+        "Norman"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLLeafPhotosynthesisMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLLeafPhotosynthesisMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "MLWaterVaporMod",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "clm_varcon",
+        "pftconMod"
+      ],
+      "subroutines": [
+        "LeafPhotosynthesis",
+        "CiFunc",
+        "CiFuncGs",
+        "StomataOptimization",
+        "StomataEfficiency",
+        "C13Fractionation"
+      ],
+      "functions": [
+        "ft",
+        "fth",
+        "fth25",
+        "fth25"
+      ],
+      "types": []
+    },
+    "MLCanopyFluxesType": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLCanopyFluxesType.F90",
+      "uses": [
+        "shr_kind_mod",
+        "abortutils",
+        "restUtilMod",
+        "ncdio_pio",
+        "clm_varpar",
+        "histFileMod",
+        "clm_varcon",
+        "decompMod",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "Init",
+        "InitAllocate",
+        "InitHistory",
+        "InitCold",
+        "Restart"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLPlantHydraulicsMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLPlantHydraulicsMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "WaterStateType",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "SoilStateType",
+        "ColumnType",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varpar",
+        "clm_varcon",
+        "pftconMod"
+      ],
+      "subroutines": [
+        "PlantResistance",
+        "SoilResistance",
+        "LeafWaterPotential"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLLeafBoundaryLayerMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLLeafBoundaryLayerMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varcon",
+        "pftconMod"
+      ],
+      "subroutines": [
+        "LeafBoundaryLayer"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLclm_varctl": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLclm_varctl.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "MLCanopyWaterMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLCanopyWaterMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "MLCanopyFluxesType",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "CanopyInterception",
+        "CanopyEvaporation"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLclm_varcon": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLclm_varcon.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "MLLeafHeatCapacityMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLLeafHeatCapacityMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "PatchType",
+        "clm_varcon",
+        "pftconMod"
+      ],
+      "subroutines": [
+        "LeafHeatCapacity"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLSolarRadiationMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLSolarRadiationMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "clm_varpar",
+        "clm_varcon",
+        "pftconMod",
+        "decompMod",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "SolarRadiation",
+        "Norman",
+        "TwoStream"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLWaterVaporMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLWaterVaporMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "SatVap"
+      ],
+      "functions": [
+        "LatVap",
+        "LatVap"
+      ],
+      "types": []
+    },
+    "MLclm_varpar": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLclm_varpar.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "MLCanopyNitrogenProfileMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLCanopyNitrogenProfileMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLCanopyFluxesType",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varcon",
+        "pftconMod",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "CanopyNitrogenProfile"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "MLCanopyTurbulenceMod": {
+      "file": "../CLM-ml_v1/multilayer_canopy/MLCanopyTurbulenceMod.F90",
+      "uses": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLSoilFluxesMod",
+        "spmdMod",
+        "MLWaterVaporMod",
+        "MLclm_varctl",
+        "MLLeafFluxesMod",
+        "MLMathToolsMod",
+        "fileutils",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "ncdio_pio",
+        "MLclm_varpar"
+      ],
+      "subroutines": [
+        "CanopyTurbulence",
+        "WellMixed",
+        "HF2008",
+        "ObuFunc",
+        "GetBeta",
+        "GetPrSc",
+        "GetPsiRSL",
+        "LookupPsihat",
+        "WindProfile",
+        "AerodynamicConductance",
+        "FluxProfileSolution",
+        "LookupPsihatINI"
+      ],
+      "functions": [
+        "phim_monin_obukhov",
+        "phic_monin_obukhov",
+        "psim_monin_obukhov",
+        "psic_monin_obukhov",
+        "psic_monin_obukhov"
+      ],
+      "types": []
+    },
+    "SoilTexMod": {
+      "file": "../CLM-ml_v1/offline_driver/SoilTexMod.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    },
+    "CLMml_driver": {
+      "file": "../CLM-ml_v1/offline_driver/CLMml_driver.F90",
+      "uses": [
+        "lnd_comp_mct",
+        "filterMod",
+        "ColumnType",
+        "controlMod",
+        "fileutils",
+        "PatchType",
+        "TowerMetMod",
+        "TemperatureType",
+        "clm_varpar",
+        "decompMod",
+        "clm_varctl",
+        "shr_kind_mod",
+        "TowerDataMod",
+        "clm_varorb",
+        "clm_instMod",
+        "MLclm_varctl",
+        "clm_varcon",
+        "pftconMod",
+        "shr_orb_mod",
+        "MLCanopyFluxesType",
+        "WaterStateType",
+        "atm2lndType",
+        "FrictionVelocityMod",
+        "MLclm_varpar",
+        "CanopyStateType",
+        "clm_time_manager",
+        "abortutils",
+        "MLclm_varcon",
+        "SoilStateType"
+      ],
+      "subroutines": [
+        "CLMml_drv",
+        "init_acclim",
+        "TowerVeg",
+        "SoilInit",
+        "output",
+        "ReadCanopyProfiles"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "controlMod": {
+      "file": "../CLM-ml_v1/offline_driver/controlMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "clm_time_manager",
+        "abortutils",
+        "clm_varctl",
+        "TowerDataMod",
+        "MLclm_varctl"
+      ],
+      "subroutines": [
+        "control"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "clmDataMod": {
+      "file": "../CLM-ml_v1/offline_driver/clmDataMod.F90",
+      "uses": [
+        "CanopyStateType",
+        "WaterStateType",
+        "shr_kind_mod",
+        "abortutils",
+        "SurfaceAlbedoType",
+        "SoilStateType",
+        "ColumnType",
+        "MLclm_varctl",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "subroutines": [
+        "clmData",
+        "readCLMdata",
+        "readCLMsoil"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "TowerMetMod": {
+      "file": "../CLM-ml_v1/offline_driver/TowerMetMod.F90",
+      "uses": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "abortutils",
+        "GridcellType",
+        "MLclm_varcon",
+        "MLWaterVaporMod",
+        "PatchType",
+        "clm_varpar",
+        "clm_varcon",
+        "atm2lndType",
+        "FrictionVelocityMod"
+      ],
+      "subroutines": [
+        "TowerMet",
+        "readTowerMet"
+      ],
+      "functions": [],
+      "types": []
+    },
+    "TowerDataMod": {
+      "file": "../CLM-ml_v1/offline_driver/TowerDataMod.F90",
+      "uses": [
+        "shr_kind_mod"
+      ],
+      "subroutines": [],
+      "functions": [],
+      "types": []
+    }
+  },
+  "dependencies": {
+    "internal": {
+      "SurfaceResistanceMod": [
+        "WaterStateType",
+        "shr_kind_mod",
+        "abortutils",
+        "SoilStateType",
+        "ColumnType",
+        "TemperatureType",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "WaterStateType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "SurfaceAlbedoMod": [
+        "WaterStateType",
+        "TowerDataMod",
+        "abortutils",
+        "shr_kind_mod",
+        "SurfaceAlbedoType",
+        "clm_varpar",
+        "decompMod"
+      ],
+      "SoilStateType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "SolarAbsorbedType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "SurfaceAlbedoType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "SoilTemperatureMod": [
+        "WaterStateType",
+        "shr_kind_mod",
+        "abortutils",
+        "clm_time_manager",
+        "clm_varctl",
+        "SoilStateType",
+        "ColumnType",
+        "TemperatureType",
+        "clm_varpar",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "decompMod"
+      ],
+      "WaterFluxType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "CanopyStateType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "SoilWaterMovementMod": [
+        "WaterStateType",
+        "shr_kind_mod",
+        "SoilStateType",
+        "ColumnType",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "SoilStateInitTimeConstMod": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "abortutils",
+        "clm_varctl",
+        "SoilStateType",
+        "ColumnType",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varpar",
+        "clm_varcon",
+        "SoilTexMod",
+        "pftconMod",
+        "decompMod"
+      ],
+      "EnergyFluxType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "FrictionVelocityMod": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varcon"
+      ],
+      "TemperatureType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "lnd_comp_mct": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_driver",
+        "clm_initializeMod"
+      ],
+      "atm2lndType": [
+        "shr_kind_mod",
+        "decompMod",
+        "clm_varpar"
+      ],
+      "clm_varpar": [
+        "MLclm_varctl",
+        "shr_kind_mod"
+      ],
+      "clm_varcon": [
+        "shr_kind_mod"
+      ],
+      "PatchType": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "clm_driver": [
+        "clmDataMod",
+        "shr_kind_mod",
+        "abortutils",
+        "SoilTemperatureMod",
+        "filterMod",
+        "SurfaceAlbedoMod",
+        "MLCanopyFluxesMod",
+        "clm_instMod",
+        "SoilWaterMovementMod",
+        "ColumnType",
+        "clm_varpar",
+        "SurfaceResistanceMod",
+        "decompMod"
+      ],
+      "ColumnType": [
+        "shr_kind_mod",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "GridcellType": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "initGridCellsMod": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "initSubgridMod"
+      ],
+      "clm_initializeMod": [
+        "shr_kind_mod",
+        "MLCanopyTurbulenceMod",
+        "GridcellType",
+        "filterMod",
+        "initGridCellsMod",
+        "clm_instMod",
+        "ColumnType",
+        "PatchType",
+        "clm_varpar",
+        "pftconMod",
+        "decompMod"
+      ],
+      "filterMod": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "clm_instMod": [
+        "decompMod",
+        "CanopyStateType",
+        "WaterStateType",
+        "shr_kind_mod",
+        "EnergyFluxType",
+        "SurfaceAlbedoType",
+        "WaterFluxType",
+        "SurfaceAlbedoMod",
+        "SoilStateInitTimeConstMod",
+        "SoilStateType",
+        "TemperatureType",
+        "ncdio_pio",
+        "SolarAbsorbedType",
+        "atm2lndType",
+        "MLCanopyFluxesType",
+        "FrictionVelocityMod",
+        "initVerticalMod"
+      ],
+      "decompMod": [
+        "shr_kind_mod"
+      ],
+      "pftconMod": [
+        "shr_kind_mod",
+        "clm_varpar"
+      ],
+      "ncdio_pio": [
+        "shr_kind_mod",
+        "abortutils"
+      ],
+      "initSubgridMod": [
+        "shr_kind_mod",
+        "PatchType"
+      ],
+      "clm_varctl": [
+        "shr_kind_mod"
+      ],
+      "histFileMod": [
+        "shr_kind_mod",
+        "decompMod"
+      ],
+      "initVerticalMod": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "abortutils",
+        "ColumnType",
+        "MLclm_varctl",
+        "clm_varpar",
+        "clm_varcon",
+        "decompMod"
+      ],
+      "abortutils": [
+        "shr_kind_mod",
+        "clm_varctl"
+      ],
+      "restUtilMod": [
+        "shr_kind_mod",
+        "ncdio_pio"
+      ],
+      "clm_varorb": [
+        "shr_kind_mod"
+      ],
+      "clm_time_manager": [
+        "shr_kind_mod",
+        "abortutils",
+        "clm_varctl"
+      ],
+      "spmdMod": [
+        "shr_kind_mod"
+      ],
+      "fileutils": [
+        "abortutils",
+        "shr_file_mod",
+        "clm_varctl"
+      ],
+      "shr_file_mod": [
+        "shr_kind_mod",
+        "abortutils",
+        "clm_varctl"
+      ],
+      "shr_orb_mod": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "MLLeafFluxesMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLWaterVaporMod",
+        "MLclm_varctl",
+        "MLCanopyFluxesType"
+      ],
+      "MLinitVerticalMod": [
+        "decompMod",
+        "CanopyStateType",
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "atm2lndType",
+        "MLCanopyFluxesType",
+        "FrictionVelocityMod",
+        "MLclm_varpar",
+        "pftconMod"
+      ],
+      "MLSoilFluxesMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLWaterVaporMod",
+        "MLCanopyFluxesType"
+      ],
+      "MLCanopyFluxesMod": [
+        "MLSolarRadiationMod",
+        "ColumnType",
+        "MLCanopyWaterMod",
+        "PatchType",
+        "TemperatureType",
+        "clm_varpar",
+        "SolarAbsorbedType",
+        "decompMod",
+        "spmdMod",
+        "shr_kind_mod",
+        "clm_varctl",
+        "EnergyFluxType",
+        "SurfaceAlbedoType",
+        "clm_varorb",
+        "MLWaterVaporMod",
+        "MLLongwaveRadiationMod",
+        "MLclm_varctl",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "pftconMod",
+        "shr_orb_mod",
+        "MLLeafPhotosynthesisMod",
+        "MLCanopyNitrogenProfileMod",
+        "WaterStateType",
+        "MLLeafHeatCapacityMod",
+        "GridcellType",
+        "MLinitVerticalMod",
+        "atm2lndType",
+        "FrictionVelocityMod",
+        "MLclm_varpar",
+        "CanopyStateType",
+        "clm_time_manager",
+        "MLCanopyTurbulenceMod",
+        "abortutils",
+        "MLclm_varcon",
+        "WaterFluxType",
+        "SoilStateType",
+        "MLPlantHydraulicsMod",
+        "MLLeafBoundaryLayerMod"
+      ],
+      "MLMathToolsMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLCanopyFluxesType",
+        "MLclm_varpar"
+      ],
+      "MLLongwaveRadiationMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "decompMod",
+        "MLclm_varpar",
+        "pftconMod"
+      ],
+      "MLLeafPhotosynthesisMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLWaterVaporMod",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "pftconMod"
+      ],
+      "MLCanopyFluxesType": [
+        "decompMod",
+        "clm_varcon",
+        "shr_kind_mod",
+        "abortutils",
+        "clm_varpar",
+        "histFileMod",
+        "restUtilMod",
+        "ncdio_pio",
+        "MLclm_varpar"
+      ],
+      "MLPlantHydraulicsMod": [
+        "WaterStateType",
+        "clm_varctl",
+        "abortutils",
+        "shr_kind_mod",
+        "MLclm_varcon",
+        "SoilStateType",
+        "ColumnType",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varpar",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "pftconMod"
+      ],
+      "MLLeafBoundaryLayerMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "pftconMod"
+      ],
+      "MLclm_varctl": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "MLCanopyWaterMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "MLCanopyFluxesType",
+        "MLclm_varpar"
+      ],
+      "MLclm_varcon": [
+        "shr_kind_mod",
+        "clm_varcon"
+      ],
+      "MLLeafHeatCapacityMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "PatchType",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "pftconMod"
+      ],
+      "MLSolarRadiationMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "PatchType",
+        "MLMathToolsMod",
+        "clm_varpar",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "decompMod",
+        "MLclm_varpar",
+        "pftconMod"
+      ],
+      "MLWaterVaporMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "clm_varcon"
+      ],
+      "MLclm_varpar": [
+        "shr_kind_mod"
+      ],
+      "MLCanopyNitrogenProfileMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLclm_varctl",
+        "PatchType",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "MLclm_varpar",
+        "pftconMod"
+      ],
+      "MLCanopyTurbulenceMod": [
+        "clm_varctl",
+        "shr_kind_mod",
+        "abortutils",
+        "MLclm_varcon",
+        "MLSoilFluxesMod",
+        "MLWaterVaporMod",
+        "MLclm_varpar",
+        "MLclm_varctl",
+        "MLLeafFluxesMod",
+        "MLMathToolsMod",
+        "fileutils",
+        "clm_varcon",
+        "MLCanopyFluxesType",
+        "ncdio_pio",
+        "spmdMod"
+      ],
+      "SoilTexMod": [
+        "shr_kind_mod"
+      ],
+      "CLMml_driver": [
+        "lnd_comp_mct",
+        "filterMod",
+        "ColumnType",
+        "controlMod",
+        "fileutils",
+        "PatchType",
+        "TowerMetMod",
+        "TemperatureType",
+        "clm_varpar",
+        "decompMod",
+        "clm_varctl",
+        "shr_kind_mod",
+        "TowerDataMod",
+        "clm_varorb",
+        "clm_instMod",
+        "MLclm_varctl",
+        "clm_varcon",
+        "pftconMod",
+        "shr_orb_mod",
+        "MLCanopyFluxesType",
+        "WaterStateType",
+        "atm2lndType",
+        "FrictionVelocityMod",
+        "MLclm_varpar",
+        "CanopyStateType",
+        "clm_time_manager",
+        "abortutils",
+        "MLclm_varcon",
+        "SoilStateType"
+      ],
+      "controlMod": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "abortutils",
+        "clm_time_manager",
+        "clm_varctl",
+        "MLclm_varctl"
+      ],
+      "clmDataMod": [
+        "CanopyStateType",
+        "WaterStateType",
+        "shr_kind_mod",
+        "abortutils",
+        "SurfaceAlbedoType",
+        "SoilStateType",
+        "ColumnType",
+        "MLclm_varctl",
+        "clm_varpar",
+        "clm_varcon"
+      ],
+      "TowerMetMod": [
+        "shr_kind_mod",
+        "TowerDataMod",
+        "abortutils",
+        "GridcellType",
+        "MLclm_varcon",
+        "MLWaterVaporMod",
+        "PatchType",
+        "clm_varpar",
+        "clm_varcon",
+        "atm2lndType",
+        "FrictionVelocityMod"
+      ],
+      "TowerDataMod": [
+        "shr_kind_mod"
+      ]
+    },
+    "external": [],
+    "circular": []
+  },
+  "statistics": {
+    "most_used_modules": {
+      "shr_kind_mod": 67,
+      "clm_varcon": 45,
+      "MLclm_varcon": 38,
+      "MLCanopyFluxesType": 37,
+      "abortutils": 32,
+      "clm_varpar": 29,
+      "decompMod": 28,
+      "MLclm_varctl": 25,
+      "clm_varctl": 24,
+      "PatchType": 24
+    },
+    "modules_by_directory": {
+      "clm_src_biogeophys": [
+        "SurfaceResistanceMod",
+        "WaterStateType",
+        "SurfaceAlbedoMod",
+        "SoilStateType",
+        "SolarAbsorbedType",
+        "SurfaceAlbedoType",
+        "SoilTemperatureMod",
+        "WaterFluxType",
+        "CanopyStateType",
+        "SoilWaterMovementMod",
+        "SoilStateInitTimeConstMod",
+        "EnergyFluxType",
+        "FrictionVelocityMod",
+        "TemperatureType"
+      ],
+      "clm_src_cpl": [
+        "lnd_comp_mct"
+      ],
+      "clm_src_main": [
+        "atm2lndType",
+        "clm_varpar",
+        "clm_varcon",
+        "PatchType",
+        "clm_driver",
+        "ColumnType",
+        "GridcellType",
+        "initGridCellsMod",
+        "clm_initializeMod",
+        "filterMod",
+        "clm_instMod",
+        "decompMod",
+        "pftconMod",
+        "ncdio_pio",
+        "initSubgridMod",
+        "clm_varctl",
+        "histFileMod",
+        "initVerticalMod",
+        "abortutils"
+      ],
+      "clm_src_utils": [
+        "restUtilMod",
+        "clm_varorb",
+        "clm_time_manager",
+        "spmdMod",
+        "fileutils"
+      ],
+      "cime_src_share_util": [
+        "shr_file_mod",
+        "shr_orb_mod",
+        "shr_kind_mod"
+      ],
+      "multilayer_canopy": [
+        "MLLeafFluxesMod",
+        "MLinitVerticalMod",
+        "MLSoilFluxesMod",
+        "MLCanopyFluxesMod",
+        "MLMathToolsMod",
+        "MLLongwaveRadiationMod",
+        "MLLeafPhotosynthesisMod",
+        "MLCanopyFluxesType",
+        "MLPlantHydraulicsMod",
+        "MLLeafBoundaryLayerMod",
+        "MLclm_varctl",
+        "MLCanopyWaterMod",
+        "MLclm_varcon",
+        "MLLeafHeatCapacityMod",
+        "MLSolarRadiationMod",
+        "MLWaterVaporMod",
+        "MLclm_varpar",
+        "MLCanopyNitrogenProfileMod",
+        "MLCanopyTurbulenceMod"
+      ],
+      "offline_driver": [
+        "SoilTexMod",
+        "CLMml_driver",
+        "controlMod",
+        "clmDataMod",
+        "TowerMetMod",
+        "TowerDataMod"
+      ]
+    },
+    "complexity_metrics": {
+      "average_procedures_per_module": 2.6417910447761193,
+      "max_procedures_in_module": 17,
+      "modules_with_many_procedures": 3
+    }
+  },
+  "translation_recommendations": {
+    "start_with_leaf_modules": [
+      "shr_kind_mod"
+    ],
+    "high_priority_utilities": [
+      "shr_kind_mod",
+      "clm_varcon",
+      "abortutils",
+      "decompMod",
+      "clm_varctl"
+    ],
+    "consider_decomposing": [
+      "clm_time_manager",
+      "MLCanopyTurbulenceMod"
+    ],
+    "translation_order_suggestion": [
+      "shr_kind_mod",
+      "shr_kind_mod",
+      "clm_varcon",
+      "abortutils",
+      "decompMod",
+      "clm_varctl"
+    ]
+  }
+}
