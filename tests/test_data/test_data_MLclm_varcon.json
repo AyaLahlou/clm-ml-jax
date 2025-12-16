@@ -1,0 +1,1105 @@
+{
+  "function_name": "create_empty_rsl_lookup_tables",
+  "test_cases": [
+    {
+      "name": "test_nominal_default_dimensions",
+      "inputs": {
+        "constants": "default"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests with default ML_CANOPY_CONSTANTS using typical n_z=10, n_l=10 dimensions",
+        "edge_cases": [],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            10,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            10
+          ],
+          "psigrid_m": [
+            10,
+            10
+          ],
+          "zdtgrid_h": [
+            10,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            10
+          ],
+          "psigrid_h": [
+            10,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_nominal_small_dimensions",
+      "inputs": {
+        "constants": {
+          "n_z": 5,
+          "n_l": 5,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests with smaller grid dimensions (5x5) to verify function works with different sizes",
+        "edge_cases": [],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            5,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            5
+          ],
+          "psigrid_m": [
+            5,
+            5
+          ],
+          "zdtgrid_h": [
+            5,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            5
+          ],
+          "psigrid_h": [
+            5,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_nominal_large_dimensions",
+      "inputs": {
+        "constants": {
+          "n_z": 50,
+          "n_l": 50,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests with larger grid dimensions (50x50) for high-resolution simulations",
+        "edge_cases": [],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            50,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            50
+          ],
+          "psigrid_m": [
+            50,
+            50
+          ],
+          "zdtgrid_h": [
+            50,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            50
+          ],
+          "psigrid_h": [
+            50,
+            50
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_nominal_rectangular_grid",
+      "inputs": {
+        "constants": {
+          "n_z": 20,
+          "n_l": 15,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests with non-square grid dimensions (20x15) to verify rectangular grids work correctly",
+        "edge_cases": [],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            20,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            15
+          ],
+          "psigrid_m": [
+            20,
+            15
+          ],
+          "zdtgrid_h": [
+            20,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            15
+          ],
+          "psigrid_h": [
+            20,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_nominal_asymmetric_rectangular",
+      "inputs": {
+        "constants": {
+          "n_z": 8,
+          "n_l": 25,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests with highly asymmetric dimensions (8x25) where n_l >> n_z",
+        "edge_cases": [],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            8,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            25
+          ],
+          "psigrid_m": [
+            8,
+            25
+          ],
+          "zdtgrid_h": [
+            8,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            25
+          ],
+          "psigrid_h": [
+            8,
+            25
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_edge_minimum_dimensions",
+      "inputs": {
+        "constants": {
+          "n_z": 1,
+          "n_l": 1,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests minimum valid dimensions (1x1) - boundary case for smallest possible lookup table",
+        "edge_cases": [
+          "minimum_dimensions"
+        ],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            1,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            1
+          ],
+          "psigrid_m": [
+            1,
+            1
+          ],
+          "zdtgrid_h": [
+            1,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            1
+          ],
+          "psigrid_h": [
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_edge_boundary_fractions_zero",
+      "inputs": {
+        "constants": {
+          "n_z": 10,
+          "n_l": 10,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.0,
+          "vpd_min_med": 0.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.0,
+          "fwater": 0.0,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.0,
+          "interception_fraction": 0.0,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.0,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.0,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.0,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests with fraction parameters at zero boundary (rh_min_bb=0, fcarbon=0, etc.)",
+        "edge_cases": [
+          "zero_fractions",
+          "zero_wind"
+        ],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            10,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            10
+          ],
+          "psigrid_m": [
+            10,
+            10
+          ],
+          "zdtgrid_h": [
+            10,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            10
+          ],
+          "psigrid_h": [
+            10,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_edge_boundary_fractions_one",
+      "inputs": {
+        "constants": {
+          "n_z": 10,
+          "n_l": 10,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 1.0,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 1.0,
+          "fwater": 1.0,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 1.0,
+          "interception_fraction": 1.0,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 1.0,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests with fraction parameters at maximum boundary (rh_min_bb=1, fcarbon=1, emg=1, etc.)",
+        "edge_cases": [
+          "maximum_fractions"
+        ],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            10,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            10
+          ],
+          "psigrid_m": [
+            10,
+            10
+          ],
+          "zdtgrid_h": [
+            10,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            10
+          ],
+          "psigrid_h": [
+            10,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_special_very_large_grid",
+      "inputs": {
+        "constants": {
+          "n_z": 100,
+          "n_l": 100,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests very large grid (100x100) for memory allocation and performance testing",
+        "edge_cases": [],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            100,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            100
+          ],
+          "psigrid_m": [
+            100,
+            100
+          ],
+          "zdtgrid_h": [
+            100,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            100
+          ],
+          "psigrid_h": [
+            100,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "name": "test_special_extreme_asymmetry",
+      "inputs": {
+        "constants": {
+          "n_z": 2,
+          "n_l": 100,
+          "rgas": 8.314,
+          "mmdry": 28.97,
+          "mmh2o": 18.016,
+          "cpd": 1005.0,
+          "cpw": 1846.0,
+          "visc0": 1.5e-05,
+          "dh0": 2.12e-05,
+          "dv0": 2.4e-05,
+          "dc0": 1.47e-05,
+          "lapse_rate": 0.0065,
+          "kc25": 404.9,
+          "kcha": 79430.0,
+          "ko25": 278.4,
+          "koha": 36380.0,
+          "cp25": 42.75,
+          "cpha": 37830.0,
+          "vcmaxha_noacclim": 72000.0,
+          "vcmaxha_acclim": 65330.0,
+          "vcmaxhd_noacclim": 200000.0,
+          "vcmaxhd_acclim": 200000.0,
+          "vcmaxse_noacclim": 668.39,
+          "vcmaxse_acclim": 668.39,
+          "jmaxha_noacclim": 50000.0,
+          "jmaxha_acclim": 43540.0,
+          "jmaxhd_noacclim": 200000.0,
+          "jmaxhd_acclim": 152040.0,
+          "jmaxse_noacclim": 659.7,
+          "jmaxse_acclim": 495.0,
+          "rdha": 46390.0,
+          "rdhd": 150650.0,
+          "rdse": 490.0,
+          "jmax25_to_vcmax25_noacclim": 1.67,
+          "jmax25_to_vcmax25_acclim": 1.67,
+          "rd25_to_vcmax25_c3": 0.015,
+          "rd25_to_vcmax25_c4": 0.025,
+          "kp25_to_vcmax25_c4": 0.02,
+          "phi_psii": 0.7,
+          "theta_j": 0.9,
+          "qe_c4": 0.05,
+          "colim_c3a": 0.98,
+          "colim_c3b": 0.95,
+          "colim_c4a": 0.8,
+          "colim_c4b": 0.95,
+          "dh2o_to_dco2": 1.6,
+          "rh_min_bb": 0.3,
+          "vpd_min_med": 50.0,
+          "cpbio": 2000000.0,
+          "fcarbon": 0.5,
+          "fwater": 0.5,
+          "gb_factor": 1.0,
+          "dewmx": 0.1,
+          "maximum_leaf_wetted_fraction": 0.05,
+          "interception_fraction": 0.25,
+          "fwet_exponent": 0.667,
+          "clm45_interception_p1": 0.25,
+          "clm45_interception_p2": 0.5,
+          "chil_min": -0.4,
+          "chil_max": 0.6,
+          "kb_max": 0.9,
+          "j_to_umol": 4.6,
+          "emg": 0.97,
+          "cd": 0.3,
+          "beta_neutral_max": 1.0,
+          "cr": 0.3,
+          "c2": 0.75,
+          "pr0": 0.5,
+          "pr1": 0.3,
+          "pr2": 0.3,
+          "z0mg": 0.01,
+          "wind_forc_min": 0.1,
+          "eta_max": 10.0,
+          "zeta_min": -2.0,
+          "zeta_max": 1.0,
+          "beta_min": 0.0,
+          "beta_max": 2.0,
+          "wind_min": 0.1,
+          "ra_max": 999.0
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests extreme asymmetry (2x100) where one dimension is minimal and other is large",
+        "edge_cases": [
+          "extreme_asymmetry"
+        ],
+        "expected_shapes": {
+          "zdtgrid_m": [
+            2,
+            1
+          ],
+          "dtlgrid_m": [
+            1,
+            100
+          ],
+          "psigrid_m": [
+            2,
+            100
+          ],
+          "zdtgrid_h": [
+            2,
+            1
+          ],
+          "dtlgrid_h": [
+            1,
+            100
+          ],
+          "psigrid_h": [
+            2,
+            100
+          ]
+        }
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Nominal cases (5 tests)**: Cover typical usage patterns with default dimensions, small grids (5x5), large grids (50x50), and rectangular grids (20x15, 8x25) to ensure the function handles various realistic grid configurations.\n\n2. **Edge cases (3 tests)**: \n   - Minimum dimensions (1x1): Tests the absolute minimum valid input\n   - Boundary fractions at zero: Tests parameters like rh_min_bb, fcarbon, fwater, emg, wind speeds at their minimum valid values (0)\n   - Boundary fractions at one: Tests fraction parameters at their maximum valid values (1)\n\n3. **Special cases (2 tests)**:\n   - Very large grid (100x100): Tests memory allocation and performance with large arrays\n   - Extreme asymmetry (2x100): Tests handling of highly asymmetric grids\n\n**Physical constraints enforced**:\n- All positive-definite quantities (gas constants, molecular masses, specific heats, diffusivities) are positive\n- Fractions (rh_min_bb, fcarbon, fwater, emg, etc.) are in [0, 1]\n- Wind speeds are non-negative\n- Array dimensions (n_z, n_l) are positive integers >= 1\n\n**Expected behavior**: The function should create RSLPsihatLookupTables with all arrays initialized to zeros and correct shapes:\n- zdtgrid_m, zdtgrid_h: shape (n_z, 1)\n- dtlgrid_m, dtlgrid_h: shape (1, n_l)\n- psigrid_m, psigrid_h: shape (n_z, n_l)\n\n**Testing approach**: Tests should verify:\n1. Correct return type (RSLPsihatLookupTables namedtuple)\n2. All 6 fields present\n3. Correct shapes for each array\n4. Arrays are JAX arrays (jnp.ndarray)\n5. All values initialized to zero\n6. Arrays are on correct device (GPU if available)"
+}

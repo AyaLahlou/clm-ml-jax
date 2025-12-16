@@ -1,0 +1,112 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0 -- /burg-archive/home/mck2199/clm-ml-jax/jax-agents/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /burg-archive/home/mck2199/clm-ml-jax
+configfile: pytest.ini
+plugins: cov-7.0.0, anyio-4.12.0
+collecting ... collected 80 items
+
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateDefaultConfig::test_default_config_all_fields PASSED [  1%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateDefaultConfig::test_default_config_type PASSED [  2%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateDefaultConfig::test_default_config_immutable PASSED [  3%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM5Config::test_clm5_config_physics PASSED [  5%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM5Config::test_clm5_config_fpi_type PASSED [  6%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM5Config::test_clm5_config_root_type PASSED [  7%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM5Config::test_clm5_config_inherits_defaults PASSED [  8%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM45Config::test_clm45_config_physics PASSED [ 10%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM45Config::test_clm45_config_fpi_type PASSED [ 11%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM45Config::test_clm45_config_root_type PASSED [ 12%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestCreateCLM45Config::test_clm45_config_inherits_defaults PASSED [ 13%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_default_config PASSED [ 15%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_clm5_config PASSED [ 16%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_clm45_config PASSED [ 17%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_all_valid_options PASSED [ 18%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_invalid_clm_phys PASSED [ 20%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_invalid_gs_type PASSED [ 21%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_invalid_gspot_type PASSED [ 22%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_invalid_turb_type PASSED [ 23%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_zero_dz_tall PASSED [ 25%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_negative_dz_tall PASSED [ 26%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_zero_dtime_substep PASSED [ 27%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_negative_dtime_substep PASSED [ 28%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_negative_nlayer_above PASSED [ 30%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_boundary_values PASSED [ 31%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestValidateConfig::test_validate_extreme_large_values PASSED [ 32%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestIsCLM5Physics::test_is_clm5_physics_true PASSED [ 33%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestIsCLM5Physics::test_is_clm5_physics_false PASSED [ 35%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestIsCLM5Physics::test_is_clm5_physics_default PASSED [ 36%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesAutoLayers::test_uses_auto_layers_both_auto PASSED [ 37%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesAutoLayers::test_uses_auto_layers_above_auto PASSED [ 38%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesAutoLayers::test_uses_auto_layers_within_auto PASSED [ 40%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesAutoLayers::test_uses_auto_layers_manual PASSED [ 41%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesRSLTurbulence::test_uses_rsl_turbulence_true PASSED [ 42%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesRSLTurbulence::test_uses_rsl_turbulence_false_well_mixed PASSED [ 43%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestUsesRSLTurbulence::test_uses_rsl_turbulence_false_dataset PASSED [ 45%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_tall_canopy PASSED [ 46%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_short_canopy PASSED [ 47%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_boundary_height PASSED [ 48%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_zero_height PASSED [ 50%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_very_tall_canopy PASSED [ 51%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_just_above_threshold PASSED [ 52%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_just_below_threshold PASSED [ 53%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestGetCanopyDz::test_get_canopy_dz_custom_params PASSED [ 55%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_returns_string PASSED [ 56%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_contains_title PASSED [ 57%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_contains_physics PASSED [ 58%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_contains_all_major_sections PASSED [ 60%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_clm5 PASSED [ 61%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_multiline PASSED [ 62%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigSummary::test_config_summary_custom_config PASSED [ 63%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigurationIntegration::test_create_validate_clm5_workflow PASSED [ 65%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigurationIntegration::test_create_validate_clm45_workflow PASSED [ 66%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigurationIntegration::test_modify_and_validate_workflow PASSED [ 67%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigurationIntegration::test_multilayer_coupling_workflow PASSED [ 68%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigurationIntegration::test_custom_turbulence_workflow PASSED [ 70%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestConfigurationIntegration::test_canopy_height_dependent_workflow PASSED [ 71%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestEdgeCases::test_all_enum_combinations_valid PASSED [ 72%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestEdgeCases::test_sentinel_values_preserved PASSED [ 73%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestEdgeCases::test_config_with_all_manual_layers PASSED [ 75%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestEdgeCases::test_config_with_minimal_timestep PASSED [ 76%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::TestEdgeCases::test_config_with_large_timestep PASSED [ 77%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_validate_gs_type_parametrized[0-True] PASSED [ 78%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_validate_gs_type_parametrized[1-True] PASSED [ 80%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_validate_gs_type_parametrized[2-True] PASSED [ 81%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_validate_gs_type_parametrized[3-False] PASSED [ 82%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_validate_gs_type_parametrized[-1-False] PASSED [ 83%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[0.0-0.1] PASSED [ 85%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[0.5-0.1] PASSED [ 86%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[1.0-0.1] PASSED [ 87%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[2.0-0.1] PASSED [ 88%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[2.01-0.5] PASSED [ 90%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[5.0-0.5] PASSED [ 91%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_get_canopy_dz_parametrized[50.0-0.5] PASSED [ 92%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_is_clm5_physics_parametrized[CLM4_5-False] PASSED [ 93%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_is_clm5_physics_parametrized[CLM5_0-True] PASSED [ 95%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_uses_auto_layers_parametrized[0-0-True] PASSED [ 96%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_uses_auto_layers_parametrized[0-20-True] PASSED [ 97%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_uses_auto_layers_parametrized[10-0-True] PASSED [ 98%]
+../tests/multilayer_canopy/test_MLclm_varctl.py::test_uses_auto_layers_parametrized[10-20-False] PASSED [100%]/burg-archive/home/mck2199/clm-ml-jax/jax-agents/.venv/lib64/python3.11/site-packages/coverage/control.py:957: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.13.0/messages.html#warning-no-data-collected
+  self._warn("No data was collected.", slug="no-data-collected")
+
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.11.13-final-0 _______________
+
+Name                                                Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------
+src/jax_agents/__init__.py                              6      6     0%   7-14
+src/jax_agents/base_agent.py                          114    114     0%   7-386
+src/jax_agents/prompts/__init__.py                      3      3     0%   3-6
+src/jax_agents/prompts/repair_prompts.py                1      1     0%   11
+src/jax_agents/prompts/test_prompts_simplified.py       1      1     0%   8
+src/jax_agents/prompts/translation_prompts_v2.py        1      1     0%   3
+src/jax_agents/repair_agent.py                        169    169     0%   13-453
+src/jax_agents/test_agent.py                          133    133     0%   11-335
+src/jax_agents/translator.py                          277    277     0%   8-891
+src/jax_agents/utils/__init__.py                        2      2     0%   3-5
+src/jax_agents/utils/config_loader.py                  21     21     0%   3-69
+---------------------------------------------------------------------------------
+TOTAL                                                 728    728     0%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+============================== 80 passed in 0.57s ==============================

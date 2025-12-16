@@ -1,0 +1,101 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0 -- /burg-archive/home/mck2199/clm-ml-jax/jax-agents/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /burg-archive/home/mck2199/clm-ml-jax
+configfile: pytest.ini
+plugins: cov-7.0.0, anyio-4.12.0
+collecting ... collected 69 items
+
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_returns_mlcanopy_params_type PASSED [  1%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_default_nlevmlcan_value PASSED [  2%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_default_nleaf_value PASSED [  4%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_default_isun_value PASSED [  5%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_default_isha_value PASSED [  7%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_all_fields_are_integers PASSED [  8%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_sunlit_shaded_indices_distinct PASSED [ 10%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_nlevmlcan_positive PASSED [ 11%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_function_is_deterministic PASSED [ 13%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestGetMLCanopyParams::test_namedtuple_immutability PASSED [ 14%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_default_params_returns_true PASSED [ 15%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_returns_boolean PASSED [ 17%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_various_nlevmlcan_values[1-True] PASSED [ 18%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_various_nlevmlcan_values[10-True] PASSED [ 20%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_various_nlevmlcan_values[100-True] PASSED [ 21%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_various_nlevmlcan_values[500-True] PASSED [ 23%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_various_nlevmlcan_values[1000-True] PASSED [ 24%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_various_nlevmlcan_values[10000-True] PASSED [ 26%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_invalid_nlevmlcan_values[0-False] PASSED [ 27%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_invalid_nlevmlcan_values[-1-False] PASSED [ 28%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_invalid_nlevmlcan_values[-10-False] PASSED [ 30%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_invalid_nlevmlcan_values[-100-False] PASSED [ 31%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_nleaf_must_equal_two[0-False] PASSED [ 33%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_nleaf_must_equal_two[1-False] PASSED [ 34%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_nleaf_must_equal_two[2-True] PASSED [ 36%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_nleaf_must_equal_two[3-False] PASSED [ 37%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_nleaf_must_equal_two[10-False] PASSED [ 39%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isun_must_equal_one[0-False] PASSED [ 40%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isun_must_equal_one[1-True] PASSED [ 42%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isun_must_equal_one[2-False] PASSED [ 43%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isun_must_equal_one[3-False] PASSED [ 44%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isha_must_equal_two[0-False] PASSED [ 46%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isha_must_equal_two[1-False] PASSED [ 47%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isha_must_equal_two[2-True] PASSED [ 49%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_isha_must_equal_two[3-False] PASSED [ 50%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_swapped_indices_invalid PASSED [ 52%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_all_valid_variants PASSED [ 53%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_all_invalid_variants PASSED [ 55%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestValidateMLCanopyParams::test_validate_multiple_violations PASSED [ 56%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_nlevmlcan_constant_value PASSED [ 57%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_nleaf_constant_value PASSED [ 59%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_isun_constant_value PASSED [ 60%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_isha_constant_value PASSED [ 62%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_constants_match_default_params PASSED [ 63%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_default_mlcanopy_params_constant_type PASSED [ 65%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_default_mlcanopy_params_equals_getter PASSED [ 66%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestModuleConstants::test_default_mlcanopy_params_is_valid PASSED [ 68%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_convert_fortran_to_python_indexing PASSED [ 69%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_indexing_with_mock_data PASSED [ 71%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_single_layer_array_indexing PASSED [ 72%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_dimensions_for_various_layer_counts[1] PASSED [ 73%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_dimensions_for_various_layer_counts[10] PASSED [ 75%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_dimensions_for_various_layer_counts[50] PASSED [ 76%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_dimensions_for_various_layer_counts[100] PASSED [ 78%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_dimensions_for_various_layer_counts[200] PASSED [ 79%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestJAXArrayIndexing::test_array_dimensions_for_various_layer_counts[1000] PASSED [ 81%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestPhysicalConsistency::test_sunlit_fraction_decreases_with_depth PASSED [ 82%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestPhysicalConsistency::test_shaded_fraction_complements_sunlit PASSED [ 84%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestPhysicalConsistency::test_layer_count_affects_resolution PASSED [ 85%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestEdgeCases::test_minimum_valid_configuration PASSED [ 86%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestEdgeCases::test_very_large_layer_count PASSED [ 88%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestEdgeCases::test_boundary_nlevmlcan_values PASSED [ 89%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestEdgeCases::test_all_wrong_indices_combination PASSED [ 91%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestEdgeCases::test_params_with_extreme_nlevmlcan PASSED [ 92%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestDocumentationAndMetadata::test_mlcanopy_params_has_docstring PASSED [ 94%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestDocumentationAndMetadata::test_get_mlcanopy_params_has_docstring PASSED [ 95%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestDocumentationAndMetadata::test_validate_mlcanopy_params_has_docstring PASSED [ 97%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestDocumentationAndMetadata::test_mlcanopy_params_field_names PASSED [ 98%]
+../tests/multilayer_canopy/test_MLclm_varpar.py::TestDocumentationAndMetadata::test_mlcanopy_params_field_count PASSED [100%]/burg-archive/home/mck2199/clm-ml-jax/jax-agents/.venv/lib64/python3.11/site-packages/coverage/control.py:957: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.13.0/messages.html#warning-no-data-collected
+  self._warn("No data was collected.", slug="no-data-collected")
+
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.11.13-final-0 _______________
+
+Name                                                Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------
+src/jax_agents/__init__.py                              6      6     0%   7-14
+src/jax_agents/base_agent.py                          114    114     0%   7-386
+src/jax_agents/prompts/__init__.py                      3      3     0%   3-6
+src/jax_agents/prompts/repair_prompts.py                1      1     0%   11
+src/jax_agents/prompts/test_prompts_simplified.py       1      1     0%   8
+src/jax_agents/prompts/translation_prompts_v2.py        1      1     0%   3
+src/jax_agents/repair_agent.py                        169    169     0%   13-453
+src/jax_agents/test_agent.py                          133    133     0%   11-335
+src/jax_agents/translator.py                          277    277     0%   8-891
+src/jax_agents/utils/__init__.py                        2      2     0%   3-5
+src/jax_agents/utils/config_loader.py                  21     21     0%   3-69
+---------------------------------------------------------------------------------
+TOTAL                                                 728    728     0%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+============================== 69 passed in 0.62s ==============================

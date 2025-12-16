@@ -1,0 +1,64 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0 -- /burg-archive/home/mck2199/clm-ml-jax/jax-agents/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /burg-archive/home/mck2199/clm-ml-jax
+configfile: pytest.ini
+plugins: cov-7.0.0, anyio-4.12.0
+collecting ... collected 32 items
+
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[nominal_default-10-10-Default dimensions (10x10)] PASSED [  3%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[nominal_small-5-5-Small dimensions (5x5)] PASSED [  6%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[nominal_large-50-50-Large dimensions (50x50)] PASSED [  9%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[nominal_rectangular-20-15-Rectangular dimensions (20x15)] PASSED [ 12%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[edge_minimum-1-1-Minimum dimensions (1x1)] PASSED [ 15%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[special_very_large-100-100-Very large dimensions (100x100)] PASSED [ 18%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_shapes[special_extreme_asymmetry-2-100-Extreme asymmetry (2x100)] PASSED [ 21%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[nominal_default-10-10-Default dimensions (10x10)] PASSED [ 25%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[nominal_small-5-5-Small dimensions (5x5)] PASSED [ 28%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[nominal_large-50-50-Large dimensions (50x50)] PASSED [ 31%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[nominal_rectangular-20-15-Rectangular dimensions (20x15)] PASSED [ 34%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[edge_minimum-1-1-Minimum dimensions (1x1)] PASSED [ 37%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[special_very_large-100-100-Very large dimensions (100x100)] PASSED [ 40%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_values[special_extreme_asymmetry-2-100-Extreme asymmetry (2x100)] PASSED [ 43%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[nominal_default-10-10-Default dimensions (10x10)] PASSED [ 46%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[nominal_small-5-5-Small dimensions (5x5)] PASSED [ 50%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[nominal_large-50-50-Large dimensions (50x50)] PASSED [ 53%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[nominal_rectangular-20-15-Rectangular dimensions (20x15)] PASSED [ 56%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[edge_minimum-1-1-Minimum dimensions (1x1)] PASSED [ 59%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[special_very_large-100-100-Very large dimensions (100x100)] PASSED [ 62%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_dtypes[special_extreme_asymmetry-2-100-Extreme asymmetry (2x100)] PASSED [ 65%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_return_type PASSED [ 68%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_edge_zero_fractions PASSED [ 71%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_edge_max_fractions PASSED [ 75%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_consistency PASSED [ 78%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_memory_layout PASSED [ 81%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_independence PASSED [ 84%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_no_nan_inf PASSED [ 87%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_prime_dimensions[3-7] PASSED [ 90%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_prime_dimensions[11-13] PASSED [ 93%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_prime_dimensions[17-19] PASSED [ 96%]
+../tests/multilayer_canopy/test_MLclm_varcon.py::test_create_empty_rsl_lookup_tables_constants_immutability PASSED [100%]/burg-archive/home/mck2199/clm-ml-jax/jax-agents/.venv/lib64/python3.11/site-packages/coverage/control.py:957: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.13.0/messages.html#warning-no-data-collected
+  self._warn("No data was collected.", slug="no-data-collected")
+
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.11.13-final-0 _______________
+
+Name                                                Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------
+src/jax_agents/__init__.py                              6      6     0%   7-14
+src/jax_agents/base_agent.py                          114    114     0%   7-386
+src/jax_agents/prompts/__init__.py                      3      3     0%   3-6
+src/jax_agents/prompts/repair_prompts.py                1      1     0%   11
+src/jax_agents/prompts/test_prompts_simplified.py       1      1     0%   8
+src/jax_agents/prompts/translation_prompts_v2.py        1      1     0%   3
+src/jax_agents/repair_agent.py                        169    169     0%   13-453
+src/jax_agents/test_agent.py                          133    133     0%   11-335
+src/jax_agents/translator.py                          277    277     0%   8-891
+src/jax_agents/utils/__init__.py                        2      2     0%   3-5
+src/jax_agents/utils/config_loader.py                  21     21     0%   3-69
+---------------------------------------------------------------------------------
+TOTAL                                                 728    728     0%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+============================== 32 passed in 2.50s ==============================

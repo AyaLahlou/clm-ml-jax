@@ -40,8 +40,9 @@ def main():
     )
     args = parser.parse_args()
     
-    # Setup paths - use current project structure
-    project_root = Path("/burg-archive/home/al4385/clm-ml-jax")
+    # Setup paths - use current project structure (auto-detect from script location)
+    script_dir = Path(__file__).parent.absolute()
+    project_root = script_dir.parent.parent  # jax-agents/examples -> jax-agents -> clm-ml-jax
     
     # JSON files are in jax-agents/static_analysis_output 
     analysis_dir = project_root / "jax-agents/static_analysis_output"
@@ -49,7 +50,12 @@ def main():
     translation_units_json = analysis_dir / "translation_units.json"
     
     # Path to jax-ctsm for reference patterns (adjust if needed)
-    jax_ctsm_dir = project_root.parent / "jax-ctsm" if (project_root.parent / "jax-ctsm").exists() else None
+    # Safely check for jax-ctsm directory without permission errors
+    try:
+        jax_ctsm_candidate = project_root.parent / "jax-ctsm"
+        jax_ctsm_dir = jax_ctsm_candidate if jax_ctsm_candidate.exists() else None
+    except (PermissionError, OSError):
+        jax_ctsm_dir = None
     
     # Path to Fortran source files
     fortran_root = project_root / "CLM-ml_v1"
