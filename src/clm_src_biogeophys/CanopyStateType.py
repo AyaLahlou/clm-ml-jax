@@ -1,63 +1,104 @@
 """
-Canopy state variables module.
+Canopy State Type Module.
 
-Translated from CanopyStateType.F90 (lines 1-66).
+Translated from CTSM's CanopyStateType.F90
 
-This module defines the canopy state data structure and initialization routines
-for the Community Terrestrial Systems Model (CTSM). It manages vegetation canopy
-properties including leaf/stem area indices and canopy height.
+This module defines the canopy state variables including vegetation fraction,
+leaf area index (LAI), stem area index (SAI), and canopy height. These variables
+describe the physical structure of the vegetation canopy at the patch level.
 
-Key components:
-    - CanopyState: Immutable state container (NamedTuple)
-    - init_allocate: Primary initialization function
-    - create_canopy_state: Convenience factory for zero-initialization
+Key variables:
+    - frac_veg_nosno: Fraction of vegetation not covered by snow (0 or 1)
+    - elai: Effective leaf area index (one-sided, with snow burial)
+    - esai: Effective stem area index (one-sided, with snow burial)
+    - htop: Canopy top height [m]
 
-Original Fortran dependencies:
-    - shr_kind_mod (r8 precision)
-    - clm_varcon (ispval, spval/nan)
-    - decompMod (bounds_type)
+The canopy state is fundamental to many land surface processes including:
+    - Radiation interception and albedo
+    - Turbulent exchange with atmosphere
+    - Precipitation interception
+    - Snow burial effects on vegetation
 
-Note:
-    This module requires JAX to be installed. Install with:
-    pip install jax jaxlib
-    
-    For CPU-only installation:
-    pip install "jax[cpu]"
-    
-    For CUDA support:
-    pip install "jax[cuda12]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+Physics Notes:
+    - LAI and SAI are "effective" values that account for snow burial
+    - frac_veg_nosno is binary: 1 when vegetation is exposed, 0 when snow-covered
+    - htop determines aerodynamic roughness and displacement height
+    - All variables are at patch level (subgrid vegetation type)
+
+Translation Notes:
+    - Fortran derived type becomes immutable NamedTuple
+    - Pointer arrays become JAX arrays with explicit patch dimension
+    - Initialization uses NaN to detect uninitialized values
+    - All arrays are float32 for GPU efficiency
 """
 
 from typing import NamedTuple
-
-try:
-    import jax.numpy as jnp
-    from jax import Array
-except ImportError as e:
-    raise ImportError(
-        "JAX is required for this module. Install with: pip install jax jaxlib\n"
-        "For CPU-only: pip install 'jax[cpu]'\n"
-        "For CUDA: pip install 'jax[cuda12]' -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html"
-    ) from e
+import jax.numpy as jnp
 
 
-# ============================================================================
+# =============================================================================
 # Type Definitions
-# ============================================================================
+# =============================================================================
 
 
-class Bounds(NamedTuple):
-    """Domain decomposition bounds.
+class CanopyState(NamedTuple):
+    """Canopy state variables at patch level.
     
-    Corresponds to Fortran bounds_type from decompMod.
+    Translated from CanopyStateType.F90 (lines 1-35).
+    
+    This immutable structure holds the physical state of the vegetation canopy.
+    All variables are defined at the patch level, where each patch represents
+    a specific plant functional type (PFT) within a grid cell.
     
     Attributes:
-        begp: Beginning patch index (0-based in JAX)
-        endp: Ending patch index (0-based, inclusive)
-        begc: Beginning column index
-        endc: Ending column index
-        begg: Beginning grid cell index
-        endg: Ending grid cell index
+        frac_veg_nosno_patch: Fraction of vegetation not covered by snow.
+            Binary values: 0.0 (snow covered) or 1.0 (exposed). This controls
+            whether vegetation processes (photosynthesis, transpiration) are
+            active. [-] [n_patches]
+            
+        elai_patch: Effective one-sided leaf area index with snow burial.
+            Total leaf area per unit ground area, accounting for snow burial.
+            Used in radiation transfer, photosynthesis, and turbulent exchange.
+            [m2 leaf/m2 ground] [n_patches]
+            
+        esai_patch: Effective one-sided stem area index with snow burial.
+            Total stem/branch area per unit ground area, accounting for snow
+            burial. Important for winter radiation and turbulent exchange.
+            [m2 stem/m2 ground] [n_patches]
+            
+        htop_patch: Canopy top height above ground.
+            Maximum height of vegetation canopy, used to calculate aerodynamic
+            roughness length and displacement height for turbulent exchange.
+            [m] [n_patches]
+    
+    Note:
+        All arrays have shape [n_patches] where n_patches is the number of
+        patch-level grid cells in the domain. In the original Fortran,
+        frac_veg_nosno is integer, but JAX arrays use float with values
+        restricted to {0.0, 1.0}.
+        
+        Arrays are initialized to NaN to detect uninitialized usage, following
+        the Fortran pattern with spval (special value).
+    """
+    frac_veg_nosno_patch: jnp.ndarray  # [n_patches], values in {0.0, 1.0}
+    elai_patch: jnp.ndarray            # [n_patches], m2/m2, >= 0
+    esai_patch: jnp.ndarray            # [n_patches], m2/m2, >= 0
+    htop_patch: jnp.ndarray            # [n_patches], m, >= 0
+
+
+class BoundsType(NamedTuple):
+    """Domain bounds for array indexing.
+    
+    Defines the range of valid indices for different subgrid levels.
+    Follows Fortran convention of inclusive bounds.
+    
+    Attributes:
+        begp: Beginning patch index (inclusive)
+        endp: Ending patch index (inclusive)
+        begc: Beginning column index (inclusive)
+        endc: Ending column index (inclusive)
+        begg: Beginning gridcell index (inclusive)
+        endg: Ending gridcell index (inclusive)
     """
     begp: int
     endp: int
@@ -67,238 +108,221 @@ class Bounds(NamedTuple):
     endg: int
 
 
-class CanopyState(NamedTuple):
-    """Canopy state variables.
-    
-    Translated from Fortran type canopystate_type (lines 18-30).
-    
-    All arrays are indexed by patch, with shape (n_patches,).
-    
-    Attributes:
-        frac_veg_nosno_patch: Fraction of vegetation not covered by snow.
-            Binary indicator (0 or 1) in original Fortran, but stored as float
-            for JIT compatibility. Dimensionless [-]. Line 20.
-        elai_patch: Exposed (one-sided) leaf area index with burying by snow.
-            Units: [m^2/m^2]. Line 21.
-        esai_patch: Exposed (one-sided) stem area index with burying by snow.
-            Units: [m^2/m^2]. Line 22.
-        htop_patch: Canopy top height above ground surface.
-            Units: [m]. Line 23.
-    
-    Note:
-        In the original Fortran, frac_veg_nosno_patch is integer (ispval).
-        We use float32 for uniformity and to avoid JIT complications with
-        mixed dtypes. Values should still be 0.0 or 1.0.
-    """
-    frac_veg_nosno_patch: Array  # shape: (n_patches,), dtype: float32
-    elai_patch: Array            # shape: (n_patches,), dtype: float32
-    esai_patch: Array            # shape: (n_patches,), dtype: float32
-    htop_patch: Array            # shape: (n_patches,), dtype: float32
-
-
-# ============================================================================
+# =============================================================================
 # Initialization Functions
-# ============================================================================
+# =============================================================================
 
 
-def init_allocate(
-    begp: int,
-    endp: int,
-    use_nan: bool = True
+def init_allocate_canopy_state(
+    bounds: BoundsType,
 ) -> CanopyState:
-    """Initialize canopy state with allocation.
+    """Initialize canopy state arrays with NaN values.
     
-    Allocates and initializes all canopy state arrays for the specified
-    patch range. This is the primary initialization function corresponding
-    to the Fortran InitAllocate subroutine (lines 46-66).
+    Allocates and initializes patch-level canopy state variables to NaN.
+    This follows the Fortran pattern of using special values (spval) to
+    detect uninitialized array elements during debugging.
+    
+    Translated from CanopyStateType.F90, lines 46-66 (InitAllocate subroutine).
     
     Args:
-        begp: Beginning patch index (0-based)
-        endp: Ending patch index (0-based, inclusive)
-        use_nan: If True, initialize with NaN (Fortran default behavior).
-                 If False, initialize with zeros.
+        bounds: Domain bounds containing patch/column/gridcell indices.
+            Uses begp and endp to determine patch array size.
         
     Returns:
-        CanopyState: Initialized canopy state structure
+        CanopyState with all arrays initialized to NaN. Arrays have shape
+        [n_patches] where n_patches = bounds.endp - bounds.begp + 1.
         
     Note:
-        Fortran source lines 46-66.
-        Original Fortran allocates arrays from begp:endp (1-based) and
-        initializes to nan (spval). In JAX, we create 0-based arrays of
-        size (endp - begp + 1).
+        Fortran uses inclusive indexing [begp:endp], so array size is
+        endp - begp + 1. All arrays are float32 for GPU efficiency.
         
+        Original Fortran code:
+            allocate(this%frac_veg_nosno_patch(begp:endp))
+            this%frac_veg_nosno_patch(begp:endp) = nan
+            
     Example:
-        >>> state = init_allocate(begp=0, endp=99)  # 100 patches
+        >>> bounds = BoundsType(begp=1, endp=100, begc=1, endc=50, begg=1, endg=10)
+        >>> state = init_allocate_canopy_state(bounds)
         >>> state.elai_patch.shape
         (100,)
+        >>> jnp.all(jnp.isnan(state.elai_patch))
+        True
     """
-    # Calculate array size (line 58 equivalent)
-    n_patches = endp - begp + 1
+    # Calculate number of patches (Fortran inclusive indexing)
+    # Lines 46-66: allocate arrays from begp to endp
+    n_patches = bounds.endp - bounds.begp + 1
     
-    # Choose initialization value
-    init_val = jnp.nan if use_nan else 0.0
+    # Initialize all arrays to NaN (lines 60-63)
+    # Original: this%frac_veg_nosno_patch(begp:endp) = nan
+    frac_veg_nosno_patch = jnp.full(n_patches, jnp.nan, dtype=jnp.float32)
     
-    # Initialize all arrays (lines 60-63)
-    # Note: Using float32 for memory efficiency and typical precision needs
-    frac_veg_nosno_patch = jnp.full(n_patches, init_val, dtype=jnp.float32)
-    elai_patch = jnp.full(n_patches, init_val, dtype=jnp.float32)
-    esai_patch = jnp.full(n_patches, init_val, dtype=jnp.float32)
-    htop_patch = jnp.full(n_patches, init_val, dtype=jnp.float32)
+    # Original: this%elai_patch(begp:endp) = nan
+    elai_patch = jnp.full(n_patches, jnp.nan, dtype=jnp.float32)
+    
+    # Original: this%esai_patch(begp:endp) = nan
+    esai_patch = jnp.full(n_patches, jnp.nan, dtype=jnp.float32)
+    
+    # Original: this%htop_patch(begp:endp) = nan
+    htop_patch = jnp.full(n_patches, jnp.nan, dtype=jnp.float32)
     
     return CanopyState(
         frac_veg_nosno_patch=frac_veg_nosno_patch,
         elai_patch=elai_patch,
         esai_patch=esai_patch,
-        htop_patch=htop_patch
+        htop_patch=htop_patch,
     )
 
 
-def init_allocate_from_bounds(
-    bounds: Bounds,
-    use_nan: bool = True
+def init_canopy_state(
+    bounds: BoundsType,
 ) -> CanopyState:
-    """Initialize canopy state from bounds object.
+    """Initialize canopy state variables.
     
-    Convenience wrapper around init_allocate that extracts patch bounds
-    from a Bounds object. Corresponds to the Fortran Init subroutine
-    (lines 36-43) which calls InitAllocate.
+    Main initialization routine that sets up all canopy state arrays by
+    calling the allocation routine. This is the primary entry point for
+    creating a new CanopyState instance.
+    
+    Translated from CanopyStateType.F90, lines 36-43 (Init subroutine).
+    
+    In the original Fortran, this is a class method that calls InitAllocate
+    to set up the derived type members. In JAX, we return an immutable
+    NamedTuple with pre-allocated arrays.
     
     Args:
-        bounds: Bounds object containing domain decomposition info
-        use_nan: If True, initialize with NaN (default Fortran behavior)
+        bounds: Domain bounds containing patch/column/gridcell indices.
+            Passed through to init_allocate_canopy_state.
         
     Returns:
-        CanopyState: Initialized canopy state structure
+        Initialized CanopyState with all arrays allocated and set to NaN.
         
     Note:
-        Fortran source lines 36-43.
-        This function provides the interface expected by the original
-        Fortran Init subroutine.
+        Original Fortran structure:
+            subroutine Init(this, bounds)
+                class(canopystate_type) :: this
+                type(bounds_type), intent(in) :: bounds
+                call this%InitAllocate(bounds)
+            end subroutine Init
+            
+        In JAX, we maintain the two-level structure (Init calls InitAllocate)
+        for consistency with the Fortran code, even though they could be
+        combined.
         
     Example:
-        >>> bounds = Bounds(begp=0, endp=99, begc=0, endc=49, begg=0, endg=9)
-        >>> state = init_allocate_from_bounds(bounds)
+        >>> bounds = BoundsType(begp=1, endp=100, begc=1, endc=50, begg=1, endg=10)
+        >>> state = init_canopy_state(bounds)
+        >>> state.elai_patch.shape
+        (100,)
     """
-    return init_allocate(
-        begp=bounds.begp,
-        endp=bounds.endp,
-        use_nan=use_nan
-    )
+    # Call the allocation routine (lines 36-43)
+    # Original: call this%InitAllocate(bounds)
+    return init_allocate_canopy_state(bounds)
 
 
-def create_canopy_state(
-    n_patches: int,
-    use_zeros: bool = True
-) -> CanopyState:
-    """Create canopy state with simple initialization.
+def init_canopy_state_zeros(n_patches: int) -> CanopyState:
+    """Initialize canopy state with zero values.
     
-    Factory function for creating a canopy state with a specified number
-    of patches. Provides a simpler interface than init_allocate when
-    bounds information is not available.
+    Alternative initialization that creates a CanopyState with all arrays
+    set to zeros instead of NaN. Useful for testing or when starting from
+    a known state.
+    
+    This is a convenience function not present in the original Fortran,
+    but useful for JAX workflows where we may want deterministic initial
+    values.
     
     Args:
-        n_patches: Number of patches in the domain
-        use_zeros: If True, initialize with zeros (default).
-                   If False, initialize with NaN.
+        n_patches: Number of patch-level grid cells.
         
     Returns:
-        CanopyState: Initialized canopy state with zeros or NaN
+        Initialized CanopyState with zero values for all arrays.
         
     Note:
-        This function was introduced in the initial translation (unit 001)
-        as a convenience method. It's equivalent to calling init_allocate
-        with begp=0, endp=n_patches-1.
+        Unlike init_allocate_canopy_state, this does not use bounds and
+        directly specifies the array size. All arrays are float32.
         
     Example:
-        >>> state = create_canopy_state(n_patches=100)
+        >>> state = init_canopy_state_zeros(100)
+        >>> state.elai_patch.shape
+        (100,)
         >>> jnp.all(state.elai_patch == 0.0)
-        Array(True, dtype=bool)
+        True
     """
-    init_val = 0.0 if use_zeros else jnp.nan
-    
     return CanopyState(
-        frac_veg_nosno_patch=jnp.full(n_patches, init_val, dtype=jnp.float32),
-        elai_patch=jnp.full(n_patches, init_val, dtype=jnp.float32),
-        esai_patch=jnp.full(n_patches, init_val, dtype=jnp.float32),
-        htop_patch=jnp.full(n_patches, init_val, dtype=jnp.float32),
+        frac_veg_nosno_patch=jnp.zeros(n_patches, dtype=jnp.float32),
+        elai_patch=jnp.zeros(n_patches, dtype=jnp.float32),
+        esai_patch=jnp.zeros(n_patches, dtype=jnp.float32),
+        htop_patch=jnp.zeros(n_patches, dtype=jnp.float32),
     )
 
 
-# ============================================================================
+# =============================================================================
 # Utility Functions
-# ============================================================================
-
-
-def update_canopy_state(
-    state: CanopyState,
-    **updates
-) -> CanopyState:
-    """Update canopy state with new values.
-    
-    Since CanopyState is immutable (NamedTuple), this function creates
-    a new state with updated fields.
-    
-    Args:
-        state: Current canopy state
-        **updates: Keyword arguments for fields to update
-        
-    Returns:
-        CanopyState: New state with updated values
-        
-    Example:
-        >>> state = create_canopy_state(n_patches=10)
-        >>> new_elai = jnp.ones(10) * 2.5
-        >>> updated = update_canopy_state(state, elai_patch=new_elai)
-    """
-    return state._replace(**updates)
+# =============================================================================
 
 
 def validate_canopy_state(state: CanopyState) -> bool:
-    """Validate canopy state for physical consistency.
+    """Validate canopy state values are physically reasonable.
     
-    Checks that all arrays have consistent shapes and values are
-    within physically reasonable ranges.
+    Checks that all canopy state variables are within valid physical ranges:
+        - frac_veg_nosno in {0.0, 1.0}
+        - elai >= 0
+        - esai >= 0
+        - htop >= 0
     
     Args:
-        state: Canopy state to validate
+        state: CanopyState to validate
         
     Returns:
-        bool: True if state is valid
+        True if all values are valid, False otherwise
         
     Note:
-        This is a helper function not present in the original Fortran.
-        It's useful for debugging and ensuring data integrity in JAX.
+        This is a utility function for debugging, not present in original
+        Fortran. In production code, consider using assertions or removing
+        for performance.
+        
+    Example:
+        >>> state = init_canopy_state_zeros(10)
+        >>> validate_canopy_state(state)
+        True
     """
-    # Check shape consistency
-    n_patches = state.elai_patch.shape[0]
-    shapes_match = (
-        state.frac_veg_nosno_patch.shape[0] == n_patches and
-        state.esai_patch.shape[0] == n_patches and
-        state.htop_patch.shape[0] == n_patches
-    )
-    
-    if not shapes_match:
-        return False
-    
-    # Check physical bounds (where not NaN)
-    # frac_veg_nosno should be 0 or 1
+    # Check frac_veg_nosno is binary (0 or 1)
     frac_valid = jnp.all(
-        jnp.isnan(state.frac_veg_nosno_patch) |
-        ((state.frac_veg_nosno_patch >= 0.0) & 
-         (state.frac_veg_nosno_patch <= 1.0))
+        (state.frac_veg_nosno_patch == 0.0) | 
+        (state.frac_veg_nosno_patch == 1.0) |
+        jnp.isnan(state.frac_veg_nosno_patch)
     )
     
-    # LAI/SAI should be non-negative
-    elai_valid = jnp.all(
-        jnp.isnan(state.elai_patch) | (state.elai_patch >= 0.0)
-    )
-    esai_valid = jnp.all(
-        jnp.isnan(state.esai_patch) | (state.esai_patch >= 0.0)
-    )
+    # Check LAI/SAI/height are non-negative (or NaN for uninitialized)
+    elai_valid = jnp.all((state.elai_patch >= 0.0) | jnp.isnan(state.elai_patch))
+    esai_valid = jnp.all((state.esai_patch >= 0.0) | jnp.isnan(state.esai_patch))
+    htop_valid = jnp.all((state.htop_patch >= 0.0) | jnp.isnan(state.htop_patch))
     
-    # Height should be non-negative
-    htop_valid = jnp.all(
-        jnp.isnan(state.htop_patch) | (state.htop_patch >= 0.0)
-    )
+    return bool(frac_valid & elai_valid & esai_valid & htop_valid)
+
+
+def get_total_lai(state: CanopyState) -> jnp.ndarray:
+    """Get total leaf + stem area index.
     
-    return bool(frac_valid and elai_valid and esai_valid and htop_valid)
+    Calculates the total plant area index (LAI + SAI) for each patch.
+    This is commonly used in radiation transfer and turbulent exchange
+    calculations.
+    
+    Args:
+        state: CanopyState containing LAI and SAI
+        
+    Returns:
+        Total plant area index [m2/m2] [n_patches]
+        
+    Note:
+        Returns NaN for patches where either LAI or SAI is NaN.
+        
+    Example:
+        >>> state = CanopyState(
+        ...     frac_veg_nosno_patch=jnp.ones(10),
+        ...     elai_patch=jnp.full(10, 3.0),
+        ...     esai_patch=jnp.full(10, 1.0),
+        ...     htop_patch=jnp.full(10, 20.0)
+        ... )
+        >>> get_total_lai(state)
+        Array([4., 4., 4., 4., 4., 4., 4., 4., 4., 4.], dtype=float32)
+    """
+    return state.elai_patch + state.esai_patch
