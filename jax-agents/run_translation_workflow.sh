@@ -5,7 +5,7 @@
 # This script runs the complete translation workflow:
 # 1. Translate Fortran modules to JAX (translate_with_json.py)
 # 2. Generate tests for translated modules (generate_tests.py)
-# 3. Run tests and repair failures (repair_agent_example.py)
+# 3. Run tests (optional repair with --repair flag)
 #
 # Usage:
 #   ./run_translation_workflow.sh [OPTIONS]
@@ -29,12 +29,12 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
-# Configuration - Updated to match current project structure
-PROJECT_ROOT="/burg-archive/home/al4385/clm-ml-jax"
+# Configuration - Auto-detect project root from script location
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Base directories for different output types
 SRC_OUTPUT_DIR="$PROJECT_ROOT/src"
 TESTS_OUTPUT_DIR="$PROJECT_ROOT/tests"
-DOCS_OUTPUT_DIR="$PROJECT_ROOT/CLM-ml_v1/docs"
+DOCS_OUTPUT_DIR="$PROJECT_ROOT/docs"
 # Legacy output directory (for backward compatibility)
 OUTPUT_DIR="$SCRIPT_DIR/translated_modules"
 REPAIR_DIR="$SCRIPT_DIR/repair_outputs"
@@ -74,7 +74,7 @@ ${YELLOW}Usage:${NC}
   $(basename $0) [OPTIONS]
 
 ${YELLOW}Options:${NC}
-  --all                Run complete workflow (translate → test → repair)
+  --all                Run complete workflow (translate → test)
   --translate          Run translation only
   --test               Run test generation only (requires translated modules)
   --repair             Run repair agent only (requires test failures)
@@ -83,7 +83,6 @@ ${YELLOW}Options:${NC}
   --modules MODULES    Comma-separated list of modules (default: clm_varctl,SoilStateType,SoilTemperatureMod)
   --output DIR         Output directory (default: ./translated_modules)
   --skip-tests         Skip test generation
-  --auto-repair        Automatically repair if tests fail
   
   -h, --help           Show this help message
 
@@ -100,13 +99,13 @@ ${YELLOW}Examples:${NC}
   # Interactive mode (prompts for each step)
   $(basename $0) --interactive
 
-  # Translate and auto-repair if tests fail
-  $(basename $0) --all --auto-repair
+  # Run repair agent for failed tests
+  $(basename $0) --repair
 
 ${YELLOW}Workflow Steps:${NC}
   1. ${GREEN}TRANSLATE${NC} - Convert Fortran modules to JAX Python
-  2. ${GREEN}TEST${NC}      - Generate comprehensive test suites
-  3. ${GREEN}REPAIR${NC}    - Fix any failing tests automatically
+  2. ${GREEN}TEST${NC}      - Generate comprehensive test suites and run them
+  3. ${GREEN}REPAIR${NC}    - Fix any failing tests automatically (run separately)
 
 ${YELLOW}Requirements:${NC}
   - Anthropic API key set: export ANTHROPIC_API_KEY="your-key"
@@ -152,18 +151,63 @@ run_translation() {
     
     print_header "STEP 1: Translation (Fortran → JAX Python)"
     
-    print_info "Translating modules: ${modules[*]}"
+    # Check which modules already have translations
+    local modules_needing_translation=()
+    local modules_already_translated=()
+    
+    for module in "${modules[@]}"; do
+        translation_found=false
+        # Check all possible source directories for existing translation
+        for src_dir in "clm_src_main" "clm_src_biogeophys" "clm_src_utils" "multilayer_canopy" "offline_driver" "cime_src_share_util" "clm_src_cpl"; do
+            python_file="$SRC_OUTPUT_DIR/$src_dir/$module.py"
+            if [ -f "$python_file" ]; then
+                translation_found=true
+                modules_already_translated+=("$module")
+                break
+            fi
+        done
+        
+        if [ "$translation_found" = false ]; then
+            modules_needing_translation+=("$module")
+        fi
+    done
+    
+    # Show status of requested modules
+    if [ ${#modules_already_translated[@]} -gt 0 ]; then
+        print_info "Translations already exist for: ${modules_already_translated[*]}"
+        echo
+        print_info "Existing Python files:"
+        for module in "${modules_already_translated[@]}"; do
+            for src_dir in "clm_src_main" "clm_src_biogeophys" "clm_src_utils" "multilayer_canopy" "offline_driver" "cime_src_share_util" "clm_src_cpl"; do
+                python_file="$SRC_OUTPUT_DIR/$src_dir/$module.py"
+                if [ -f "$python_file" ]; then
+                    print_success "src/$src_dir/$module.py"
+                    break
+                fi
+            done
+        done
+        echo
+    fi
+    
+    # If all modules are already translated, skip translation
+    if [ ${#modules_needing_translation[@]} -eq 0 ]; then
+        print_success "All specified modules already translated - skipping translation step"
+        return 0
+    fi
+    
+    # Only translate modules that need it
+    print_info "Translating modules: ${modules_needing_translation[*]}"
     print_info "Output directory: $OUTPUT_DIR"
     echo
     
     # Run translate_with_json.py with module arguments and structured output
-    if python examples/translate_with_json.py "${modules[@]}" --structured-output; then
+    if python examples/translate_with_json.py "${modules_needing_translation[@]}" --structured-output; then
         print_success "Translation completed successfully"
         
-        # List translated modules (check both structured and legacy locations)
+        # List newly translated modules (check both structured and legacy locations)
         echo
-        print_info "Translated modules:"
-        for module in "${modules[@]}"; do
+        print_info "Newly translated modules:"
+        for module in "${modules_needing_translation[@]}"; do
             # Check for structured output in src/
             structured_found=false
             for src_dir in "clm_src_main" "clm_src_biogeophys" "clm_src_utils" "multilayer_canopy" "offline_driver" "cime_src_share_util" "clm_src_cpl"; do
@@ -339,7 +383,11 @@ run_tests() {
         echo
         filtered_test_files=""
         while IFS= read -r test_file; do
-            module=$(basename $(dirname $(dirname $test_file)))
+            # Extract module name from test filename (test_ModuleName.py -> ModuleName)
+            test_filename=$(basename "$test_file")
+            module="${test_filename#test_}"
+            module="${module%.py}"
+            
             for target_module in "${modules_to_test[@]}"; do
                 if [ "$module" == "$target_module" ]; then
                     filtered_test_files+="$test_file"$'\n'
@@ -358,12 +406,15 @@ run_tests() {
     # Run each test file
     while IFS= read -r test_file; do
         [ -z "$test_file" ] && continue  # Skip empty lines
-        module=$(basename $(dirname $(dirname $test_file)))
+        # Extract module name from test filename (test_ModuleName.py -> ModuleName)
+        test_filename=$(basename "$test_file")
+        module="${test_filename#test_}"
+        module="${module%.py}"
         print_info "Testing $module..."
         
-        # Run pytest and capture output
+        # Run pytest and capture output (with PYTHONPATH set to find src modules)
         test_output_file="${test_file%.py}_output.txt"
-        if pytest "$test_file" -v --tb=short > "$test_output_file" 2>&1; then
+        if PYTHONPATH="$SRC_OUTPUT_DIR:$PYTHONPATH" pytest "$test_file" -v --tb=short > "$test_output_file" 2>&1; then
             print_success "$module - all tests passed"
         else
             print_warning "$module - tests failed"
@@ -450,16 +501,27 @@ run_repair() {
         
         print_info "Repairing $module..."
         
-        # Find Fortran source file
+        # Find Python file in structured layout (src/) or legacy (translated_modules/)
+        python_file=""
+        for src_dir in "clm_src_main" "clm_src_biogeophys" "multilayer_canopy" "cime_src_share_util" "clm_src_cpl" "clm_src_utils" "offline_driver"; do
+            candidate="$SRC_OUTPUT_DIR/$src_dir/${module}.py"
+            if [ -f "$candidate" ]; then
+                python_file="$candidate"
+                break
+            fi
+        done
+        
+        # Fall back to legacy location if not found in structured layout
+        if [ -z "$python_file" ]; then
         module_dir="$OUTPUT_DIR/$module"
         python_file="$module_dir/${module}.py"
+        fi
         
         # Look for Fortran reference in multiple locations
         fortran_ref=""
         
-        # Check common Fortran source locations - Updated to use relative paths
+        # Check common Fortran source locations
         fortran_search_paths=(
-            "$module_dir/tests/FORTRAN_REFERENCE.F90"
             "$SCRIPT_DIR/../CLM-ml_v1/clm_src_main/${module}.F90"
             "$SCRIPT_DIR/../CLM-ml_v1/clm_src_biogeophys/${module}.F90"
             "$SCRIPT_DIR/../CLM-ml_v1/clm_src_cpl/${module}.F90"
@@ -480,20 +542,19 @@ run_repair() {
         # Check if files exist
         if [ ! -f "$python_file" ]; then
             print_warning "Python file not found: $python_file"
+            print_info "Searched in structured layout (src/*/) and legacy (translated_modules/)"
             continue
         fi
+        
+        print_info "Found Python file: $python_file"
         
         if [ ! -f "$test_output" ]; then
             print_warning "Test output not found: $test_output"
             continue
         fi
         
-        # Use test_${module}_FAILING.py if available, else use regular test
-        if [ -f "$module_dir/tests/test_${module}_FAILING.py" ]; then
-            python_file_to_repair="$module_dir/tests/test_${module}_FAILING.py"
-        else
+        # For repair, we always repair the main Python file
             python_file_to_repair="$python_file"
-        fi
         
         # Run repair agent
         repair_output="$REPAIR_DIR/${module}"
@@ -533,8 +594,9 @@ run_repair() {
             if [ -f "$corrected_file" ]; then
                 print_info "Copying corrected code to original file..."
                 
-                # Backup original file
-                backup_file="$module_dir/${module}_backup_$(date +%Y%m%d_%H%M%S).py"
+                # Backup original file in the same directory
+                python_dir=$(dirname "$python_file")
+                backup_file="$python_dir/${module}_backup_$(date +%Y%m%d_%H%M%S).py"
                 cp "$python_file" "$backup_file"
                 print_info "Backed up original to: $backup_file"
                 
@@ -542,10 +604,12 @@ run_repair() {
                 cp "$corrected_file" "$python_file"
                 print_success "Updated $python_file with corrected code"
                 
-                # Also save repair notes if they exist
+                # Also save repair notes if they exist (save to docs directory)
                 if [ -f "$repair_output/${module}_root_cause_analysis.md" ]; then
-                    cp "$repair_output/${module}_root_cause_analysis.md" "$module_dir/${module}_repair_notes.md"
-                    print_info "Saved repair notes to: $module_dir/${module}_repair_notes.md"
+                    repair_notes_dir="$DOCS_OUTPUT_DIR/repair_notes"
+                    mkdir -p "$repair_notes_dir"
+                    cp "$repair_output/${module}_root_cause_analysis.md" "$repair_notes_dir/${module}_repair_notes.md"
+                    print_info "Saved repair notes to: $repair_notes_dir/${module}_repair_notes.md"
                 fi
             else
                 print_warning "Corrected file not found: $corrected_file"
@@ -696,12 +760,10 @@ main() {
             run_test_generation "${MODULES[@]}" || exit 1
             
             if run_tests "${MODULES[@]}"; then
-                print_success "All tests passed - no repair needed!"
-            elif [ "$AUTO_REPAIR" = true ]; then
-                run_repair "${MODULES[@]}"
+                print_success "All tests passed!"
             else
-                print_info "Tests failed. Run with --auto-repair to fix automatically"
-                print_info "Or run: $(basename $0) --repair"
+                print_info "Tests completed with some failures."
+                print_info "To repair failed tests, run: $(basename $0) --repair"
             fi
         fi
         exit 0
