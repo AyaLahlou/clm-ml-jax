@@ -9,65 +9,18 @@ physical constraints.
 import pytest
 import jax.numpy as jnp
 import numpy as np
-from typing import NamedTuple, Dict, Any
-from collections import namedtuple
+from typing import Dict, Any
 
-
-# ============================================================================
-# Mock Module Structures (Replace with actual imports in production)
-# ============================================================================
-
-CanopyInterceptionParams = namedtuple(
-    'CanopyInterceptionParams',
-    ['dewmx', 'maximum_leaf_wetted_fraction', 'interception_fraction',
-     'fwet_exponent', 'clm45_interception_p1', 'clm45_interception_p2',
-     'fpi_type', 'dtime_substep']
+# Import actual translated module
+from multilayer_canopy.MLCanopyWaterMod import (
+    canopy_interception,
+    canopy_evaporation,
+    get_default_interception_params,
+    CanopyInterceptionParams,
+    CanopyWaterState,
+    CanopyEvaporationInput,
+    CanopyEvaporationOutput,
 )
-
-CanopyWaterState = namedtuple(
-    'CanopyWaterState',
-    ['h2ocan_profile', 'qflx_intr_canopy', 'qflx_tflrain_canopy',
-     'qflx_tflsnow_canopy', 'fwet_profile', 'fdry_profile']
-)
-
-CanopyEvaporationInput = namedtuple(
-    'CanopyEvaporationInput',
-    ['ncan', 'dpai', 'fracsun', 'trleaf', 'evleaf', 'h2ocan',
-     'mmh2o', 'dtime_substep']
-)
-
-CanopyEvaporationOutput = namedtuple(
-    'CanopyEvaporationOutput',
-    ['h2ocan']
-)
-
-
-# Mock function signatures (replace with actual imports)
-def canopy_interception(qflx_rain, qflx_snow, lai, sai, ncan,
-                       dlai_profile, dpai_profile, h2ocan_profile, params):
-    """Mock canopy_interception function."""
-    raise NotImplementedError("Replace with actual import")
-
-
-def canopy_evaporation(inputs):
-    """Mock canopy_evaporation function."""
-    raise NotImplementedError("Replace with actual import")
-
-
-def get_default_interception_params(**kwargs):
-    """Mock get_default_interception_params function."""
-    defaults = {
-        'dewmx': 0.1,
-        'maximum_leaf_wetted_fraction': 0.05,
-        'interception_fraction': 0.25,
-        'fwet_exponent': 0.667,
-        'clm45_interception_p1': 0.25,
-        'clm45_interception_p2': 1.0,
-        'fpi_type': 2,
-        'dtime_substep': 1800.0
-    }
-    defaults.update(kwargs)
-    return CanopyInterceptionParams(**defaults)
 
 
 # ============================================================================
@@ -111,7 +64,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -147,7 +100,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -183,7 +136,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -222,7 +175,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 1,
                     "dtime_substep": 1800.0
                 }
@@ -249,7 +202,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 300.0
                 }
@@ -291,7 +244,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -327,7 +280,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -366,7 +319,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -402,7 +355,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -438,7 +391,7 @@ def test_data():
                     "interception_fraction": 0.25,
                     "fwet_exponent": 0.667,
                     "clm45_interception_p1": 0.25,
-                    "clm45_interception_p2": 1.0,
+                    "clm45_interception_p2": -0.50,
                     "fpi_type": 2,
                     "dtime_substep": 1800.0
                 }
@@ -681,10 +634,16 @@ def test_canopy_interception_mass_balance(test_data, test_case_name):
     # Total input precipitation
     total_precip = inputs["qflx_rain"] + inputs["qflx_snow"]
     
-    # Total output (interception + throughfall)
-    total_output = (result.qflx_intr_canopy + 
-                   result.qflx_tflrain_canopy + 
-                   result.qflx_tflsnow_canopy)
+    # Calculate actual storage change rate
+    h2ocan_change = (result.h2ocan_profile - inputs["h2ocan_profile"]).sum(axis=1)
+    storage_change_rate = h2ocan_change / params.dtime_substep
+    
+    # Total throughfall
+    total_throughfall = result.qflx_tflrain_canopy + result.qflx_tflsnow_canopy
+    
+    # Mass balance: Input = Storage change + Throughfall
+    # (qflx_intr_canopy is intended interception, but some becomes drip when at capacity)
+    total_output = storage_change_rate + total_throughfall
     
     # Mass balance check (with tolerance for numerical precision)
     assert jnp.allclose(total_precip, total_output, rtol=1e-5, atol=1e-8), \
@@ -893,9 +852,13 @@ def test_canopy_interception_extreme_snowfall(test_data):
     assert jnp.all(result.qflx_tflsnow_canopy > 0), \
         "Snow throughfall should be positive with snowfall"
     
-    # Total snow = interception + throughfall
+    # Total snow = storage change + throughfall
+    # Calculate actual storage change rate
+    h2ocan_change = (result.h2ocan_profile - inputs["h2ocan_profile"]).sum(axis=1)
+    storage_change_rate = h2ocan_change / params.dtime_substep
+    
     assert jnp.allclose(inputs["qflx_snow"], 
-                       result.qflx_intr_canopy + result.qflx_tflsnow_canopy,
+                       storage_change_rate + result.qflx_tflsnow_canopy,
                        rtol=1e-5, atol=1e-8), \
         "Snow mass balance violated"
 
@@ -1135,8 +1098,8 @@ def test_get_default_interception_params_defaults():
         "Default fwet_exponent should be 0.667"
     assert params.clm45_interception_p1 == 0.25, \
         "Default clm45_interception_p1 should be 0.25"
-    assert params.clm45_interception_p2 == 1.0, \
-        "Default clm45_interception_p2 should be 1.0"
+    assert params.clm45_interception_p2 == -0.50, \
+        "Default clm45_interception_p2 should be -0.50"
     assert params.fpi_type == 2, "Default fpi_type should be 2"
     assert params.dtime_substep == 1800.0, \
         "Default dtime_substep should be 1800.0"

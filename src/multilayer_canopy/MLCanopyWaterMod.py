@@ -147,7 +147,7 @@ def get_default_interception_params(
     interception_fraction: float = 0.25,
     fwet_exponent: float = 0.667,
     clm45_interception_p1: float = 0.25,
-    clm45_interception_p2: float = 1.0,
+    clm45_interception_p2: float = -0.50,
     fpi_type: int = 2,
     dtime_substep: float = 1800.0,
 ) -> CanopyInterceptionParams:
@@ -278,12 +278,12 @@ def canopy_interception(
     n_layers_with_pai = jnp.maximum(n_layers_with_pai, 1.0)
     
     # Process each layer (lines 107-149)
-    def process_layer(ic: int, carry: tuple) -> tuple:
+    def process_layer(carry: tuple, ic: int) -> tuple:
         """Process a single canopy layer.
         
         Args:
-            ic: Layer index
             carry: Tuple of (h2ocan_updated, qflx_candrip_accum)
+            ic: Layer index
             
         Returns:
             Updated carry tuple and None for scan output
@@ -292,26 +292,30 @@ def canopy_interception(
         """
         h2ocan_updated, qflx_candrip_accum = carry
         
+        # Only process layer if it has PAI (lines 111, 141-145)
+        layer_has_pai = dpai_profile[:, ic] > 0.0
+        
         # Maximum external water held in layer (line 113)
         h2ocanmx = params.dewmx * dpai_profile[:, ic]
         
         # Water storage of intercepted precipitation (lines 115-117)
-        # Intercepted water is applied equally to all layers
-        h2ocan_new = h2ocan_updated[:, ic] + (
-            qflx_intr * params.dtime_substep / n_layers_with_pai
+        # Intercepted water is applied equally to all layers with PAI
+        h2ocan_new = h2ocan_updated[:, ic] + jnp.where(
+            layer_has_pai,
+            qflx_intr * params.dtime_substep / n_layers_with_pai,
+            0.0
         )
         
         # Excess water that exceeds the maximum capacity (lines 119-124)
         xrun = (h2ocan_new - h2ocanmx) / params.dtime_substep
-        has_excess = xrun > 0.0
+        has_excess = jnp.logical_and(xrun > 0.0, layer_has_pai)
         qflx_candrip_layer = jnp.where(has_excess, xrun, 0.0)
         h2ocan_new = jnp.where(has_excess, h2ocanmx, h2ocan_new)
         
-        # Accumulate canopy drip
+        # Accumulate canopy drip (only from layers with PAI)
         qflx_candrip_accum = qflx_candrip_accum + qflx_candrip_layer
         
-        # Only update if layer has PAI (lines 111, 141-145)
-        layer_has_pai = dpai_profile[:, ic] > 0.0
+        # Ensure zero for layers without PAI
         h2ocan_new = jnp.where(layer_has_pai, h2ocan_new, 0.0)
         
         # Update h2ocan array
