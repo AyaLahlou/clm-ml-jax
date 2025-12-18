@@ -145,6 +145,7 @@ class TestAgent(BaseAgent):
         num_test_cases: int = 10,
         include_edge_cases: bool = True,
         include_performance_tests: bool = False,
+        source_directory: str = None,
     ) -> TestGenerationResult:
         """
         Generate comprehensive test suite for a Python/JAX module.
@@ -156,6 +157,7 @@ class TestAgent(BaseAgent):
             num_test_cases: Number of synthetic test cases to generate
             include_edge_cases: Include edge case tests (zeros, negatives, etc.)
             include_performance_tests: Include performance/benchmark tests
+            source_directory: Source directory for imports (e.g., 'clm_src_biogeophys')
             
         Returns:
             TestGenerationResult with pytest file, test data, and documentation
@@ -175,7 +177,7 @@ class TestAgent(BaseAgent):
         # Step 3: Generate pytest file
         console.print("[cyan]Step 3/3: Generating pytest file...[/cyan]")
         pytest_file = self._generate_pytest(
-            module_name, python_sig, test_data, include_performance_tests
+            module_name, python_sig, test_data, include_performance_tests, source_directory
         )
         
         # Generate documentation
@@ -279,12 +281,18 @@ class TestAgent(BaseAgent):
         python_sig: Dict[str, Any],
         test_data: Dict[str, Any],
         include_performance: bool,
+        source_directory: str = None,
     ) -> str:
         """Generate comprehensive pytest file."""
         from jax_agents.prompts.test_prompts_simplified import TEST_PROMPTS
         
+        # Default source directory if not provided
+        if not source_directory:
+            source_directory = "clm_src_main"  # Default fallback
+        
         prompt = TEST_PROMPTS["generate_pytest"].format(
             module_name=module_name,
+            source_directory=source_directory,
             python_signature=json.dumps(python_sig, indent=2),
             test_data=json.dumps(test_data, indent=2),
             include_performance=include_performance,

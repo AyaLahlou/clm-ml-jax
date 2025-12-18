@@ -136,6 +136,7 @@ For arrays, use nested lists. Ensure all dimensions match within each test case.
     "generate_pytest": """Generate a comprehensive pytest file for the Python/JAX function.
 
 Module: {module_name}
+Source Directory: {source_directory}
 
 Python Signature:
 ```json
@@ -151,7 +152,12 @@ Include Performance Tests: {include_performance}
 
 Create a pytest file with:
 
-1. **Imports**: Module, pytest, numpy/jax, etc.
+1. **Imports**: 
+   - Add the src directory to sys.path: `sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))`
+   - Import the actual function from {source_directory}.{module_name}
+   - For example: `from {source_directory}.{module_name} import function_name`
+   - IMPORTANT: Do NOT create mock functions. Import the real translated functions.
+   - pytest, numpy/jax, etc.
 2. **Fixtures**: 
    - `test_data()` fixture loading test data
    - Any other needed setup
@@ -169,6 +175,8 @@ Create a pytest file with:
    - Check shapes with `assert array.shape == expected_shape`
    - Good error messages
 6. **Docstrings**: Explain what each test does
+
+CRITICAL: The tests must import and use the actual translated functions from {source_directory}.{module_name}, not mock implementations. Always add 'src' to sys.path first.
 
 Return only the complete Python pytest code.""",
 

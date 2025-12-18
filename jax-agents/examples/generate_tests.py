@@ -48,6 +48,16 @@ def generate_tests_for_module(
     # Initialize test agent
     test_agent = TestAgent()
     
+    # Determine source directory from python_file path
+    source_directory = "clm_src_main"  # default
+    parts = python_file.parts
+    for part in parts:
+        if part in ['clm_src_main', 'clm_src_biogeophys', 'clm_src_utils', 'multilayer_canopy', 'offline_driver', 'cime_src_share_util', 'clm_src_cpl']:
+            source_directory = part
+            break
+    
+    console.print(f"[dim]Detected source directory: {source_directory}[/dim]")
+
     # Generate tests
     try:
         # Use structured output approach if requested
@@ -59,15 +69,8 @@ def generate_tests_for_module(
                 num_test_cases=num_cases,
                 include_edge_cases=True,
                 include_performance_tests=False,
+                source_directory=source_directory,
             )
-            
-            # Determine source directory from python_file path
-            source_directory = "clm_src_main"  # default
-            parts = python_file.parts
-            for part in parts:
-                if part in ['clm_src_main', 'clm_src_biogeophys', 'clm_src_utils', 'multilayer_canopy', 'offline_driver', 'cime_src_share_util', 'clm_src_cpl']:
-                    source_directory = part
-                    break
             
             # Save with structured output
             saved_files = result.save_structured(project_root, source_directory)
@@ -87,6 +90,7 @@ def generate_tests_for_module(
                 num_test_cases=num_cases,
                 include_edge_cases=True,
                 include_performance_tests=False,
+                source_directory=source_directory,
             )
             
             # Print summary for traditional output

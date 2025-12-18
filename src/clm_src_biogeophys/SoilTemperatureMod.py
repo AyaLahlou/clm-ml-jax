@@ -92,9 +92,9 @@ class ColumnGeometry(NamedTuple):
     """Column geometry information.
     
     Attributes:
-        dz: Layer thickness [m] [n_cols, n_levtot]
-        z: Layer depth (center) [m] [n_cols, n_levtot]
-        zi: Layer depth (interface) [m] [n_cols, n_levtot+1]
+        dz: Layer thickness [m] [n_cols, n_levgrnd]
+        z: Layer depth (center) [m] [n_cols, n_levgrnd]
+        zi: Layer depth (interface) [m] [n_cols, n_levgrnd+1]
         snl: Number of snow layers (negative) [n_cols]
         nbedrock: Index of bedrock layer [n_cols]
     """
@@ -124,8 +124,8 @@ class WaterState(NamedTuple):
     """Water state variables.
     
     Attributes:
-        h2osoi_liq: Liquid water content [kg/m2] [n_cols, n_levtot]
-        h2osoi_ice: Ice content [kg/m2] [n_cols, n_levtot]
+        h2osoi_liq: Liquid water content [kg/m2] [n_cols, n_levgrnd]
+        h2osoi_ice: Ice content [kg/m2] [n_cols, n_levgrnd]
         h2osfc: Surface water depth [mm] [n_cols]
         h2osno: Snow water equivalent [kg/m2] [n_cols]
         frac_sno_eff: Effective snow cover fraction [n_cols]
@@ -141,11 +141,11 @@ class ThermalProperties(NamedTuple):
     """Thermal properties output.
     
     Attributes:
-        tk: Thermal conductivity at layer interface [W/m/K] [n_cols, n_levtot]
-        cv: Heat capacity [J/m2/K] [n_cols, n_levtot]
+        tk: Thermal conductivity at layer interface [W/m/K] [n_cols, n_levgrnd]
+        cv: Heat capacity [J/m2/K] [n_cols, n_levgrnd]
         tk_h2osfc: Thermal conductivity of surface water [W/m/K] [n_cols]
-        thk: Thermal conductivity of each layer [W/m/K] [n_cols, n_levtot]
-        bw: Partial density of water in snow pack [kg/m3] [n_cols, n_levtot]
+        thk: Thermal conductivity of each layer [W/m/K] [n_cols, n_levgrnd]
+        bw: Partial density of water in snow pack [kg/m3] [n_cols, n_levgrnd]
     """
     tk: jnp.ndarray
     cv: jnp.ndarray
@@ -158,7 +158,7 @@ class SoilTemperatureResult(NamedTuple):
     """Results from soil temperature calculation.
     
     Attributes:
-        t_soisno: Updated soil temperature [K] [n_cols, n_levtot]
+        t_soisno: Updated soil temperature [K] [n_cols, n_levgrnd]
         energy_error: Energy conservation error [W/m2] [n_cols]
     """
     t_soisno: jnp.ndarray
@@ -290,36 +290,36 @@ def soil_therm_prop(
     water: WaterState,
     soil: SoilState,
     params: SoilTemperatureParams,
-    nlevsno: int,
     nlevgrnd: int,
 ) -> ThermalProperties:
-    """Calculate thermal conductivities and heat capacities of snow/soil layers.
+    """Calculate thermal conductivities and heat capacities of soil layers.
     
-    Implements the Johansen algorithm for soil thermal conductivity (Farouki 1981)
-    and the SNTHERM formulation for snow (Jordan 1991).
+    Implements the Johansen algorithm for soil thermal conductivity (Farouki 1981).
     
     Args:
         geom: Column geometry information
-        t_soisno: Soil/snow temperature [K] [n_cols, n_levtot]
-        water: Water state variables
-        soil: Soil state variables
+        t_soisno: Soil temperature [K] [n_cols, n_levgrnd]
+        water: Water state variables (all arrays [n_cols, n_levgrnd])
+        soil: Soil state variables (all arrays [n_cols, n_levgrnd])
         params: Soil temperature parameters
-        nlevsno: Maximum number of snow layers
         nlevgrnd: Number of ground layers
         
     Returns:
         ThermalProperties with tk, cv, tk_h2osfc, thk, bw
         
     Reference: Fortran lines 188-346
+    
+    Note:
+        This function operates only on soil layers. Input arrays should have
+        shape [n_cols, n_levgrnd], not including snow layers.
     """
     n_cols = geom.dz.shape[0]
-    n_levtot = nlevsno + nlevgrnd  # Total levels including snow
     
-    # Initialize outputs
-    thk = jnp.zeros((n_cols, n_levtot))
-    bw = jnp.zeros((n_cols, n_levtot))
-    tk = jnp.zeros((n_cols, n_levtot))
-    cv = jnp.zeros((n_cols, n_levtot))
+    # Initialize outputs - all for soil layers only
+    thk = jnp.zeros((n_cols, nlevgrnd))
+    bw = jnp.zeros((n_cols, nlevgrnd))
+    tk = jnp.zeros((n_cols, nlevgrnd))
+    cv = jnp.zeros((n_cols, nlevgrnd))
     
     # Extract needed variables
     nbedrock = geom.nbedrock
@@ -327,7 +327,6 @@ def soil_therm_prop(
     dz = geom.dz
     zi = geom.zi
     z = geom.z
-    frac_sno = water.frac_sno_eff
     h2osfc = water.h2osfc
     h2osno = water.h2osno
     h2osoi_liq = water.h2osoi_liq
@@ -337,16 +336,7 @@ def soil_therm_prop(
     csol = soil.csol
     watsat = soil.watsat
     
-    # Vectorized computation of thermal conductivity for all layers
-    # (Fortran lines 218-246)
-    
-    # Create layer index array
-    j_indices = jnp.arange(n_levtot)
-    j_fortran = j_indices - nlevsno + 1  # Convert to Fortran indexing
-    
     # Soil thermal conductivity (Fortran lines 221-241)
-    is_soil = j_fortran >= 1
-    
     # Calculate saturation (lines 222-223)
     satw = (h2osoi_liq / params.denh2o + h2osoi_ice / params.denice) / (
         dz * watsat + 1e-30
@@ -354,7 +344,10 @@ def soil_therm_prop(
     satw = jnp.minimum(1.0, satw)
     
     # Calculate Kersten number (lines 224-229)
-    dke_unfrozen = jnp.maximum(0.0, jnp.log10(satw + 1e-30) + 1.0)
+    # Use natural log instead of log10 to avoid JAX compatibility issues: log10(x) = ln(x) / ln(10)
+    satw_safe = satw + 1e-30
+    ln10 = 2.302585093  # ln(10)
+    dke_unfrozen = jnp.maximum(0.0, jnp.log(satw_safe) / ln10 + 1.0)
     dke_frozen = satw
     dke = jnp.where(t_soisno >= params.tfrz, dke_unfrozen, dke_frozen)
     
@@ -373,102 +366,54 @@ def soil_therm_prop(
     thk_soil = jnp.where(satw > 0.1e-6, thk_soil, tkdry)
     
     # Apply bedrock conductivity (line 237)
-    is_bedrock = j_fortran[:, None] > nbedrock[None, :]
-    thk_soil = jnp.where(is_bedrock.T, params.thk_bedrock, thk_soil)
-    
-    # Snow thermal conductivity (lines 243-246)
-    is_snow = (snl[:, None] + 1 < 1) & (j_fortran[None, :] >= snl[:, None] + 1) & (
-        j_fortran[None, :] <= 0
-    )
-    bw_snow = (h2osoi_ice + h2osoi_liq) / (frac_sno[:, None] * dz + 1e-30)
-    thk_snow = params.tkair + (
-        7.75e-5 * bw_snow + 1.105e-6 * bw_snow * bw_snow
-    ) * (params.tkice - params.tkair)
-    
-    # Combine soil and snow conductivity
-    thk = jnp.where(is_soil[None, :], thk_soil, thk)
-    thk = jnp.where(is_snow, thk_snow, thk)
-    bw = jnp.where(is_snow, bw_snow, bw)
+    # Create layer indices (1-based for comparison with nbedrock)
+    j_indices = jnp.arange(1, nlevgrnd + 1)
+    is_bedrock = j_indices[None, :] > nbedrock[:, None]
+    thk = jnp.where(is_bedrock, params.thk_bedrock, thk_soil)
     
     # Thermal conductivity at layer interface (Fortran lines 250-259)
     # Use harmonic mean for interface conductivity
-    is_interface = (j_fortran[None, :] >= snl[:, None] + 1) & (
-        j_fortran[None, :] <= nlevgrnd - 1
-    )
-    
-    # Compute interface conductivity for all layers
-    thk_j = thk
-    thk_jp1 = jnp.roll(thk, -1, axis=1)
-    z_j = z
-    z_jp1 = jnp.roll(z, -1, axis=1)
-    zi_j = zi[:, :-1]  # Interface depths (exclude last)
+    # For layers 0 to nlevgrnd-2 (Python indexing)
+    thk_j = thk[:, :-1]
+    thk_jp1 = thk[:, 1:]
+    z_j = z[:, :-1]
+    z_jp1 = z[:, 1:]
+    zi_j = zi[:, 1:-1]  # Interface depths between layers
     
     tk_interface = (thk_j * thk_jp1 * (z_jp1 - z_j)) / (
         thk_j * (z_jp1 - zi_j) + thk_jp1 * (zi_j - z_j) + 1e-30
     )
     
-    # Apply interface conductivity where appropriate
-    tk = jnp.where(is_interface, tk_interface, tk)
+    # Set interface conductivity for layers 0 to nlevgrnd-2
+    tk = tk.at[:, :-1].set(tk_interface)
     
-    # Bottom boundary (lines 255-256)
-    is_bottom = j_fortran[None, :] == nlevgrnd
-    tk = jnp.where(is_bottom, 0.0, tk)
+    # Bottom boundary (lines 255-256) - last layer has zero flux
+    tk = tk.at[:, -1].set(0.0)
     
     # Calculate thermal conductivity of h2osfc (Fortran lines 262-266)
     zh2osfc = 1.0e-3 * (0.5 * h2osfc)  # Convert mm to m
-    tk_h2osfc = (params.tkwat * thk[:, nlevsno - 1] * (z[:, nlevsno - 1] + zh2osfc)) / (
-        params.tkwat * z[:, nlevsno - 1] + thk[:, nlevsno - 1] * zh2osfc + 1e-30
+    tk_h2osfc = (params.tkwat * thk[:, 0] * (z[:, 0] + zh2osfc)) / (
+        params.tkwat * z[:, 0] + thk[:, 0] * zh2osfc + 1e-30
     )
     
     # Soil heat capacity (Fortran lines 270-279)
-    j_soil_indices = jnp.arange(nlevgrnd)
-    j_soil_fortran = j_soil_indices + 1
-    
     # Basic heat capacity (line 273)
-    cv_soil = csol * (1.0 - watsat) * dz[:, nlevsno:] + (
-        h2osoi_ice[:, nlevsno:] * params.cpice + 
-        h2osoi_liq[:, nlevsno:] * params.cpliq
+    cv = csol * (1.0 - watsat) * dz + (
+        h2osoi_ice * params.cpice + h2osoi_liq * params.cpliq
     )
     
     # Bedrock heat capacity (line 274)
-    is_bedrock_soil = j_soil_fortran[None, :] > nbedrock[:, None]
-    cv_soil = jnp.where(
-        is_bedrock_soil, 
-        params.csol_bedrock * dz[:, nlevsno:], 
-        cv_soil
-    )
+    cv = jnp.where(is_bedrock, params.csol_bedrock * dz, cv)
     
     # Add snow water heat capacity to top layer (lines 275-278)
-    is_top_with_snow = (j_soil_fortran[None, :] == 1) & (
-        snl[:, None] + 1 == 1
-    ) & (h2osno[:, None] > 0.0)
-    cv_soil_top = jnp.where(
-        is_top_with_snow[:, 0:1],
-        cv_soil[:, 0:1] + params.cpice * h2osno[:, None],
-        cv_soil[:, 0:1]
+    # Only if no snow layers (snl+1 == 1) and h2osno > 0
+    add_snow_heat = (snl + 1 == 1) & (h2osno > 0.0)
+    cv_top = jnp.where(
+        add_snow_heat,
+        cv[:, 0] + params.cpice * h2osno,
+        cv[:, 0]
     )
-    cv_soil = cv_soil.at[:, 0].set(cv_soil_top[:, 0])
-    
-    cv = cv.at[:, nlevsno:].set(cv_soil)
-    
-    # Snow heat capacity (Fortran lines 283-292)
-    j_snow_indices = jnp.arange(nlevsno)
-    j_snow_fortran = j_snow_indices - nlevsno + 1
-    
-    is_snow_layer = (snl[:, None] + 1 < 1) & (
-        j_snow_fortran[None, :] >= snl[:, None] + 1
-    )
-    
-    # Calculate snow heat capacity (lines 286-290)
-    cv_snow_num = (
-        params.cpliq * h2osoi_liq[:, :nlevsno] + 
-        params.cpice * h2osoi_ice[:, :nlevsno]
-    )
-    cv_snow = cv_snow_num / (frac_sno[:, None] + 1e-30)
-    cv_snow = jnp.maximum(params.thin_sfclayer, cv_snow)
-    cv_snow = jnp.where(frac_sno[:, None] > 0.0, cv_snow, params.thin_sfclayer)
-    
-    cv = cv.at[:, :nlevsno].set(jnp.where(is_snow_layer, cv_snow, cv[:, :nlevsno]))
+    cv = cv.at[:, 0].set(cv_top)
     
     return ThermalProperties(
         tk=tk,
@@ -617,18 +562,22 @@ def compute_soil_temperature(
     update into a single workflow.
     
     Args:
-        geom: Column geometry information
-        t_soisno: Initial soil/snow temperature [K] [n_cols, n_levtot]
+        geom: Column geometry information (arrays have shape [n_cols, n_levgrnd])
+        t_soisno: Initial soil temperature [K] [n_cols, n_levgrnd]
         gsoi: Ground heat flux [W/m2] [n_cols]
-        water: Water state variables
-        soil: Soil state variables
+        water: Water state variables (arrays have shape [n_cols, n_levgrnd])
+        soil: Soil state variables (arrays have shape [n_cols, n_levgrnd])
         params: Soil temperature parameters
         dtime: Model timestep [s]
-        nlevsno: Maximum number of snow layers
+        nlevsno: Maximum number of snow layers (not used in current implementation)
         nlevgrnd: Number of ground layers
         
     Returns:
         Tuple of (SoilTemperatureResult, ThermalProperties)
+        
+    Note:
+        This function operates only on soil layers. All input arrays should
+        have shape [n_cols, n_levgrnd], not including snow layers.
     """
     # Calculate thermal properties
     thermal_props = soil_therm_prop(
@@ -637,14 +586,13 @@ def compute_soil_temperature(
         water=water,
         soil=soil,
         params=params,
-        nlevsno=nlevsno,
         nlevgrnd=nlevgrnd,
     )
     
     # Update soil temperature
     result = soil_temperature(
         geom=geom,
-        t_soisno=t_soisno[:, nlevsno:],  # Only soil layers
+        t_soisno=t_soisno,
         gsoi=gsoi,
         thermal_props=thermal_props,
         dtime=dtime,

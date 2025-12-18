@@ -564,11 +564,11 @@ run_repair() {
             # With Fortran reference
             python examples/repair_agent_example.py \
                 --module "$module" \
-                --fortran "$fortran_ref" \
-                --python "$python_file_to_repair" \
+                --fortran "$fortran_file" \
+                --python "$python_file" \
                 --test-report "$test_output" \
                 --test-file "$test_file" \
-                --max-iterations 5 \
+                --max-iterations 1 \
                 -o "$repair_output"
         else
             # Without Fortran reference (less effective)
@@ -582,7 +582,7 @@ run_repair() {
                 --fortran "$python_file" \
                 --python "$python_file_to_repair" \
                 --test-report "$test_output" \
-                --max-iterations 5 \
+                --max-iterations 1 \
                 -o "$repair_output"
         fi
         
