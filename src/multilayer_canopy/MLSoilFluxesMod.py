@@ -41,6 +41,7 @@ References:
 from typing import NamedTuple
 import jax
 import jax.numpy as jnp
+from .MLWaterVaporMod import sat_vap, lat_vap
 
 
 # =============================================================================
@@ -108,74 +109,6 @@ class SoilFluxesOutput(NamedTuple):
     tg: jnp.ndarray
     eg: jnp.ndarray
     energy_error: jnp.ndarray
-
-
-# =============================================================================
-# Water Vapor Functions (from MLWaterVaporMod)
-# =============================================================================
-
-
-def sat_vap(temperature: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
-    """Calculate saturation vapor pressure and its temperature derivative.
-    
-    Uses the Clausius-Clapeyron equation with reference values at 273.16 K.
-    
-    Args:
-        temperature: Temperature [K] [...]
-        
-    Returns:
-        Tuple of:
-            - esat: Saturation vapor pressure [Pa] [...]
-            - desat: Temperature derivative of esat [Pa/K] [...]
-            
-    Note:
-        This is a simplified implementation. The actual CTSM implementation
-        may use different formulations for ice vs liquid water.
-    """
-    # Constants for saturation vapor pressure calculation
-    T0 = 273.16  # Reference temperature [K]
-    e0 = 611.2  # Saturation vapor pressure at T0 [Pa]
-    Lv = 2.5e6  # Latent heat of vaporization [J/kg]
-    Rv = 461.5  # Gas constant for water vapor [J/kg/K]
-    
-    # Clausius-Clapeyron equation
-    esat = e0 * jnp.exp((Lv / Rv) * (1.0 / T0 - 1.0 / temperature))
-    
-    # Temperature derivative
-    desat = esat * (Lv / Rv) / (temperature ** 2)
-    
-    return esat, desat
-
-
-def lat_vap(temperature: jnp.ndarray) -> jnp.ndarray:
-    """Calculate latent heat of vaporization.
-    
-    Latent heat varies slightly with temperature. This uses a linear
-    approximation around the reference temperature.
-    
-    Args:
-        temperature: Temperature [K] [...]
-        
-    Returns:
-        Latent heat of vaporization [J/mol] [...]
-        
-    Note:
-        The conversion from J/kg to J/mol uses the molecular weight of water
-        (18.016 g/mol = 0.018016 kg/mol).
-    """
-    # Constants
-    T0 = 273.16  # Reference temperature [K]
-    Lv0 = 2.5e6  # Latent heat at T0 [J/kg]
-    dLv_dT = -2370.0  # Temperature derivative [J/kg/K]
-    MW_H2O = 0.018016  # Molecular weight of water [kg/mol]
-    
-    # Linear approximation
-    Lv = Lv0 + dLv_dT * (temperature - T0)
-    
-    # Convert from J/kg to J/mol
-    Lv_mol = Lv * MW_H2O
-    
-    return Lv_mol
 
 
 # =============================================================================
@@ -313,6 +246,4 @@ __all__ = [
     'SoilFluxesInput',
     'SoilFluxesOutput',
     'soil_fluxes',
-    'sat_vap',
-    'lat_vap',
 ]
