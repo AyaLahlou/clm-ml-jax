@@ -1,7 +1,7 @@
 """
-CLM Time Manager Module - Pure JAX Implementation
+CLM Time Manager Module
 
-Translated from clm_time_manager.F90 (lines 1-504)
+Translated from clm_time_manager.F90 (lines 1-462)
 Pure JAX implementation of CLM time management functionality.
 
 This module provides time management utilities for CLM simulations including:
@@ -21,47 +21,42 @@ DEFINITIONS:
 - current time: Elapsed time from start date to current date
 - calendar day: Day number in calendar year (Jan 1 = day 1)
 
-Key Features:
-- Pure functions with no side effects
-- JIT-compatible using lax.while_loop for iterations
-- Immutable NamedTuple state management
-- Full type hints and comprehensive docstrings
-- Exact preservation of Fortran physics equations
-
 Original Fortran: clm_time_manager.F90
-Translation Date: 2024
+Translation: Complete module with all subroutines and functions
 """
 
 from typing import NamedTuple, Tuple, Optional
 import jax.numpy as jnp
 from jax import Array, lax
 
-# =============================================================================
+
+# ============================================================================
 # CONSTANTS (Fortran lines 75-82)
-# =============================================================================
+# ============================================================================
 
 # Calendar type flag
 CALENDAR_KIND_FLAG = "GREGORIAN"
 
-# Number of days in each month for non-leap years (Fortran line 77)
+# Number of days in each month (non-leap year)
+# Fortran line 77
 MDAY = jnp.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], dtype=jnp.int32)
 
-# Cumulative days at end of each month for non-leap years (Fortran line 78)
+# Cumulative days at end of each month (non-leap year)
+# Fortran line 78
 MDAYCUM = jnp.array([0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], dtype=jnp.int32)
 
-# Number of days in each month for leap years (Fortran line 81)
+# Number of days in each month (leap year)
+# Fortran line 81
 MDAYLEAP = jnp.array([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], dtype=jnp.int32)
 
-# Cumulative days at end of each month for leap years (Fortran line 82)
+# Cumulative days at end of each month (leap year)
+# Fortran line 82
 MDAYLEAPCUM = jnp.array([0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366], dtype=jnp.int32)
 
-# Seconds per day
-SECONDS_PER_DAY = 86400
 
-
-# =============================================================================
+# ============================================================================
 # STATE TYPES
-# =============================================================================
+# ============================================================================
 
 class TimeManagerState(NamedTuple):
     """State for CLM time manager.
@@ -99,9 +94,9 @@ class CurrentDate(NamedTuple):
     tod: int
 
 
-# =============================================================================
-# UTILITY FUNCTIONS (Fortran lines 104-151)
-# =============================================================================
+# ============================================================================
+# BASIC ACCESSOR FUNCTIONS (Fortran lines 104-122)
+# ============================================================================
 
 def get_step_size(state: TimeManagerState) -> int:
     """Return the step size in seconds.
@@ -130,6 +125,10 @@ def get_nstep(state: TimeManagerState) -> int:
     """
     return state.itim
 
+
+# ============================================================================
+# LEAP YEAR CALCULATION (Fortran lines 124-151)
+# ============================================================================
 
 def isleap(year: int, calendar: str = "GREGORIAN") -> bool:
     """Return true if a leap year.
@@ -192,7 +191,6 @@ def isleap_jax(year: Array, calendar: str = "GREGORIAN") -> Array:
         div_by_400 = (year % 400) == 0
         
         # Apply leap year rules using jnp.where for JIT compatibility
-        # Fortran lines 142-149
         is_leap = jnp.where(
             div_by_4,
             jnp.where(
@@ -206,9 +204,9 @@ def isleap_jax(year: Array, calendar: str = "GREGORIAN") -> Array:
     return is_leap
 
 
-# =============================================================================
-# DATE COMPUTATION FUNCTIONS (Fortran lines 152-318)
-# =============================================================================
+# ============================================================================
+# DATE CALCULATION FUNCTIONS (Fortran lines 152-318)
+# ============================================================================
 
 def get_curr_date(
     state: TimeManagerState,
@@ -243,18 +241,18 @@ def get_curr_date(
     
     # Lines 176-177: Seconds and days since start
     nsecs = state.itim * state.dtstep  # Elapsed seconds
-    ndays = (nsecs + state.start_date_tod) // SECONDS_PER_DAY  # Elapsed days
+    ndays = (nsecs + state.start_date_tod) // 86400  # Elapsed days
     
     # Lines 178-182: Elapsed years
     is_leap_start = isleap(mcyear_start, state.calkindflag)
-    days_per_year = 366 if is_leap_start else 365
+    days_per_year = jnp.where(is_leap_start, 366, 365)
     nyears = ndays // days_per_year
     
     # Lines 186-190: Day of current year (mod operation)
     ndays_in_year = ndays % days_per_year
     
     # Lines 192-193: Current seconds of current date
-    tod = (nsecs + state.start_date_tod) % SECONDS_PER_DAY
+    tod = (nsecs + state.start_date_tod) % 86400
     
     # Lines 195-198: Initialize current year, month, day
     mcyear = mcyear_start + nyears
@@ -266,22 +264,22 @@ def get_curr_date(
     def cond_fn(carry):
         mcyear, mcmnth, mcday = carry
         is_leap = isleap(mcyear, state.calkindflag)
-        days_per_month = MDAYLEAP[mcmnth - 1] if is_leap else MDAY[mcmnth - 1]
+        days_per_month = jnp.where(is_leap, MDAYLEAP[mcmnth - 1], MDAY[mcmnth - 1])
         return mcday > days_per_month
     
     def body_fn(carry):
         mcyear, mcmnth, mcday = carry
         is_leap = isleap(mcyear, state.calkindflag)
-        days_per_month = MDAYLEAP[mcmnth - 1] if is_leap else MDAY[mcmnth - 1]
+        days_per_month = jnp.where(is_leap, MDAYLEAP[mcmnth - 1], MDAY[mcmnth - 1])
         
         # Subtract days in current month
         mcday = mcday - days_per_month
         mcmnth = mcmnth + 1
         
         # Handle year transition (line 214-217)
-        if mcmnth == 13:
-            mcyear = mcyear + 1
-            mcmnth = 1
+        year_overflow = mcmnth == 13
+        mcyear = jnp.where(year_overflow, mcyear + 1, mcyear)
+        mcmnth = jnp.where(year_overflow, 1, mcmnth)
         
         return (mcyear, mcmnth, mcday)
     
@@ -289,7 +287,30 @@ def get_curr_date(
         cond_fn, body_fn, (mcyear, mcmnth, mcday)
     )
     
-    return (int(mcyear), int(mcmnth), int(mcday), int(tod))
+    # Line 220: Compute curr_date_ymd
+    curr_date_ymd = mcyear * 10000 + mcmnth * 100 + mcday
+    
+    # Lines 222-225: Extract year, month, day of current date
+    yr = curr_date_ymd // 10000
+    mon = (curr_date_ymd % 10000) // 100
+    day = curr_date_ymd % 100
+    
+    return (int(yr), int(mon), int(day), int(tod))
+
+
+def get_curr_date_tuple(
+    state: TimeManagerState,
+) -> CurrentDate:
+    """Convenience wrapper returning CurrentDate NamedTuple.
+    
+    Args:
+        state: TimeManagerState containing calendar configuration
+        
+    Returns:
+        CurrentDate NamedTuple with year, month, day, tod fields
+    """
+    yr, mon, day, tod = get_curr_date(state)
+    return CurrentDate(year=yr, month=mon, day=day, tod=tod)
 
 
 def get_prev_date(
@@ -327,18 +348,18 @@ def get_prev_date(
     
     # Lines 260-267: Seconds and days since start
     nsecs = (state.itim - 1) * state.dtstep  # Elapsed seconds
-    ndays = (nsecs + state.start_date_tod) // SECONDS_PER_DAY  # Elapsed days
+    ndays = (nsecs + state.start_date_tod) // 86400  # Elapsed days
     
     # Compute elapsed years based on leap year status
     is_leap_start = isleap(mcyear_start, state.calkindflag)
-    days_per_year = 366 if is_leap_start else 365
+    days_per_year = jnp.where(is_leap_start, 366, 365)
     nyears = ndays // days_per_year
     
     # Lines 269-275: Day of year (mod operation for remainder)
-    ndays = ndays % days_per_year
+    ndays = jnp.where(is_leap_start, ndays % 366, ndays % 365)
     
     # Line 277-278: Seconds of date
-    tod = (nsecs + state.start_date_tod) % SECONDS_PER_DAY
+    tod = (nsecs + state.start_date_tod) % 86400
     
     # Lines 280-283: Initialize year, month, day
     mcyear = state.start_date_ymd // 10000 + nyears
@@ -350,22 +371,29 @@ def get_prev_date(
     def cond_fun(carry):
         mcyear, mcmnth, mcday = carry
         is_leap = isleap(mcyear, state.calkindflag)
-        days_per_month = MDAYLEAP[mcmnth - 1] if is_leap else MDAY[mcmnth - 1]
+        days_per_month = jnp.where(
+            is_leap,
+            MDAYLEAP[mcmnth - 1],  # 0-indexed array, 1-indexed month
+            MDAY[mcmnth - 1]
+        )
         return mcday > days_per_month
     
     def body_fun(carry):
         mcyear, mcmnth, mcday = carry
         is_leap = isleap(mcyear, state.calkindflag)
-        days_per_month = MDAYLEAP[mcmnth - 1] if is_leap else MDAY[mcmnth - 1]
+        days_per_month = jnp.where(
+            is_leap,
+            MDAYLEAP[mcmnth - 1],
+            MDAY[mcmnth - 1]
+        )
         
         # Subtract days and increment month
         mcday = mcday - days_per_month
         mcmnth = mcmnth + 1
         
         # Handle year rollover (line 299-301)
-        if mcmnth == 13:
-            mcyear = mcyear + 1
-            mcmnth = 1
+        mcyear = jnp.where(mcmnth == 13, mcyear + 1, mcyear)
+        mcmnth = jnp.where(mcmnth == 13, 1, mcmnth)
         
         return (mcyear, mcmnth, mcday)
     
@@ -375,12 +403,20 @@ def get_prev_date(
         (mcyear, mcmnth, mcday)
     )
     
-    return (int(mcyear), int(mcmnth), int(mcday), int(tod))
+    # Line 304: Construct date_ymd
+    date_ymd = mcyear * 10000 + mcmnth * 100 + mcday
+    
+    # Lines 306-309: Extract year, month, day of date
+    yr = date_ymd // 10000
+    mon = (date_ymd % 10000) // 100
+    day = date_ymd % 100
+    
+    return int(yr), int(mon), int(day), int(tod)
 
 
-# =============================================================================
-# TIME COMPUTATION FUNCTIONS (Fortran lines 321-340)
-# =============================================================================
+# ============================================================================
+# TIME CALCULATION FUNCTIONS (Fortran lines 321-340)
+# ============================================================================
 
 def get_curr_time(
     state: TimeManagerState,
@@ -404,8 +440,8 @@ def get_curr_time(
     
     Returns:
         Tuple containing:
-            - days: Number of whole days in time interval (int)
-            - seconds: Remaining seconds in the day (int)
+            - days: Number of whole days in time interval (scalar int)
+            - seconds: Remaining seconds in the day (scalar int)
     
     Note:
         All arithmetic operations preserve exact integer semantics from Fortran.
@@ -415,90 +451,18 @@ def get_curr_time(
     nsecs = state.itim * state.dtstep
     
     # Line 337: days = (nsecs + start_date_tod) / 86400
-    # Integer division
-    days = (nsecs + state.start_date_tod) // SECONDS_PER_DAY
+    # Integer division in Fortran
+    days = (nsecs + state.start_date_tod) // 86400
     
     # Line 338: seconds = mod(nsecs+start_date_tod, 86400)
-    seconds = (nsecs + state.start_date_tod) % SECONDS_PER_DAY
+    seconds = (nsecs + state.start_date_tod) % 86400
     
     return int(days), int(seconds)
 
 
-# =============================================================================
+# ============================================================================
 # CALENDAR DAY FUNCTIONS (Fortran lines 343-462)
-# =============================================================================
-
-def get_curr_calday(
-    state: TimeManagerState,
-    offset: Optional[int] = None,
-) -> Tuple[float, bool]:
-    """Return calendar day at end of current timestep with optional offset.
-    
-    Translated from clm_time_manager.F90 (lines 343-412).
-    
-    Calendar day 1.0 = 0Z on Jan 1. Offset is positive for future times
-    and negative for previous times.
-    
-    Args:
-        state: TimeManagerState containing current time information
-        offset: Optional offset from current time in seconds.
-                Positive for future (not supported), negative for past,
-                None or 0 for current time.
-    
-    Returns:
-        Tuple of:
-            - calday: Calendar day (1.0 to 366.0)
-            - error: Boolean indicating if an error occurred
-    
-    Notes:
-        - Line 343-412: Original Fortran implementation
-        - Line 362-365: offset < 0 returns previous calendar day
-        - Line 367-371: offset > 0 triggers error (not supported)
-        - Line 373-412: offset == 0 computes current calendar day
-        - Line 379-384: Leap year handling for day-of-year calculation
-        - Line 386-398: Gregorian calendar hack for day 366
-        - Line 400-403: Bounds checking (1.0 <= calday <= 366.0)
-    """
-    
-    # Handle offset parameter (default to 0 if None)
-    offset_val = 0 if offset is None else offset
-    
-    # Check for unsupported positive offset (line 367-371)
-    if offset_val > 0:
-        return 0.0, True
-    
-    # Check for negative offset (line 362-365)
-    if offset_val < 0:
-        return get_prev_calday(state), False
-    
-    # Compute current calendar day (line 373-412)
-    # Get current date components (line 377)
-    yr, mon, day, tod = get_curr_date(state)
-    
-    # Check if leap year (line 379)
-    is_leap = isleap(yr, state.calkindflag)
-    
-    # Convert to day-of-year + fraction (line 381-384)
-    # Use cumulative day arrays based on leap year status
-    if is_leap:
-        day_cum = MDAYLEAPCUM[mon - 1]
-    else:
-        day_cum = MDAYCUM[mon - 1]
-    
-    calday_current = float(day_cum) + float(day) + float(tod) / 86400.0
-    
-    # Apply Gregorian calendar hack (line 386-398)
-    # If day is between 366 and 367 in Gregorian calendar, subtract 1
-    if state.calkindflag == 'GREGORIAN':
-        if 366.0 < calday_current <= 367.0:
-            calday_current = calday_current - 1.0
-    
-    # Check bounds (line 400-403)
-    if calday_current < 1.0 or calday_current > 366.0:
-        return calday_current, True
-    
-    return calday_current, False
-
+# ============================================================================
 
 def get_prev_calday(
     state: TimeManagerState,
@@ -517,7 +481,7 @@ def get_prev_calday(
         state: TimeManagerState containing current time information
         
     Returns:
-        Calendar day as a float (1.0 to 366.0)
+        Calendar day as a scalar float (1.0 to 366.0)
         
     Notes:
         - Calendar day 1.0 corresponds to 0Z (midnight) on January 1
@@ -536,10 +500,12 @@ def get_prev_calday(
     is_leap = isleap(yr, state.calkindflag)
     
     # Compute cumulative days for the month (0-indexed, so mon-1)
-    if is_leap:
-        mdaycum_value = MDAYLEAPCUM[mon - 1]
-    else:
-        mdaycum_value = MDAYCUM[mon - 1]
+    # Use jnp.where to select between leap and non-leap year cumulative days
+    mdaycum_value = jnp.where(
+        is_leap,
+        MDAYLEAPCUM[mon - 1],
+        MDAYCUM[mon - 1]
+    )
     
     # Calendar day = cumulative days + current day + fraction of day
     calday = float(mdaycum_value) + float(day) + float(tod) / 86400.0
@@ -549,31 +515,98 @@ def get_prev_calday(
     # The following hack fakes day 366 by reusing day 365. This is just because
     # the current shr_orb_decl calculation can't handle days > 366.
     # Dani Bundy-Coleman and Erik Kluzek Aug/2008
-    if state.calkindflag == "GREGORIAN":
-        if 366.0 < calday <= 367.0:
-            calday = calday - 1.0
+    is_gregorian = state.calkindflag == "GREGORIAN"
+    in_hack_range = (calday > 366.0) and (calday <= 367.0)
+    if is_gregorian and in_hack_range:
+        calday = calday - 1.0
     
     return calday
 
 
-# =============================================================================
-# CONVENIENCE FUNCTIONS
-# =============================================================================
-
-def get_curr_date_tuple(
+def get_curr_calday(
     state: TimeManagerState,
-) -> CurrentDate:
-    """Convenience wrapper returning CurrentDate NamedTuple.
+    offset: Optional[int] = None,
+) -> float:
+    """Return calendar day at end of current timestep with optional offset.
+    
+    Translated from clm_time_manager.F90 (lines 343-412).
+    
+    Calendar day 1.0 = 0Z on Jan 1. Offset is positive for future times
+    and negative for previous times.
     
     Args:
-        state: TimeManagerState containing calendar configuration
-        
+        state: TimeManagerState containing current time information
+        offset: Optional offset from current time in seconds.
+                Positive for future (not supported), negative for past,
+                None or 0 for current time.
+    
     Returns:
-        CurrentDate NamedTuple with year, month, day, tod fields
+        Calendar day (1.0 to 366.0)
+    
+    Raises:
+        ValueError: If offset > 0 (future times not supported)
+        ValueError: If computed calendar day is out of bounds [1.0, 366.0]
+    
+    Notes:
+        - Line 343-412: Original Fortran implementation
+        - Line 362-365: offset < 0 returns previous calendar day
+        - Line 367-371: offset > 0 triggers error (not supported)
+        - Line 373-412: offset == 0 computes current calendar day
+        - Line 379-384: Leap year handling for day-of-year calculation
+        - Line 386-398: Gregorian calendar hack for day 366
+        - Line 400-403: Bounds checking (1.0 <= calday <= 366.0)
     """
+    # Handle offset parameter (default to 0 if None)
+    offset_val = 0 if offset is None else offset
+    
+    # Check for unsupported positive offset (line 367-371)
+    if offset_val > 0:
+        raise ValueError("get_curr_calday: positive offset not supported")
+    
+    # Check for negative offset (line 362-365)
+    if offset_val < 0:
+        return get_prev_calday(state)
+    
+    # Compute current calendar day (line 373-412)
+    # Get current date components (line 377)
     yr, mon, day, tod = get_curr_date(state)
-    return CurrentDate(year=yr, month=mon, day=day, tod=tod)
+    
+    # Check if leap year (line 379)
+    is_leap = isleap(yr, state.calkindflag)
+    
+    # Convert to day-of-year + fraction (line 381-384)
+    # Use cumulative day arrays based on leap year status
+    day_cum = jnp.where(
+        is_leap,
+        MDAYLEAPCUM[mon - 1],
+        MDAYCUM[mon - 1]
+    )
+    
+    calday = (
+        float(day_cum) + 
+        float(day) + 
+        float(tod) / 86400.0
+    )
+    
+    # Apply Gregorian calendar hack (line 386-398)
+    # If day is between 366 and 367 in Gregorian calendar, subtract 1
+    is_gregorian = state.calkindflag == 'GREGORIAN'
+    needs_hack = (calday > 366.0) and (calday <= 367.0) and is_gregorian
+    if needs_hack:
+        calday = calday - 1.0
+    
+    # Check bounds (line 400-403)
+    if calday < 1.0 or calday > 366.0:
+        raise ValueError(
+            f"get_curr_calday: calendar day {calday} out of bounds [1.0, 366.0]"
+        )
+    
+    return calday
 
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
 
 def is_end_curr_day(state: TimeManagerState) -> bool:
     """Return true if current timestep is last timestep in current day.
@@ -584,8 +617,9 @@ def is_end_curr_day(state: TimeManagerState) -> bool:
     Returns:
         True if at end of day
     """
-    # End of day when tod + dtstep >= 86400 seconds
-    return (state.curr_date_tod + state.dtstep) >= SECONDS_PER_DAY
+    # Check if next timestep would roll over to next day
+    next_tod = state.curr_date_tod + state.dtstep
+    return next_tod >= 86400  # 86400 seconds in a day
 
 
 def is_end_curr_month(state: TimeManagerState) -> bool:
@@ -597,66 +631,16 @@ def is_end_curr_month(state: TimeManagerState) -> bool:
     Returns:
         True if at end of month
     """
-    year, month, day, tod = get_curr_date(state)
+    # Get current date
+    yr, mon, day, tod = get_curr_date(state)
     
-    # Determine days in current month
-    leap = isleap(year, state.calkindflag)
-    if leap:
-        days_in_month = MDAYLEAP[month - 1]
-    else:
-        days_in_month = MDAY[month - 1]
+    # Get days in current month
+    is_leap = isleap(yr, state.calkindflag)
+    days_in_month = jnp.where(is_leap, MDAYLEAP[mon - 1], MDAY[mon - 1])
     
-    # End of month if on last day and at end of that day
-    return day == days_in_month and is_end_curr_day(state)
-
-
-# =============================================================================
-# MODULE INITIALIZATION
-# =============================================================================
-
-def create_time_manager_state(
-    dtstep: int,
-    start_date_ymd: int,
-    start_date_tod: int = 0,
-    calendar: str = "GREGORIAN",
-) -> TimeManagerState:
-    """Create initial TimeManagerState.
+    # Check if at last day and last timestep of day
+    at_last_day = day == days_in_month
+    next_tod = tod + state.dtstep
+    at_end_of_day = next_tod >= 86400
     
-    Args:
-        dtstep: Model timestep in seconds
-        start_date_ymd: Start date in yyyymmdd format
-        start_date_tod: Start time of day in seconds (default: 0)
-        calendar: Calendar type (default: "GREGORIAN")
-        
-    Returns:
-        Initialized TimeManagerState
-    """
-    return TimeManagerState(
-        dtstep=dtstep,
-        itim=0,
-        start_date_ymd=start_date_ymd,
-        start_date_tod=start_date_tod,
-        curr_date_ymd=start_date_ymd,
-        curr_date_tod=start_date_tod,
-        calkindflag=calendar,
-    )
-
-
-def advance_timestep(state: TimeManagerState) -> TimeManagerState:
-    """Advance time manager state by one timestep.
-    
-    Args:
-        state: Current time manager state
-        
-    Returns:
-        Updated time manager state with incremented timestep
-    """
-    new_itim = state.itim + 1
-    yr, mon, day, tod = get_curr_date(state._replace(itim=new_itim))
-    new_ymd = yr * 10000 + mon * 100 + day
-    
-    return state._replace(
-        itim=new_itim,
-        curr_date_ymd=new_ymd,
-        curr_date_tod=tod,
-    )
+    return at_last_day and at_end_of_day

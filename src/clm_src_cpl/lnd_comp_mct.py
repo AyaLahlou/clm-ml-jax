@@ -3,30 +3,30 @@ JAX translation of lnd_comp_mct module.
 
 This module provides the interface of the active land model component of CESM (CLM)
 with the main CESM driver. It defines the public API for CLM initialization and
-run phases, serving as the top-level interface between the CESM coupler and the
-Community Land Model.
+run phases, serving as the top-level interface between the land model and the
+coupled system.
 
-The module implements a two-stage initialization process and provides the main
-run interface for executing CLM timesteps.
+The module orchestrates the two-stage initialization process and provides the
+main entry point for running the land model timestep.
 
 Fortran source: lnd_comp_mct.F90, lines 1-63
 """
 
-from typing import NamedTuple, Protocol, Optional
+from typing import NamedTuple, Protocol
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import Array
+
 
 # =============================================================================
 # Type Definitions
 # =============================================================================
 
-
 class BoundsType(NamedTuple):
     """
-    Domain decomposition bounds for parallel processing.
+    Bounds type for domain decomposition.
     
-    Defines the index ranges for grid cells, landunits, columns, and PFTs
-    (plant functional types) assigned to the local processor.
+    Defines the index ranges for different grid entities (grid cells, landunits,
+    columns, and PFTs) on the local processor.
     
     Attributes:
         begg: Beginning grid cell index
@@ -35,7 +35,7 @@ class BoundsType(NamedTuple):
         endl: Ending landunit index
         begc: Beginning column index
         endc: Ending column index
-        begp: Beginning PFT index
+        begp: Beginning PFT (plant functional type) index
         endp: Ending PFT index
     
     Note:
@@ -51,11 +51,16 @@ class BoundsType(NamedTuple):
     endp: int
 
 
+# =============================================================================
+# Protocol Definitions (Public Interface)
+# =============================================================================
+
 class LndInitMct(Protocol):
     """
     Protocol for CLM initialization function.
     
-    Defines the interface for land model initialization routines.
+    Defines the interface for the land model initialization routine that
+    sets up the model state and configuration.
     
     Fortran source: line 16
     """
@@ -68,7 +73,8 @@ class LndRunMct(Protocol):
     """
     Protocol for CLM run phase function.
     
-    Defines the interface for land model execution routines.
+    Defines the interface for the land model run routine that executes
+    a single timestep of the model.
     
     Fortran source: line 17
     """
@@ -92,55 +98,44 @@ R8 = jnp.float64
 
 
 # =============================================================================
-# Public Interface Functions
+# Public Functions
 # =============================================================================
-
 
 def lnd_init_mct(bounds: BoundsType) -> None:
     """
     Initialize land surface model.
     
-    Performs the two-stage initialization of the Community Land Model (CLM).
-    This function orchestrates the initialization sequence by sequentially
-    calling initialize1 and initialize2 to set up the model state, configuration,
-    and data structures.
+    This function performs the two-stage initialization of the Community Land
+    Model (CLM). It sequentially calls initialize1 and initialize2 to set up
+    the model state and configuration. This is the main entry point for CLM
+    initialization from the CESM coupler.
     
-    Stage 1 (initialize1): Sets up basic model configuration, reads namelists,
-                           initializes domain decomposition, and allocates
-                           primary data structures.
-    
+    Stage 1 (initialize1): Sets up basic model structure, reads namelist,
+                          initializes decomposition
     Stage 2 (initialize2): Initializes model state variables, reads initial
-                           conditions, and completes setup of derived quantities.
+                          conditions or performs cold start
     
     Args:
-        bounds: Domain decomposition bounds containing grid indices for the local
-                processor (begp, endp, begc, endc, begg, endg, begl, endl).
+        bounds: Domain decomposition bounds containing grid indices for the
+               local processor (begp, endp, begc, endc, begg, endg, begl, endl).
     
     Returns:
         None. Initialization is performed through side effects in the called
-        functions. In a pure JAX implementation, this would return initialized
-        state as a NamedTuple.
+        functions. In a full JAX implementation, this would return initialized
+        state as immutable data structures.
     
     Note:
         This is a wrapper function that orchestrates the initialization sequence.
         The actual initialization logic is contained in initialize1 and initialize2
         from the clm_initializeMod module.
         
-        In a full JAX implementation, this function would be refactored to:
-        1. Return initialized state instead of modifying global state
-        2. Be JIT-compilable if possible
-        3. Use pure functional patterns
+        In a pure JAX implementation, this function would need to be refactored
+        to return state rather than modify it through side effects.
         
-    Fortran source reference: lnd_comp_mct.F90, lines 23-39
-    
-    Example:
-        >>> bounds = BoundsType(
-        ...     begg=1, endg=100, begl=1, endl=150,
-        ...     begc=1, endc=200, begp=1, endp=300
-        ... )
-        >>> lnd_init_mct(bounds)
+    Fortran source: lnd_comp_mct.F90, lines 23-39
     """
-    # Import from translated modules (these would need to be implemented)
+    # Import the initialization functions
+    # These would be from previously translated modules
     # from clm_initialize_mod import initialize1, initialize2
     
     # Line 36: call initialize1(bounds)
@@ -149,8 +144,8 @@ def lnd_init_mct(bounds: BoundsType) -> None:
     # Line 37: call initialize2(bounds)
     # initialize2(bounds)
     
-    # Placeholder implementation until dependencies are translated
-    # In production, uncomment the above imports and calls
+    # Placeholder implementation
+    # In actual use, uncomment the imports and function calls above
     pass
 
 
@@ -162,59 +157,51 @@ def lnd_run_mct(
     """
     Run CLM model for a single timestep.
     
-    This function serves as the main entry point for executing one timestep
-    of the Community Land Model. It acts as a thin wrapper around the core
-    CLM driver routine (clm_drv), providing the interface between the CESM
-    coupler and the land model physics.
+    This is the main entry point for executing one timestep of the Community
+    Land Model. It serves as a wrapper that calls the main CLM driver routine
+    (clm_drv) which performs all the physics calculations for the timestep.
     
-    The function delegates all actual computation to clm_drv, which handles:
-    - Surface energy balance calculations
-    - Hydrological processes (infiltration, runoff, drainage)
+    The function coordinates the execution of:
+    - Surface energy balance
+    - Hydrological processes
     - Biogeochemical cycles
     - Vegetation dynamics
-    - Snow processes
     
     Args:
         bounds: Domain decomposition bounds containing grid cell, landunit,
-                column, and PFT index ranges for the local processor.
+               column, and PFT index ranges for the local processor.
         time_indx: Time index from reference date (0Z January 1 of current year,
-                   when calday = 1.0). Used for temporal interpolation and
-                   time-dependent forcing.
-        fin: File name for input/output operations. Used for restart files,
-             diagnostic output, or forcing data.
+                  when calday = 1.0). Used for time-dependent forcing and
+                  phenology calculations.
+        fin: File name for input/output operations. Used for restart files
+            and diagnostic output.
     
     Returns:
         None. In the original Fortran, state updates are performed through
         side effects. In a pure JAX implementation, this would return updated
-        model state as a NamedTuple.
+        state as immutable data structures.
     
     Note:
-        Fortran source: lnd_comp_mct.F90, lines 42-61
+        This is a thin wrapper around clm_drv from the clm_driver module.
+        In the original Fortran, this performs a subroutine call with implicit
+        state modification. In JAX, the actual implementation would need to
+        import and call the translated clm_drv function and handle state
+        updates explicitly through return values.
         
-        This is a thin wrapper around clm_drv. In the original Fortran,
-        this performs a subroutine call with implicit state modification.
+        The function signature would need to be extended to accept and return
+        the full model state in a pure functional implementation.
         
-        In a full JAX implementation, this function would be refactored to:
-        1. Accept current state as input
-        2. Return updated state as output
-        3. Be JIT-compilable for performance
-        4. Use pure functional patterns without side effects
-        
-    Example:
-        >>> bounds = BoundsType(
-        ...     begg=1, endg=100, begl=1, endl=150,
-        ...     begc=1, endc=200, begp=1, endp=300
-        ... )
-        >>> lnd_run_mct(bounds, time_indx=365, fin="restart.nc")
+    Fortran source: lnd_comp_mct.F90, lines 42-61
     """
-    # Import the translated clm_drv function
+    # Import the main CLM driver
     # from clm_driver import clm_drv
     
-    # Line 59: call clm_drv(bounds, time_indx, fin)
-    # clm_drv(bounds, time_indx, fin)
+    # Call the main CLM driver (Fortran line 58)
+    # In the actual implementation, this would be:
+    # return clm_drv(bounds, time_indx, fin)
     
-    # Placeholder implementation until clm_drv is translated
-    # In production, uncomment the above import and call
+    # Placeholder for the actual driver call
+    # The real implementation requires clm_drv to be translated first
     pass
 
 
@@ -222,34 +209,24 @@ def lnd_run_mct(
 # Module Metadata
 # =============================================================================
 
-
 def get_module_info() -> dict:
     """
-    Return module metadata for introspection.
+    Return module metadata.
     
-    Provides comprehensive information about the lnd_comp_mct module,
-    including its purpose, public interfaces, and source references.
+    Provides information about the module structure, public interfaces,
+    and source code references for documentation and debugging purposes.
     
     Returns:
         Dictionary containing:
             - module_name: Name of the module
             - description: Brief description of module purpose
             - public_functions: List of public function names
-            - fortran_source: Original Fortran source file
-            - fortran_lines: Line range in original source
-            - dependencies: List of required modules
-            - version: Translation version
-    
-    Note:
-        This function provides metadata about the lnd_comp_mct module
-        (Fortran lines 1-63) for introspection and documentation purposes.
+            - fortran_source: Reference to original Fortran source
+            - precision: Floating point precision used
+            - entities: List of module entities (subroutines, functions, types)
         
-    Example:
-        >>> info = get_module_info()
-        >>> print(info['module_name'])
-        lnd_comp_mct
-        >>> print(info['public_functions'])
-        ['lnd_init_mct', 'lnd_run_mct']
+    Note:
+        Fortran lines 1-22 define module structure and public interfaces.
     """
     return {
         "module_name": "lnd_comp_mct",
@@ -258,28 +235,44 @@ def get_module_info() -> dict:
             "with the main CESM driver"
         ),
         "public_functions": ["lnd_init_mct", "lnd_run_mct"],
-        "fortran_source": "lnd_comp_mct.F90",
-        "fortran_lines": "1-63",
-        "dependencies": [
-            "shr_kind_mod",
-            "decompMod",
-            "clm_initializeMod",
-            "clm_driver"
+        "fortran_source": "lnd_comp_mct.F90:1-63",
+        "precision": "float64",
+        "entities": [
+            {
+                "name": "lnd_init_mct",
+                "type": "subroutine",
+                "lines": "23-39",
+                "purpose": "Two-stage initialization of CLM"
+            },
+            {
+                "name": "lnd_run_mct",
+                "type": "subroutine",
+                "lines": "42-61",
+                "purpose": "Execute single timestep of CLM"
+            }
         ],
-        "version": "1.0.0-jax",
-        "translation_date": "2024",
+        "dependencies": [
+            "shr_kind_mod (r8 precision)",
+            "decompMod (bounds_type)",
+            "clm_initializeMod (initialize1, initialize2)",
+            "clm_driver (clm_drv)"
+        ]
     }
 
 
 # =============================================================================
-# Public API
+# Module Exports
 # =============================================================================
 
 __all__ = [
+    # Types
     "BoundsType",
+    # Protocols
     "LndInitMct",
     "LndRunMct",
+    # Constants
     "R8",
+    # Functions
     "lnd_init_mct",
     "lnd_run_mct",
     "get_module_info",

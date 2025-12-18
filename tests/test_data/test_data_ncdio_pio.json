@@ -1,0 +1,376 @@
+{
+  "function_name": "ncdio_pio_module",
+  "test_cases": [
+    {
+      "name": "test_file_operations_nominal",
+      "inputs": {
+        "fname": "test_data.nc",
+        "mode": "r",
+        "variables": {
+          "temperature": [
+            [
+              273.15,
+              280.0,
+              290.0
+            ],
+            [
+              275.0,
+              285.0,
+              295.0
+            ]
+          ],
+          "pressure": [
+            [
+              101325.0,
+              102000.0,
+              100500.0
+            ],
+            [
+              101000.0,
+              101500.0,
+              102500.0
+            ]
+          ]
+        },
+        "dimensions": {
+          "time": 2,
+          "space": 3
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Standard file open/close operations with typical 2D climate data",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_1d_io_read_write_nominal",
+      "inputs": {
+        "varname": "altitude",
+        "data": [
+          0.0,
+          100.0,
+          500.0,
+          1000.0,
+          2000.0,
+          5000.0,
+          10000.0
+        ],
+        "flag": "write",
+        "nt": 0,
+        "readvar": false,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "1D array write operation with typical altitude profile in meters",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_2d_io_large_array_nominal",
+      "inputs": {
+        "varname": "soil_moisture",
+        "data": [
+          [
+            0.15,
+            0.22,
+            0.18,
+            0.25,
+            0.2
+          ],
+          [
+            0.18,
+            0.24,
+            0.21,
+            0.28,
+            0.23
+          ],
+          [
+            0.16,
+            0.2,
+            0.19,
+            0.26,
+            0.22
+          ],
+          [
+            0.17,
+            0.23,
+            0.2,
+            0.27,
+            0.24
+          ]
+        ],
+        "flag": "read",
+        "nt": 5,
+        "readvar": true,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "2D soil moisture data (volumetric fraction) across spatial grid at time step 5",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_dimension_query_nominal",
+      "inputs": {
+        "dimension_names": [
+          "lat",
+          "lon",
+          "lev",
+          "time"
+        ],
+        "dimension_lengths": [
+          96,
+          144,
+          30,
+          365
+        ],
+        "query_dim_name": "lev",
+        "query_dim_id": 2
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Query dimension ID and length for typical climate model grid",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_zero_values",
+      "inputs": {
+        "varname": "net_radiation",
+        "data": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "flag": "write",
+        "nt": 0,
+        "readvar": false,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All-zero array representing nighttime net radiation (W/m\u00b2)",
+        "edge_cases": [
+          "zero_values"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_single_element_arrays",
+      "inputs": {
+        "varname_1d": "global_mean_temp",
+        "data_1d": [
+          288.15
+        ],
+        "varname_2d": "single_point",
+        "data_2d": [
+          [
+            42.5
+          ]
+        ],
+        "flag": "write",
+        "nt": null,
+        "readvar": false,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum size arrays (single element) for both 1D and 2D cases",
+        "edge_cases": [
+          "minimum_size",
+          "boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_negative_values_valid",
+      "inputs": {
+        "varname": "wind_velocity_u",
+        "data": [
+          [
+            -15.5,
+            -8.2,
+            -3.1,
+            0.0,
+            4.7,
+            9.3,
+            12.8
+          ],
+          [
+            -12.3,
+            -6.5,
+            -1.8,
+            2.4,
+            6.9,
+            10.5,
+            14.2
+          ],
+          [
+            -9.7,
+            -4.3,
+            0.5,
+            5.1,
+            8.8,
+            11.9,
+            15.6
+          ]
+        ],
+        "flag": "read",
+        "nt": 10,
+        "readvar": true,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Negative wind velocities (m/s) representing westward component - physically valid",
+        "edge_cases": [
+          "negative_values"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_very_large_values",
+      "inputs": {
+        "varname": "cumulative_precipitation",
+        "data": [
+          [
+            1500000.0,
+            2300000.0,
+            1800000.0,
+            2700000.0
+          ],
+          [
+            1900000.0,
+            2500000.0,
+            2100000.0,
+            2900000.0
+          ],
+          [
+            2200000.0,
+            2800000.0,
+            2400000.0,
+            3100000.0
+          ]
+        ],
+        "flag": "write",
+        "nt": 364,
+        "readvar": false,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very large cumulative precipitation values (mm) over annual period",
+        "edge_cases": [
+          "large_magnitude"
+        ]
+      }
+    },
+    {
+      "name": "test_special_time_series_access",
+      "inputs": {
+        "varname": "surface_temperature",
+        "data": [
+          [
+            273.15,
+            275.2,
+            278.45,
+            282.1,
+            285.75,
+            288.3,
+            289.95
+          ],
+          [
+            272.8,
+            274.95,
+            277.8,
+            281.55,
+            285.2,
+            287.85,
+            289.6
+          ],
+          [
+            273.45,
+            275.6,
+            278.9,
+            282.45,
+            286.1,
+            288.65,
+            290.25
+          ]
+        ],
+        "flag": "read",
+        "nt": 120,
+        "readvar": true,
+        "posNOTonfile": false
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Time series access at specific time step (nt=120) for diurnal temperature cycle",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_multi_file_position_flag",
+      "inputs": {
+        "varname": "ocean_salinity",
+        "data": [
+          [
+            34.5,
+            34.8,
+            35.1,
+            35.3
+          ],
+          [
+            34.6,
+            34.9,
+            35.2,
+            35.4
+          ],
+          [
+            34.7,
+            35.0,
+            35.3,
+            35.5
+          ],
+          [
+            34.8,
+            35.1,
+            35.4,
+            35.6
+          ],
+          [
+            34.9,
+            35.2,
+            35.5,
+            35.7
+          ]
+        ],
+        "flag": "read",
+        "nt": 0,
+        "readvar": false,
+        "posNOTonfile": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Ocean salinity (PSU) with posNOTonfile=true for multi-file dataset handling",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**: All values respect physical constraints:\n   - Temperatures in Kelvin (>0K, typically 200-320K for Earth)\n   - Pressures in Pascals (positive)\n   - Fractions/ratios in [0,1] (soil moisture)\n   - Wind velocities can be negative (directional)\n   - Salinity in practical salinity units (PSU, typically 30-37)\n\n2. **Array Dimensions**: \n   - 1D arrays: 1-10 elements (typical for vertical profiles)\n   - 2D arrays: 2x3 to 5x7 elements (spatial grids or time-space)\n   - Consistent dimensions within each test case\n\n3. **NetCDF Context**:\n   - Variable names follow climate/earth science conventions\n   - Time indices (nt) range from 0 to 364 (annual cycle)\n   - Dimension names follow CF conventions (lat, lon, lev, time)\n\n4. **Edge Cases**:\n   - Zero values: Valid for radiation at night\n   - Single elements: Minimum array size boundary\n   - Negative values: Valid for directional quantities (wind, heat flux)\n   - Large values: Cumulative quantities over long periods\n\n5. **File Operations**:\n   - Modes tested: 'r' (read), 'w' (write), 'a' (append implied)\n   - File descriptor states: open/closed\n   - Multi-file scenarios with posNOTonfile flag\n\n6. **Data Types**: All numeric data uses float64 precision suitable for scientific computing\n\n7. **Special Scenarios**:\n   - Time series access at specific time steps\n   - Multi-file dataset handling\n   - Dimension queries for typical climate model grids (96x144 lat-lon)\n\nAll test cases are designed to be independent and can be executed in any order."
+}

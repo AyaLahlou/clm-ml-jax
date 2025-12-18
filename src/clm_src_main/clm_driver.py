@@ -11,7 +11,14 @@ from typing import NamedTuple, Dict, Any
 from dataclasses import dataclass
 
 # Import dependencies (these would need to be implemented separately)
-from ..cime_src_share_util.shr_kind_mod import r8
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
 from .abortutils import endrun
 from .ColumnType import col
 from .decompMod import bounds_type

@@ -146,9 +146,9 @@ def clm_instInit(bounds: bounds_type) -> None:
 
 def update_global_instances() -> None:
     """Update global instance references after initialization"""
-    global (atm2lnd_inst, soilstate_inst, waterstate_inst, canopystate_inst,
-            temperature_inst, energyflux_inst, waterflux_inst, frictionvel_inst,
-            surfalb_inst, solarabs_inst, mlcanopy_inst)
+    global atm2lnd_inst, soilstate_inst, waterstate_inst, canopystate_inst
+    global temperature_inst, energyflux_inst, waterflux_inst, frictionvel_inst
+    global surfalb_inst, solarabs_inst, mlcanopy_inst
     
     atm2lnd_inst = _clm_instances.atm2lnd_inst
     soilstate_inst = _clm_instances.soilstate_inst

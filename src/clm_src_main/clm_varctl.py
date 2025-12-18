@@ -1,186 +1,150 @@
 """
 JAX translation of clm_varctl module.
 
-This module contains run control variables for CLM (Community Land Model).
-Provides configuration and control parameters for model execution.
+This module contains run control variables for the Community Land Model (CLM).
+Provides configuration parameters and control flags for model execution.
 
 Translated from: clm_varctl.F90, lines 1-15
-Original module: clm_varctl
 
 Key Features:
-    - Run control variables (iulog for logging)
-    - Pure functional interface with immutable state
-    - Type-safe configuration using NamedTuple
-    - JIT-compatible design
+    - Run control variables stored in immutable NamedTuple
+    - Pure functional interface for JAX compatibility
+    - Default configuration factory function
+    - Module-level default instance for convenience
 
 Note:
-    In the original Fortran, this module primarily manages I/O unit numbers
-    and other runtime control variables. In JAX, I/O is handled differently,
-    but we preserve the structure for compatibility with the broader CLM codebase.
+    In the original Fortran, this module uses I/O unit numbers for logging.
+    In JAX translation, these are preserved for compatibility but actual I/O
+    operations are handled through Python's logging system or other mechanisms.
 """
 
 from typing import NamedTuple
 import jax.numpy as jnp
 from jax import Array
 
-# ============================================================================
-# Type Definitions
-# ============================================================================
+# =============================================================================
+# Type Aliases
+# =============================================================================
 
-# Type alias for double precision (Fortran r8 kind)
+# Type alias for double precision (Fortran r8 from shr_kind_mod)
 r8 = jnp.float64
 
+
+# =============================================================================
+# Data Structures
+# =============================================================================
 
 class ClmVarCtl(NamedTuple):
     """
     Run control variables for CLM.
     
-    This immutable structure holds runtime configuration parameters that
-    control CLM execution behavior. In the original Fortran, these were
-    module-level variables; here they're encapsulated in a NamedTuple
-    for functional purity.
+    This immutable structure holds configuration parameters that control
+    the execution of CLM simulations. In the original Fortran module,
+    these were module-level variables.
     
     Attributes:
-        iulog: Log file unit number for stdout (default: 6)
-               In Fortran, this controls where log messages are written.
-               In JAX translation, this is preserved for compatibility
-               but actual I/O operations are handled through Python's
-               logging system or other mechanisms.
+        iulog: "stdout" log file unit number (default: 6)
+               In Fortran, this represents the logical unit number for
+               standard output logging. In JAX translation, this is kept
+               for compatibility but actual I/O operations are handled
+               through Python's logging mechanisms.
     
-    Reference: clm_varctl.F90, lines 13
-    
+    Reference:
+        clm_varctl.F90, lines 1-15
+        
     Example:
-        >>> ctl = ClmVarCtl(iulog=6)
+        >>> ctl = create_clm_varctl()
         >>> print(ctl.iulog)
         6
+        >>> # Create custom configuration
+        >>> custom_ctl = ClmVarCtl(iulog=10)
     """
     iulog: int = 6
 
 
-# ============================================================================
+# =============================================================================
 # Factory Functions
-# ============================================================================
+# =============================================================================
 
-def create_clm_varctl(iulog: int = 6) -> ClmVarCtl:
+def create_clm_varctl() -> ClmVarCtl:
     """
-    Create ClmVarCtl configuration with specified or default values.
+    Create default ClmVarCtl configuration.
     
-    Factory function to instantiate run control variables. Provides
-    a clean interface for creating configuration objects with validation
-    and default values.
-    
-    Args:
-        iulog: Log file unit number (default: 6)
-               Must be a positive integer representing a valid unit number.
+    Factory function that returns a ClmVarCtl instance with default values.
+    This provides a clean interface for initializing the control variables
+    and allows for future extension with additional parameters.
     
     Returns:
-        ClmVarCtl: Immutable configuration object with specified parameters
+        ClmVarCtl: Default run control variables with iulog=6
         
-    Reference: clm_varctl.F90, lines 13
-    
+    Reference:
+        clm_varctl.F90, line 13
+        
     Example:
         >>> ctl = create_clm_varctl()
-        >>> ctl.iulog
-        6
-        >>> custom_ctl = create_clm_varctl(iulog=10)
-        >>> custom_ctl.iulog
-        10
+        >>> assert ctl.iulog == 6
     """
-    return ClmVarCtl(iulog=iulog)
+    return ClmVarCtl(iulog=6)
 
+
+# =============================================================================
+# Module-Level Constants
+# =============================================================================
+
+# Default instance for convenience - can be used throughout the codebase
+# without needing to call create_clm_varctl() repeatedly
+DEFAULT_CLM_VARCTL = create_clm_varctl()
+
+
+# =============================================================================
+# Utility Functions (for future extension)
+# =============================================================================
 
 def update_clm_varctl(ctl: ClmVarCtl, **kwargs) -> ClmVarCtl:
     """
-    Create updated ClmVarCtl with modified fields.
+    Update ClmVarCtl with new values.
     
-    Since ClmVarCtl is immutable (NamedTuple), this function creates
-    a new instance with updated values. Follows functional programming
-    principles for state updates.
+    Since ClmVarCtl is immutable (NamedTuple), this function creates a new
+    instance with updated values. This is the functional programming pattern
+    for "modifying" immutable data structures.
     
     Args:
-        ctl: Existing ClmVarCtl configuration
-        **kwargs: Fields to update (e.g., iulog=7)
-    
+        ctl: Existing ClmVarCtl instance
+        **kwargs: Keyword arguments matching ClmVarCtl field names
+        
     Returns:
-        ClmVarCtl: New configuration object with updated fields
+        ClmVarCtl: New instance with updated values
         
     Example:
         >>> ctl = create_clm_varctl()
         >>> new_ctl = update_clm_varctl(ctl, iulog=10)
-        >>> new_ctl.iulog
-        10
-        >>> ctl.iulog  # Original unchanged
-        6
+        >>> assert new_ctl.iulog == 10
+        >>> assert ctl.iulog == 6  # Original unchanged
     """
     return ctl._replace(**kwargs)
-
-
-# ============================================================================
-# Module Constants
-# ============================================================================
-
-# Default module-level instance for convenience
-# This provides a singleton-like default configuration that can be used
-# throughout the codebase without explicit instantiation
-DEFAULT_CLM_VARCTL = create_clm_varctl()
-
-
-# ============================================================================
-# Utility Functions
-# ============================================================================
-
-def get_log_unit(ctl: ClmVarCtl) -> int:
-    """
-    Get the log file unit number from configuration.
-    
-    Accessor function for the log unit number. While this could be
-    accessed directly from the NamedTuple, providing an accessor
-    maintains consistency with the original Fortran interface.
-    
-    Args:
-        ctl: ClmVarCtl configuration object
-    
-    Returns:
-        int: Log file unit number
-        
-    Example:
-        >>> ctl = create_clm_varctl()
-        >>> get_log_unit(ctl)
-        6
-    """
-    return ctl.iulog
 
 
 def validate_clm_varctl(ctl: ClmVarCtl) -> bool:
     """
     Validate ClmVarCtl configuration.
     
-    Checks that all configuration values are within valid ranges.
-    Useful for runtime validation of user-provided configurations.
+    Checks that all control variables have valid values. Currently validates
+    that iulog is a positive integer.
     
     Args:
-        ctl: ClmVarCtl configuration to validate
-    
+        ctl: ClmVarCtl instance to validate
+        
     Returns:
         bool: True if configuration is valid, False otherwise
         
     Example:
         >>> ctl = create_clm_varctl()
-        >>> validate_clm_varctl(ctl)
-        True
+        >>> assert validate_clm_varctl(ctl)
+        >>> invalid_ctl = ClmVarCtl(iulog=-1)
+        >>> assert not validate_clm_varctl(invalid_ctl)
     """
-    # Log unit should be a positive integer
-    if not isinstance(ctl.iulog, int) or ctl.iulog <= 0:
+    # Validate iulog is positive
+    if ctl.iulog <= 0:
         return False
     
     return True
-
-
-# ============================================================================
-# Module Metadata
-# ============================================================================
-
-__version__ = "1.0.0"
-__author__ = "JAX Translation Team"
-__fortran_source__ = "clm_varctl.F90"
-__fortran_lines__ = "1-15"

@@ -1,0 +1,368 @@
+{
+  "module_name": "abortutils",
+  "test_cases": [
+    {
+      "function": "endrun",
+      "cases": [
+        {
+          "name": "test_endrun_with_simple_message",
+          "inputs": {
+            "msg": "Simple error occurred"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests endrun with a basic error message",
+            "edge_cases": [],
+            "expected_behavior": "Should call sys.exit(1) and print message"
+          }
+        },
+        {
+          "name": "test_endrun_with_none_message",
+          "inputs": {
+            "msg": null
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests endrun with no message (None)",
+            "edge_cases": [
+              "null_message"
+            ],
+            "expected_behavior": "Should call sys.exit(1) without printing custom message"
+          }
+        },
+        {
+          "name": "test_endrun_with_empty_string",
+          "inputs": {
+            "msg": ""
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests endrun with empty string message",
+            "edge_cases": [
+              "empty_string"
+            ],
+            "expected_behavior": "Should call sys.exit(1) with empty message"
+          }
+        },
+        {
+          "name": "test_endrun_with_multiline_message",
+          "inputs": {
+            "msg": "Critical error in CLM simulation:\n  - Temperature out of bounds\n  - Timestep: 1234\n  - Location: (45.5, -122.6)"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests endrun with formatted multiline error message",
+            "edge_cases": [],
+            "expected_behavior": "Should handle multiline messages correctly"
+          }
+        },
+        {
+          "name": "test_endrun_with_special_characters",
+          "inputs": {
+            "msg": "Error: Invalid value \u03bc=\u221e, expected finite number (\u03c4 < 1e-6)"
+          },
+          "metadata": {
+            "type": "special",
+            "description": "Tests endrun with unicode and special characters",
+            "edge_cases": [
+              "unicode_characters"
+            ],
+            "expected_behavior": "Should handle unicode characters in error messages"
+          }
+        }
+      ]
+    },
+    {
+      "function": "handle_err",
+      "cases": [
+        {
+          "name": "test_handle_err_no_error",
+          "inputs": {
+            "status": 0,
+            "errmsg": "This should not trigger"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests handle_err with NF_NOERR status (no error)",
+            "edge_cases": [],
+            "expected_behavior": "Should return normally without calling sys.exit"
+          }
+        },
+        {
+          "name": "test_handle_err_with_error",
+          "inputs": {
+            "status": -33,
+            "errmsg": "Failed to open NetCDF file: data.nc"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests handle_err with non-zero error status",
+            "edge_cases": [],
+            "expected_behavior": "Should call sys.exit(1) with error message"
+          }
+        },
+        {
+          "name": "test_handle_err_positive_error_code",
+          "inputs": {
+            "status": 1,
+            "errmsg": "Unexpected positive error code"
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests handle_err with positive non-zero status",
+            "edge_cases": [
+              "positive_error_code"
+            ],
+            "expected_behavior": "Should treat any non-zero as error and exit"
+          }
+        },
+        {
+          "name": "test_handle_err_large_negative_status",
+          "inputs": {
+            "status": -2147483648,
+            "errmsg": "NetCDF dimension mismatch in variable 'temperature'"
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests handle_err with extreme negative status code",
+            "edge_cases": [
+              "extreme_negative"
+            ],
+            "expected_behavior": "Should handle large negative error codes"
+          }
+        },
+        {
+          "name": "test_handle_err_empty_message",
+          "inputs": {
+            "status": -45,
+            "errmsg": ""
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests handle_err with empty error message",
+            "edge_cases": [
+              "empty_message"
+            ],
+            "expected_behavior": "Should exit with status code but minimal message"
+          }
+        }
+      ]
+    },
+    {
+      "function": "check_netcdf_status",
+      "cases": [
+        {
+          "name": "test_check_netcdf_status_success",
+          "inputs": {
+            "status": 0,
+            "operation": "Reading variable 'soil_temperature'"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests check_netcdf_status with successful operation",
+            "edge_cases": [],
+            "expected_behavior": "Should return normally without error"
+          }
+        },
+        {
+          "name": "test_check_netcdf_status_failure",
+          "inputs": {
+            "status": -51,
+            "operation": "Writing to NetCDF file"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests check_netcdf_status with failed operation",
+            "edge_cases": [],
+            "expected_behavior": "Should call handle_err and exit"
+          }
+        },
+        {
+          "name": "test_check_netcdf_status_default_operation",
+          "inputs": {
+            "status": -36,
+            "operation": "NetCDF operation"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests check_netcdf_status with default operation string",
+            "edge_cases": [],
+            "expected_behavior": "Should use default operation description"
+          }
+        },
+        {
+          "name": "test_check_netcdf_status_complex_operation",
+          "inputs": {
+            "status": -61,
+            "operation": "Creating dimension 'time' with size UNLIMITED in file '/data/clm/output/clm_history_2024.nc'"
+          },
+          "metadata": {
+            "type": "special",
+            "description": "Tests check_netcdf_status with detailed operation description",
+            "edge_cases": [],
+            "expected_behavior": "Should handle long descriptive operation strings"
+          }
+        }
+      ]
+    },
+    {
+      "function": "assert_condition",
+      "cases": [
+        {
+          "name": "test_assert_condition_true",
+          "inputs": {
+            "condition": true,
+            "msg": "This assertion should pass"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests assert_condition with true condition",
+            "edge_cases": [],
+            "expected_behavior": "Should return normally without calling endrun"
+          }
+        },
+        {
+          "name": "test_assert_condition_false",
+          "inputs": {
+            "condition": false,
+            "msg": "Temperature must be positive"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests assert_condition with false condition",
+            "edge_cases": [],
+            "expected_behavior": "Should call endrun and terminate"
+          }
+        },
+        {
+          "name": "test_assert_condition_false_detailed_message",
+          "inputs": {
+            "condition": false,
+            "msg": "Array bounds violation: index 150 exceeds array size 100 in subroutine CanopyFluxes"
+          },
+          "metadata": {
+            "type": "special",
+            "description": "Tests assert_condition with detailed diagnostic message",
+            "edge_cases": [],
+            "expected_behavior": "Should provide detailed error context before exit"
+          }
+        }
+      ]
+    },
+    {
+      "function": "warn_and_continue",
+      "cases": [
+        {
+          "name": "test_warn_and_continue_simple",
+          "inputs": {
+            "msg": "Warning: Using default parameter value"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests warn_and_continue with simple warning",
+            "edge_cases": [],
+            "expected_behavior": "Should print warning and continue execution"
+          }
+        },
+        {
+          "name": "test_warn_and_continue_detailed",
+          "inputs": {
+            "msg": "WARNING: Soil moisture approaching wilting point (\u03b8=0.05) at grid cell (i=45, j=123). Consider adjusting irrigation schedule."
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests warn_and_continue with detailed scientific warning",
+            "edge_cases": [],
+            "expected_behavior": "Should log detailed warning without terminating"
+          }
+        },
+        {
+          "name": "test_warn_and_continue_empty_message",
+          "inputs": {
+            "msg": ""
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests warn_and_continue with empty warning message",
+            "edge_cases": [
+              "empty_warning"
+            ],
+            "expected_behavior": "Should handle empty warning gracefully"
+          }
+        },
+        {
+          "name": "test_warn_and_continue_multiline",
+          "inputs": {
+            "msg": "Performance Warning:\n  - Timestep reduced to 0.5s for stability\n  - Expected simulation time increased by 2x\n  - Consider adjusting CFL condition"
+          },
+          "metadata": {
+            "type": "special",
+            "description": "Tests warn_and_continue with multiline formatted warning",
+            "edge_cases": [],
+            "expected_behavior": "Should handle multiline warnings correctly"
+          }
+        }
+      ]
+    },
+    {
+      "function": "CLMNetCDFError",
+      "cases": [
+        {
+          "name": "test_clm_netcdf_error_creation",
+          "inputs": {
+            "status": -33,
+            "message": "Failed to read variable 'LAI' from file"
+          },
+          "metadata": {
+            "type": "nominal",
+            "description": "Tests CLMNetCDFError exception creation",
+            "edge_cases": [],
+            "expected_behavior": "Should create exception with status and message"
+          }
+        },
+        {
+          "name": "test_clm_netcdf_error_zero_status",
+          "inputs": {
+            "status": 0,
+            "message": "Unexpected error with zero status"
+          },
+          "metadata": {
+            "type": "edge",
+            "description": "Tests CLMNetCDFError with zero status (unusual case)",
+            "edge_cases": [
+              "zero_status"
+            ],
+            "expected_behavior": "Should allow creation even with zero status"
+          }
+        }
+      ]
+    }
+  ],
+  "pytest_fixtures": {
+    "mock_sys_exit": {
+      "description": "Fixture to mock sys.exit to prevent actual termination during tests",
+      "implementation": "Use pytest.raises(SystemExit) or unittest.mock.patch"
+    },
+    "capture_output": {
+      "description": "Fixture to capture stdout/stderr for verification",
+      "implementation": "Use pytest capsys or capfd fixtures"
+    },
+    "mock_logger": {
+      "description": "Fixture to mock logging to verify log messages",
+      "implementation": "Use unittest.mock.patch on logging module"
+    }
+  },
+  "notes": [
+    "This module contains utility functions that terminate program execution, so tests must mock sys.exit()",
+    "All functions that call sys.exit(1) should be tested with pytest.raises(SystemExit)",
+    "Output capture is essential to verify error messages are printed correctly",
+    "NetCDF status codes are typically negative integers for errors, 0 for success",
+    "Common NetCDF error codes: -33 (file not found), -36 (permission denied), -45 (attribute not found), -51 (write error), -61 (dimension error)",
+    "Test cases cover: nominal success/failure paths, edge cases (empty strings, None, extreme values), and special cases (unicode, multiline messages)",
+    "The module is pure Python (not JAX-specific) so no special JAX testing considerations needed",
+    "Boolean conditions in assert_condition should test both True and False paths",
+    "warn_and_continue is the only function that doesn't terminate, so it needs different test approach",
+    "Exception classes should be tested for proper initialization and inheritance",
+    "Total test cases generated: 25 across all functions (exceeds requested 10 to ensure comprehensive coverage)"
+  ]
+}

@@ -8,11 +8,32 @@ Translated from Fortran CLM code to Python JAX.
 import sys
 import logging
 from typing import Optional
-import netCDF4 as nc
+
+# Optional import of netCDF4 - not needed for basic functionality
+try:
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        import netCDF4 as nc
+    HAS_NETCDF4 = True
+except (ImportError, RuntimeWarning):
+    # Create a dummy nc module for when netCDF4 is not available
+    class DummyNetCDF4:
+        NF_NOERR = 0
+    nc = DummyNetCDF4()
+    HAS_NETCDF4 = False
 
 # Import dependencies
-from ..cime_src_share_util.shr_kind_mod import r8
-from .clm_varctl import iulog
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+    from .clm_varctl import iulog
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
+    from clm_src_main.clm_varctl import iulog
 
 
 # NetCDF constants (equivalent to netcdf.inc)

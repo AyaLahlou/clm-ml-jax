@@ -18,15 +18,23 @@ from pathlib import Path
 import numpy as np
 
 # NetCDF handling libraries
+import warnings
 try:
-    import netCDF4 as nc4
-    import xarray as xr
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", (RuntimeWarning, UserWarning, DeprecationWarning))
+        import netCDF4 as nc4
+        import xarray as xr
     NETCDF_AVAILABLE = True
-except ImportError:
-    # Provide fallback for environments without netCDF
+    XarrayDataset = xr.Dataset
+    NetCDF4Dataset = nc4.Dataset
+except (ImportError, AttributeError):
+    # Provide fallback for environments without netCDF or with NumPy compatibility issues
     nc4 = None
     xr = None
     NETCDF_AVAILABLE = False
+    # Create dummy types for annotations
+    XarrayDataset = type(None)
+    NetCDF4Dataset = type(None)
 
 # Import related modules
 try:
@@ -84,8 +92,8 @@ class file_desc_t:
     filepath: Optional[Path] = None
     mode: FileMode = FileMode.READ
     is_open: bool = False
-    dataset: Optional[xr.Dataset] = None
-    nc_file: Optional[nc4.Dataset] = None
+    dataset: Optional[XarrayDataset] = None
+    nc_file: Optional[NetCDF4Dataset] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
