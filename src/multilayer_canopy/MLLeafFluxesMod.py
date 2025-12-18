@@ -42,7 +42,7 @@ import jax.numpy as jnp
 
 # Import water vapor functions from translated module
 # Note: These should be available from the MLWaterVaporMod translation
-from jax_ctsm.modules.ml_water_vapor_mod import sat_vap, lat_vap
+from multilayer_canopy.MLWaterVaporMod import sat_vap, lat_vap
 
 
 # =============================================================================
