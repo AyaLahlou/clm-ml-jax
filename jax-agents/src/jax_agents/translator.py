@@ -644,8 +644,8 @@ class TranslatorAgent(BaseAgent):
         
         # Try to check if path exists, but handle permission errors
         try:
-        if path_obj.exists():
-            return path_obj
+            if path_obj.exists():
+                return path_obj
         except (PermissionError, OSError):
             # Path exists but we don't have permission - need to remap
             pass
@@ -659,8 +659,8 @@ class TranslatorAgent(BaseAgent):
                     relative_parts = parts[i+1:]  # Skip the CLM-ml_v1 part  
                     remapped = self.fortran_root / Path(*relative_parts)
                     try:
-                    if remapped.exists():
-                        return remapped
+                        if remapped.exists():
+                            return remapped
                     except (PermissionError, OSError):
                         pass
             
