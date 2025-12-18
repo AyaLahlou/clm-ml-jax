@@ -1,0 +1,129 @@
+# CLM-ml-JAX Translation Order
+# Based on static analysis dependency graph
+# Modules are ordered from least dependent to most dependent
+# Translate in this order to minimize dependency issues
+
+# Total modules to translate: 68
+# Analysis completed: 1765825878.4420927
+
+# HIGH PRIORITY: Modules ['abortutils', 'decompMod', 'MLCanopyFluxesType'] are heavily used. Prioritize their translation.
+
+# Translation Order (Module Name -> File Path):
+================================================================================
+  1. abortutils                -> clm_src_main/abortutils.F90
+  2. ncdio_pio                 -> clm_src_main/ncdio_pio.F90
+  3. decompMod                 -> clm_src_main/decompMod.F90
+  4. restUtilMod               -> clm_src_utils/restUtilMod.F90
+  5. histFileMod               -> clm_src_main/histFileMod.F90
+  6. MLclm_varpar              -> multilayer_canopy/MLclm_varpar.F90
+  7. MLclm_varcon              -> multilayer_canopy/MLclm_varcon.F90
+  8. MLCanopyFluxesType        -> multilayer_canopy/MLCanopyFluxesType.F90
+  9. shr_file_mod              -> cime_src_share_util/shr_file_mod.F90
+ 10. MLWaterVaporMod           -> multilayer_canopy/MLWaterVaporMod.F90
+ 11. MLclm_varctl              -> multilayer_canopy/MLclm_varctl.F90
+ 12. MLMathToolsMod            -> multilayer_canopy/MLMathToolsMod.F90
+ 13. pftconMod                 -> clm_src_main/pftconMod.F90
+ 14. PatchType                 -> clm_src_main/PatchType.F90
+ 15. WaterStateType            -> clm_src_biogeophys/WaterStateType.F90
+ 16. SoilStateType             -> clm_src_biogeophys/SoilStateType.F90
+ 17. ColumnType                -> clm_src_main/ColumnType.F90
+ 18. atm2lndType               -> clm_src_main/atm2lndType.F90
+ 19. FrictionVelocityMod       -> clm_src_biogeophys/FrictionVelocityMod.F90
+ 20. CanopyStateType           -> clm_src_biogeophys/CanopyStateType.F90
+ 21. spmdMod                   -> clm_src_utils/spmdMod.F90
+ 22. fileutils                 -> clm_src_utils/fileutils.F90
+ 23. MLSoilFluxesMod           -> multilayer_canopy/MLSoilFluxesMod.F90
+ 24. MLLeafFluxesMod           -> multilayer_canopy/MLLeafFluxesMod.F90
+ 25. TowerDataMod              -> offline_driver/TowerDataMod.F90
+ 26. SoilTexMod                -> offline_driver/SoilTexMod.F90
+ 27. SurfaceAlbedoType         -> clm_src_biogeophys/SurfaceAlbedoType.F90
+ 28. MLSolarRadiationMod       -> multilayer_canopy/MLSolarRadiationMod.F90
+ 29. MLPlantHydraulicsMod      -> multilayer_canopy/MLPlantHydraulicsMod.F90
+ 30. MLLongwaveRadiationMod    -> multilayer_canopy/MLLongwaveRadiationMod.F90
+ 31. MLLeafPhotosynthesisMod   -> multilayer_canopy/MLLeafPhotosynthesisMod.F90
+ 32. MLLeafHeatCapacityMod     -> multilayer_canopy/MLLeafHeatCapacityMod.F90
+ 33. MLLeafBoundaryLayerMod    -> multilayer_canopy/MLLeafBoundaryLayerMod.F90
+ 34. MLinitVerticalMod         -> multilayer_canopy/MLinitVerticalMod.F90
+ 35. MLCanopyWaterMod          -> multilayer_canopy/MLCanopyWaterMod.F90
+ 36. MLCanopyTurbulenceMod     -> multilayer_canopy/MLCanopyTurbulenceMod.F90
+ 37. MLCanopyNitrogenProfileMod -> multilayer_canopy/MLCanopyNitrogenProfileMod.F90
+ 38. shr_orb_mod               -> cime_src_share_util/shr_orb_mod.F90
+ 39. clm_varorb                -> clm_src_utils/clm_varorb.F90
+ 40. clm_time_manager          -> clm_src_utils/clm_time_manager.F90
+ 41. WaterFluxType             -> clm_src_biogeophys/WaterFluxType.F90
+ 42. TemperatureType           -> clm_src_biogeophys/TemperatureType.F90
+ 43. SolarAbsorbedType         -> clm_src_biogeophys/SolarAbsorbedType.F90
+ 44. GridcellType              -> clm_src_main/GridcellType.F90
+ 45. EnergyFluxType            -> clm_src_biogeophys/EnergyFluxType.F90
+ 46. initVerticalMod           -> clm_src_main/initVerticalMod.F90
+ 47. SoilStateInitTimeConstMod -> clm_src_biogeophys/SoilStateInitTimeConstMod.F90
+ 48. SurfaceAlbedoMod          -> clm_src_biogeophys/SurfaceAlbedoMod.F90
+ 49. initSubgridMod            -> clm_src_main/initSubgridMod.F90
+ 50. MLCanopyFluxesMod         -> multilayer_canopy/MLCanopyFluxesMod.F90
+ 51. SoilWaterMovementMod      -> clm_src_biogeophys/SoilWaterMovementMod.F90
+ 52. SoilTemperatureMod        -> clm_src_biogeophys/SoilTemperatureMod.F90
+ 53. SurfaceResistanceMod      -> clm_src_biogeophys/SurfaceResistanceMod.F90
+ 54. filterMod                 -> clm_src_main/filterMod.F90
+ 55. clmDataMod                -> offline_driver/clmDataMod.F90
+ 56. clm_instMod               -> clm_src_main/clm_instMod.F90
+ 57. initGridCellsMod          -> clm_src_main/initGridCellsMod.F90
+ 58. clm_driver                -> clm_src_main/clm_driver.F90
+ 59. clm_initializeMod         -> clm_src_main/clm_initializeMod.F90
+ 60. TowerMetMod               -> offline_driver/TowerMetMod.F90
+ 61. lnd_comp_mct              -> clm_src_cpl/lnd_comp_mct.F90
+ 62. controlMod                -> offline_driver/controlMod.F90
+ 63. CLMml_driver              -> offline_driver/CLMml_driver.F90
+ 64. CLMml                     -> offline_driver/CLMml.F90
+ 65. clm_varpar                -> clm_src_main/clm_varpar.F90
+ 66. clm_varctl                -> clm_src_main/clm_varctl.F90
+ 67. clm_varcon                -> clm_src_main/clm_varcon.F90
+ 68. shr_kind_mod              -> cime_src_share_util/shr_kind_mod.F90
+
+================================================================================
+# Additional Information:
+
+# Total module dependencies: 278
+# Translation units: 311
+# Low effort units: 152
+# Medium effort units: 136
+# High effort units: 23
+
+# Modules by Directory:
+# cime_src_share_util: 3 modules
+# clm_src_biogeophys: 14 modules
+# clm_src_cpl: 1 modules
+# clm_src_main: 19 modules
+# clm_src_utils: 5 modules
+# multilayer_canopy: 19 modules
+# offline_driver: 7 modules
+
+# TRANSLATION STRATEGY RECOMMENDATIONS:
+#
+# 1. START WITH HIGH PRIORITY MODULES (marked above):
+#    - abortutils (position 1) - Error handling utilities
+#    - decompMod (position 3) - Decomposition utilities  
+#    - MLCanopyFluxesType (position 8) - Core data structures
+#
+# 2. FOUNDATION MODULES (positions 1-20):
+#    - These are the most independent modules
+#    - Translate these first to establish base functionality
+#    - Focus on utility modules and basic data types
+#
+# 3. MIDDLE LAYER MODULES (positions 21-45):
+#    - Build upon foundation modules
+#    - Include physical process modules
+#    - More complex dependencies start appearing
+#
+# 4. INTEGRATION MODULES (positions 46-68):
+#    - High-level coordination and driver modules
+#    - Most dependent on other modules
+#    - Translate these last
+#
+# 5. ALREADY TRANSLATED:
+#    Check src/ directory - some modules are already done:
+#    - clm_varctl (translated)
+#    - SoilStateType (translated)  
+#    - SoilTemperatureMod (translated)
+#
+# NOTE: This order is based on dependency analysis and topological sorting.
+# Modules are ordered to minimize circular dependencies and build complexity gradually.
