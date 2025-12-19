@@ -22,7 +22,19 @@ except ImportError:
 from .abortutils import endrun
 from .ColumnType import col
 from .decompMod import bounds_type
-from .clm_instMod import *  # All CLM instance variables
+from .clm_instMod import (
+    atm2lnd_inst,
+    canopystate_inst,
+    energyflux_inst,
+    frictionvel_inst,
+    mlcanopy_inst,
+    soilstate_inst,
+    solarabs_inst,
+    surfalb_inst,
+    temperature_inst,
+    waterflux_inst,
+    waterstate_inst,
+)
 from .clm_varpar import nlevgrnd, nlevsno
 from .clmDataMod import clmData
 from .filterMod import filter, setExposedvegpFilter

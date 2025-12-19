@@ -26,14 +26,18 @@ except (ImportError, RuntimeWarning):
 # Import dependencies
 try:
     from ..cime_src_share_util.shr_kind_mod import r8
-    from .clm_varctl import iulog
+    from .clm_varctl import DEFAULT_CLM_VARCTL
+    # Get the default iulog value for compatibility
+    iulog = DEFAULT_CLM_VARCTL.iulog
 except ImportError:
     # Fallback for when running outside package context
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from cime_src_share_util.shr_kind_mod import r8
-    from clm_src_main.clm_varctl import iulog
+    from clm_src_main.clm_varctl import DEFAULT_CLM_VARCTL
+    # Get the default iulog value for compatibility
+    iulog = DEFAULT_CLM_VARCTL.iulog
 
 
 # NetCDF constants (equivalent to netcdf.inc)
@@ -61,7 +65,7 @@ def endrun(msg: Optional[str] = None) -> None:
             # If iulog is a file handle or logger
             try:
                 logging.error(f"ENDRUN: {msg}")
-            except:
+            except Exception:
                 pass
     else:
         print("ENDRUN: called without a message string")
@@ -70,7 +74,7 @@ def endrun(msg: Optional[str] = None) -> None:
         else:
             try:
                 logging.error("ENDRUN: called without a message string")
-            except:
+            except Exception:
                 pass
     
     # Equivalent to Fortran STOP
@@ -93,7 +97,7 @@ def handle_err(status: int, errmsg: str) -> None:
         # Get NetCDF error string (equivalent to nf_strerror)
         try:
             netcdf_error = nc.strerror(status)
-        except:
+        except (AttributeError, TypeError):
             netcdf_error = f"NetCDF error code: {status}"
         
         # Print error message (equivalent to Fortran print)
@@ -103,7 +107,7 @@ def handle_err(status: int, errmsg: str) -> None:
         # Log the error if possible
         try:
             logging.error(error_message)
-        except:
+        except Exception:
             pass
         
         # Terminate execution (equivalent to Fortran stop "Stopped")
@@ -151,7 +155,7 @@ def warn_and_continue(msg: str) -> None:
     else:
         try:
             logging.warning(msg)
-        except:
+        except Exception:
             pass
 
 
