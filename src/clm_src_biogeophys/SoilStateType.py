@@ -333,3 +333,7 @@ def get_soil_layer_indices(
     ground_end_idx = nlevsno + nlevgrnd
     
     return snow_start_idx, ground_start_idx, ground_end_idx
+
+
+# Backward compatibility alias (Fortran naming convention)
+soilstate_type = SoilStateType

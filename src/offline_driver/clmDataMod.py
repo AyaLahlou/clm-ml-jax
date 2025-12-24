@@ -585,4 +585,5 @@ def get_default_soil_properties(
     # Default saturation (typical loam soil)
     watsat = jnp.full((n_columns, nlevgrnd), 0.45)
     
-    return dz, nbedrock, watsat
+    return dz, nbedrock, watsat# Backward compatibility alias
+clmData = clm_data

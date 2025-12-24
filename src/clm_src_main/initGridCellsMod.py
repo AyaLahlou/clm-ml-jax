@@ -354,9 +354,13 @@ def validate_initialization() -> Tuple[bool, str]:
     return True, "Grid initialization is valid"
 
 
+# Backward compatibility alias (capitalize first letter)
+initGridCells = initGridcells
+
 # Export interface
 __all__ = [
     'initGridcells',
+    'initGridCells',  # Alias
     'set_landunit_veg_compete', 
     'GridCellInitialization',
     'get_grid_initialization_state',

@@ -311,3 +311,6 @@ def get_surface_temperature(
     jax_idx = fortran_idx + nlevsno - 1
     
     return state.t_soisno_col[col_idx, jax_idx]
+
+# Backward compatibility alias (Fortran naming convention)
+temperature_type = TemperatureState

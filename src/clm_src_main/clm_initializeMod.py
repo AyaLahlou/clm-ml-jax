@@ -10,17 +10,37 @@ import jax.numpy as jnp
 from typing import Any
 
 # Import dependencies
-from ..cime_src_share_util.shr_kind_mod import r8
-from .decompMod import bounds_type
-from .clm_varpar import clm_varpar_init
-from .pftconMod import pftcon
-from .GridcellType import grc
-from .ColumnType import col
-from .PatchType import patch
-from .initGridCellsMod import initGridCells
-from .filterMod import allocFilters, filter
-from .clm_instMod import clm_instInit
-from ..multilayer_canopy.MLCanopyTurbulenceMod import LookupPsihatINI
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+    from .decompMod import BoundsType
+    from .clm_varpar import clm_varpar_init
+    from .pftconMod import pftcon
+    from .GridcellType import grc
+    from .ColumnType import col
+    from .PatchType import patch
+    from .initGridCellsMod import initGridCells
+    from .filterMod import allocFilters, filter
+    from .clm_instMod import clm_instInit
+    from ..multilayer_canopy.MLCanopyTurbulenceMod import LookupPsihatINI
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
+    from clm_src_main.decompMod import BoundsType
+    from clm_src_main.clm_varpar import clm_varpar_init
+    from clm_src_main.pftconMod import pftcon
+    from clm_src_main.GridcellType import grc
+    from clm_src_main.ColumnType import col
+    from clm_src_main.PatchType import patch
+    from clm_src_main.initGridCellsMod import initGridCells
+    from clm_src_main.filterMod import allocFilters, filter
+    from clm_src_main.clm_instMod import clm_instInit
+    from multilayer_canopy.MLCanopyTurbulenceMod import LookupPsihatINI
+
+# Alias for backward compatibility
+bounds_type = BoundsType
 
 
 def initialize1(bounds: bounds_type) -> None:

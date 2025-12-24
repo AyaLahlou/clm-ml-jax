@@ -22,10 +22,10 @@ Physics:
 """
 
 from typing import NamedTuple, Optional, Tuple
+from dataclasses import dataclass
 import jax
 import jax.numpy as jnp
 from jax import Array
-from flax import struct
 
 
 # ============================================================================
@@ -85,7 +85,7 @@ class TowerDataType(NamedTuple):
     col_tower: Array      # Tower index for each column (ncol,)
 
 
-@struct.dataclass
+@dataclass
 class SoilStateType:
     """Complete soil state with hydraulic and thermal properties"""
     # Root distribution (lines 86-135)
@@ -109,7 +109,7 @@ class SoilStateType:
     csol: Array      # Heat capacity of solids (ncol, nlevgrnd) [J/m3/K]
 
 
-@struct.dataclass
+@dataclass
 class SoilStateInitConfig:
     """Configuration for SoilStateInitTimeConst (lines 26-45)"""
     # Physical constants
@@ -876,4 +876,5 @@ __all__ = [
     # Thermal properties functions
     'compute_thermal_conductivity_dry',
     'compute_soil_thermal_properties',
-]
+]# Backward compatibility alias (capitalize first letters)
+SoilStateInitTimeConst = soilstate_init_time_const

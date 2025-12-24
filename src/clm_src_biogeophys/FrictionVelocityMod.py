@@ -203,3 +203,6 @@ def update_frictionvel_type(
             else state.fv_patch
         )
     )
+
+# Backward compatibility alias (Fortran naming convention)
+frictionvel_type = FrictionVelType

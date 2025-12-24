@@ -38,15 +38,8 @@ from clm_src_utils.restUtilMod import (
 # ============================================================================
 
 
-@pytest.fixture
-def test_data():
-    """
-    Load and provide test data for all restart variable functions.
-    
-    Returns:
-        dict: Test cases organized by function and test type
-    """
-    return {
+# Module-level test data for parametrize (must be available at collection time)
+TEST_DATA = {
         "restartvar_1d": {
             "nominal": [
                 {
@@ -372,9 +365,9 @@ class TestRestartVar1D:
         [
             pytest.param(tc, id=tc["name"])
             for tc in [
-                *pytest.lazy_fixture("test_data")["restartvar_1d"]["nominal"],
-                *pytest.lazy_fixture("test_data")["restartvar_1d"]["edge"],
-                *pytest.lazy_fixture("test_data")["restartvar_1d"]["special"],
+                *TEST_DATA["restartvar_1d"]["nominal"],
+                *TEST_DATA["restartvar_1d"]["edge"],
+                *TEST_DATA["restartvar_1d"]["special"],
             ]
         ],
         indirect=False,
@@ -411,8 +404,8 @@ class TestRestartVar1D:
         [
             pytest.param(tc, id=tc["name"])
             for tc in [
-                *pytest.lazy_fixture("test_data")["restartvar_1d"]["nominal"],
-                *pytest.lazy_fixture("test_data")["restartvar_1d"]["edge"],
+                *TEST_DATA["restartvar_1d"]["nominal"],
+                *TEST_DATA["restartvar_1d"]["edge"],
             ]
         ],
         indirect=False,
@@ -439,7 +432,7 @@ class TestRestartVar1D:
         "test_case",
         [
             pytest.param(tc, id=tc["name"])
-            for tc in pytest.lazy_fixture("test_data")["restartvar_1d"]["nominal"]
+            for tc in TEST_DATA["restartvar_1d"]["nominal"]
         ],
         indirect=False,
     )
@@ -480,7 +473,7 @@ class TestRestartVar1D:
         "test_case",
         [
             pytest.param(tc, id=tc["name"])
-            for tc in pytest.lazy_fixture("test_data")["restartvar_1d"]["edge"]
+            for tc in TEST_DATA["restartvar_1d"]["edge"]
         ],
         indirect=False,
     )
@@ -527,7 +520,7 @@ class TestRestartVar1D:
         "test_case",
         [
             pytest.param(tc, id=tc["name"])
-            for tc in pytest.lazy_fixture("test_data")["restartvar_1d"]["special"]
+            for tc in TEST_DATA["restartvar_1d"]["special"]
         ],
         indirect=False,
     )

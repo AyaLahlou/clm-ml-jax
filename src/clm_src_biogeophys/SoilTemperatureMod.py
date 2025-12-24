@@ -599,4 +599,6 @@ def compute_soil_temperature(
         nlevgrnd=nlevgrnd,
     )
     
-    return result, thermal_props
+    return result, thermal_props# Backward compatibility aliases
+SoilTemperature = soil_temperature
+SoilThermProp = compute_soil_temperature  # Alias for thermal properties computation

@@ -1062,4 +1062,5 @@ def initialize_rsl_tables(rsl_file_path: str) -> RSLPsihatTable:
     return RSLPsihatTable(
         npts=0,  # Number of lookup table points
         data=jnp.array([]),  # Placeholder for lookup table data
-    )
+    )# Backward compatibility alias (capitalize)
+LookupPsihatINI = initialize_rsl_tables

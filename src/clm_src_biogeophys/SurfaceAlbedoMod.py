@@ -462,4 +462,6 @@ __all__ = [
     'surface_albedo_init_time_const',
     'soil_albedo',
     'soil_albedo_wrapper',
-]
+]# Backward compatibility alias (Fortran naming convention)
+SurfaceAlbedoInitTimeConst = surface_albedo_init_time_const
+SoilAlbedo = soil_albedo

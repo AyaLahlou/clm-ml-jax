@@ -360,4 +360,5 @@ __all__ = [
     'Bounds',
     'SoilStateArrays',
     'HydraulicProperties',
-]
+]# Backward compatibility alias
+SoilWaterMovement = soil_water

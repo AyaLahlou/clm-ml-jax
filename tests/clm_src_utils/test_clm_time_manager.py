@@ -19,7 +19,10 @@ from typing import NamedTuple
 from collections import namedtuple
 
 # Import the module under test
-import clm_time_manager
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+from clm_src_utils import clm_time_manager
 
 
 # Define NamedTuples matching the module specification

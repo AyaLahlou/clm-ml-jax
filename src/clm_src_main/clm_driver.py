@@ -13,24 +13,37 @@ from dataclasses import dataclass
 # Import dependencies (these would need to be implemented separately)
 try:
     from ..cime_src_share_util.shr_kind_mod import r8
+    from .abortutils import endrun
+    from .ColumnType import col
+    from .decompMod import BoundsType
+    from .clm_instMod import *  # All CLM instance variables
+    from .clm_varpar import nlevgrnd, nlevsno
+    from .clmDataMod import clmData
+    from .filterMod import filter, setExposedvegpFilter
+    from ..clm_src_biogeophys.SurfaceAlbedoMod import SoilAlbedo
+    from ..clm_src_biogeophys.SurfaceResistanceMod import calc_soilevap_resis
 except ImportError:
     # Fallback for when running outside package context
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from cime_src_share_util.shr_kind_mod import r8
-from .abortutils import endrun
-from .ColumnType import col
-from .decompMod import bounds_type
-from .clm_instMod import *  # All CLM instance variables
-from .clm_varpar import nlevgrnd, nlevsno
-from .clmDataMod import clmData
-from .filterMod import filter, setExposedvegpFilter
-from ..clm_src_biogeophys.SurfaceAlbedoMod import SoilAlbedo
-from ..clm_src_biogeophys.SurfaceResistanceMod import calc_soilevap_resis
-from ..clm_src_biogeophys.SoilTemperatureMod import SoilTemperature, SoilThermProp
-from ..clm_src_biogeophys.SoilWaterMovementMod import SoilWater
-from ..multilayer_canopy.MLCanopyFluxesMod import MLCanopyFluxes
+    from clm_src_main.abortutils import endrun
+    from clm_src_main.ColumnType import col
+    from clm_src_main.decompMod import BoundsType
+    from clm_src_main.clm_instMod import *  # All CLM instance variables
+    from clm_src_main.clm_varpar import nlevgrnd, nlevsno
+    from offline_driver.clmDataMod import clmData
+    from clm_src_main.filterMod import filter, setExposedvegpFilter
+    from clm_src_biogeophys.SurfaceAlbedoMod import SoilAlbedo
+    from clm_src_biogeophys.SurfaceResistanceMod import calc_soilevap_resis
+    from clm_src_biogeophys.SoilTemperatureMod import SoilTemperature, SoilThermProp
+    from clm_src_biogeophys.SoilWaterMovementMod import SoilWaterMovement
+    from multilayer_canopy.MLCanopyFluxesMod import MLCanopyFluxes
+
+# Alias for backward compatibility
+bounds_type = BoundsType
+SoilWater = SoilWaterMovement  # Alias
 
 
 @dataclass

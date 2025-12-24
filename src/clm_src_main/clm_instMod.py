@@ -10,24 +10,48 @@ import jax.numpy as jnp
 from typing import Optional, Any
 
 # Import dependencies
-from ..cime_src_share_util.shr_kind_mod import r8
-from .decompMod import bounds_type
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+    from .decompMod import BoundsType
+    # Definition of component types
+    from .atm2lndType import atm2lnd_type
+    from ..clm_src_biogeophys.SoilStateType import soilstate_type
+    from ..clm_src_biogeophys.WaterStateType import waterstate_type
+    from ..clm_src_biogeophys.CanopyStateType import canopystate_type
+    from ..clm_src_biogeophys.TemperatureType import temperature_type
+    from ..clm_src_biogeophys.EnergyFluxType import energyflux_type
+    from ..clm_src_biogeophys.WaterFluxType import waterflux_type
+    from ..clm_src_biogeophys.FrictionVelocityMod import frictionvel_type
+    from ..clm_src_biogeophys.SurfaceAlbedoType import surfalb_type
+    from ..clm_src_biogeophys.SolarAbsorbedType import solarabs_type
+    from ..clm_src_biogeophys.SurfaceAlbedoMod import SurfaceAlbedoInitTimeConst
+    from ..clm_src_biogeophys.SoilStateInitTimeConstMod import SoilStateInitTimeConst
+    from .initVerticalMod import initVertical
+    from ..multilayer_canopy.MLCanopyFluxesType import mlcanopy_type
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
+    from clm_src_main.decompMod import BoundsType
+    from clm_src_main.atm2lndType import atm2lnd_type
+    from clm_src_biogeophys.SoilStateType import soilstate_type
+    from clm_src_biogeophys.WaterStateType import waterstate_type
+    from clm_src_biogeophys.CanopyStateType import canopystate_type
+    from clm_src_biogeophys.TemperatureType import temperature_type
+    from clm_src_biogeophys.EnergyFluxType import energyflux_type
+    from clm_src_biogeophys.WaterFluxType import waterflux_type
+    from clm_src_biogeophys.FrictionVelocityMod import frictionvel_type
+    from clm_src_biogeophys.SurfaceAlbedoType import surfalb_type
+    from clm_src_biogeophys.SolarAbsorbedType import solarabs_type
+    from clm_src_biogeophys.SurfaceAlbedoMod import SurfaceAlbedoInitTimeConst
+    from clm_src_biogeophys.SoilStateInitTimeConstMod import SoilStateInitTimeConst
+    from clm_src_main.initVerticalMod import initVertical
+    from multilayer_canopy.MLCanopyFluxesType import mlcanopy_type
 
-# Definition of component types
-from .atm2lndType import atm2lnd_type
-from ..clm_src_biogeophys.SoilStateType import soilstate_type
-from ..clm_src_biogeophys.WaterStateType import waterstate_type
-from ..clm_src_biogeophys.CanopyStateType import canopystate_type
-from ..clm_src_biogeophys.TemperatureType import temperature_type
-from ..clm_src_biogeophys.EnergyFluxType import energyflux_type
-from ..clm_src_biogeophys.WaterFluxType import waterflux_type
-from ..clm_src_biogeophys.FrictionVelocityMod import frictionvel_type
-from ..clm_src_biogeophys.SurfaceAlbedoType import surfalb_type
-from ..clm_src_biogeophys.SolarAbsorbedType import solarabs_type
-from ..clm_src_biogeophys.SurfaceAlbedoMod import SurfaceAlbedoInitTimeConst
-from ..clm_src_biogeophys.SoilStateInitTimeConstMod import SoilStateInitTimeConst
-from .initVerticalMod import initVertical
-from ..multilayer_canopy.MLCanopyFluxesType import mlcanopy_type
+# Alias for backward compatibility
+bounds_type = BoundsType
 
 
 class CLMInstances:

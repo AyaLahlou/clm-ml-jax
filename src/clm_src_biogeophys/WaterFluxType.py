@@ -183,3 +183,6 @@ def update_qflx_evap_tot_patch(
         In Fortran, this would be a direct assignment to the member variable.
     """
     return waterflux._replace(qflx_evap_tot_patch=qflx_evap_tot_patch)
+
+# Backward compatibility alias (Fortran naming convention)
+waterflux_type = WaterFluxType

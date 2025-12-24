@@ -16,7 +16,7 @@ from enum import Enum
 
 # Import related modules (these would need to be implemented)
 try:
-    from .decompMod import bounds_type
+    from .decompMod import BoundsType
     from .ColumnType import col
     from .abortutils import endrun, CLMError
     from .clm_varpar import nlevsoi, nlevgrnd
@@ -24,6 +24,8 @@ try:
     from ..offline_driver.TowerDataMod import tower_num, tower_zbed
     # Assuming MLclm_varctl provides physics version control
     clm_phys = "CLM5_0"  # Default physics version
+    # Alias for backward compatibility
+    bounds_type = BoundsType
 except ImportError:
     # Provide fallback implementations for testing
     @dataclass

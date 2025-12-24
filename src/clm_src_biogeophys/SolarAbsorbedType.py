@@ -183,3 +183,6 @@ def update_fsa_patch(
         Fortran line 21: fsa_patch array update
     """
     return state._replace(fsa_patch=fsa_patch)
+
+# Backward compatibility alias (Fortran naming convention)
+solarabs_type = SolarAbsState

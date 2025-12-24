@@ -19,13 +19,13 @@ from pathlib import Path
 # Import the module under test
 # Adjust the import path as needed for your project structure
 try:
-    from decompMod import get_clump_bounds, create_bounds, BoundsType
+    from clm_src_main.decompMod import get_clump_bounds, create_bounds, BoundsType
 except ImportError:
-    # If module is in a different location, adjust accordingly
-    import decompMod
-    get_clump_bounds = decompMod.get_clump_bounds
-    create_bounds = decompMod.create_bounds
-    BoundsType = decompMod.BoundsType
+    # Fallback for different import contexts
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+    from clm_src_main.decompMod import get_clump_bounds, create_bounds, BoundsType
 
 
 # ============================================================================

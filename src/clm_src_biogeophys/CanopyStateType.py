@@ -302,3 +302,6 @@ def validate_canopy_state(state: CanopyState) -> bool:
     )
     
     return bool(frac_valid and elai_valid and esai_valid and htop_valid)
+
+# Backward compatibility alias (Fortran naming convention)
+canopystate_type = CanopyState

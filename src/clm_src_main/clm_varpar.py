@@ -12,8 +12,20 @@ from typing import Final, Optional, Dict, Any
 from dataclasses import dataclass
 
 # Import dependencies
-from ..cime_src_share_util.shr_kind_mod import r8
-from ..multilayer_canopy.MLclm_varctl import clm_phys
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+    from ..multilayer_canopy.MLclm_varctl import MLCanopyConfig, create_default_config
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
+    from multilayer_canopy.MLclm_varctl import MLCanopyConfig, create_default_config
+
+# Get default config for clm_phys value
+_default_ml_config = create_default_config()
+clm_phys = _default_ml_config.clm_phys
 
 
 @dataclass

@@ -1532,3 +1532,7 @@ def ml_canopy_fluxes(
     )
     
     return mlcanopy_state, final_accumulators
+
+
+# Backward compatibility alias
+MLCanopyFluxes = MLCanopyFluxesState

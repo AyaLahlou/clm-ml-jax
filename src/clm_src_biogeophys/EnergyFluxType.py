@@ -223,3 +223,6 @@ def update_energyflux_state(
             else state.tauy_patch
         ),
     )
+
+# Backward compatibility alias (Fortran naming convention)
+energyflux_type = EnergyFluxState

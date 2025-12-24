@@ -278,3 +278,6 @@ def get_soil_water_mass(state: WaterState, nlevsno: int) -> Array:
     soil_liq = state.h2osoi_liq_col[:, nlevsno:]
     soil_ice = state.h2osoi_ice_col[:, nlevsno:]
     return jnp.sum(soil_liq, axis=1) + jnp.sum(soil_ice, axis=1)
+
+# Backward compatibility alias (Fortran naming convention)
+waterstate_type = WaterState

@@ -999,4 +999,5 @@ def get_history_metadata() -> Dict[str, Dict[str, Any]]:
             'set_lake': SPVAL,
             'set_urb': SPVAL,
         },
-    }
+    }# Backward compatibility alias
+mlcanopy_type = MLCanopyState

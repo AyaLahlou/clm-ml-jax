@@ -20,7 +20,10 @@ from unittest.mock import Mock, MagicMock, patch
 import io
 
 # Import the module under test
-import fileutils
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+from clm_src_utils import fileutils
 
 
 # ============================================================================

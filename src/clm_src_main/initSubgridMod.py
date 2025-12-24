@@ -43,6 +43,27 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class PatchData:
+    """
+    Simple dataclass to hold patch data arrays.
+    
+    Attributes:
+        column: Array of column indices for each patch
+        gridcell: Array of gridcell indices for each patch
+        itype: Array of patch types (PFTs)
+    """
+    column: jnp.ndarray = field(default_factory=lambda: jnp.array([], dtype=int))
+    gridcell: jnp.ndarray = field(default_factory=lambda: jnp.array([], dtype=int))
+    itype: jnp.ndarray = field(default_factory=lambda: jnp.array([], dtype=int))
+    
+    def resize(self, new_size: int):
+        """Resize arrays to new size."""
+        self.column = jnp.zeros(new_size, dtype=int)
+        self.gridcell = jnp.zeros(new_size, dtype=int)
+        self.itype = jnp.zeros(new_size, dtype=int)
+
+
+@dataclass
 class SubgridStructure:
     """
     Manages subgrid structure state and operations.
@@ -492,6 +513,7 @@ def create_multi_column_subgrid(patch_configs: List[Tuple[int, int]]) -> None:
 __all__ = [
     'add_patch',
     'SubgridStructure',
+    'PatchData',
     'get_subgrid_structure',
     'reset_subgrid_structure',
     'create_simple_subgrid',

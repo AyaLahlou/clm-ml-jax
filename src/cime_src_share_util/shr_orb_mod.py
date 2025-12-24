@@ -16,9 +16,8 @@ Translated from: shr_orb_mod.F90, lines 1-467
 """
 
 import jax.numpy as jnp
-from jax import jit, lax
+from jax import jit, lax, Array
 from typing import NamedTuple, Tuple
-import chex
 
 # =============================================================================
 # Constants
@@ -194,11 +193,11 @@ PSECDEG = 1.0 / 3600.0  # Arc seconds to degrees
 
 @jit
 def shr_orb_cosz(
-    jday: chex.Array,
-    lat: chex.Array,
-    lon: chex.Array,
-    declin: chex.Array
-) -> chex.Array:
+    jday: Array,
+    lat: Array,
+    lon: Array,
+    declin: Array
+) -> Array:
     """
     Return the cosine of the solar zenith angle.
     

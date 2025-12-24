@@ -12,9 +12,18 @@ from typing import Optional, Tuple
 from dataclasses import dataclass
 
 # Import dependencies
-from ..cime_src_share_util.shr_kind_mod import r8
-from .clm_varpar import nlevgrnd, nlevsno
-from .clm_varcon import ispval, spval as nan
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+    from .clm_varpar import nlevgrnd, nlevsno
+    from .clm_varcon import ispval, spval as nan
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
+    from clm_src_main.clm_varpar import nlevgrnd, nlevsno
+    from clm_src_main.clm_varcon import ispval, spval as nan
 
 
 @dataclass

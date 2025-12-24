@@ -11,9 +11,21 @@ from typing import Optional
 from dataclasses import dataclass, field
 
 # Import dependencies
-from ..cime_src_share_util.shr_kind_mod import r8
-from .clm_varpar import numrad
-from .decompMod import bounds_type
+try:
+    from ..cime_src_share_util.shr_kind_mod import r8
+    from .clm_varpar import numrad
+    from .decompMod import BoundsType
+except ImportError:
+    # Fallback for when running outside package context
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from cime_src_share_util.shr_kind_mod import r8
+    from clm_src_main.clm_varpar import numrad
+    from clm_src_main.decompMod import BoundsType
+
+# Alias for backward compatibility
+bounds_type = BoundsType
 
 
 @dataclass

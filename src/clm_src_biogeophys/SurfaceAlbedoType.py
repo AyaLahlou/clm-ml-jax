@@ -258,3 +258,6 @@ def update_surface_albedo_state(
         albgrd_col=albgrd_col if albgrd_col is not None else state.albgrd_col,
         albgri_col=albgri_col if albgri_col is not None else state.albgri_col,
     )
+
+# Backward compatibility alias (Fortran naming convention)
+surfalb_type = SurfaceAlbedoState
