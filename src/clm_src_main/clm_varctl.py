@@ -66,13 +66,16 @@ class ClmVarCtl(NamedTuple):
 # Factory Functions
 # =============================================================================
 
-def create_clm_varctl() -> ClmVarCtl:
+def create_clm_varctl(iulog: int = 6) -> ClmVarCtl:
     """
     Create default ClmVarCtl configuration.
     
     Factory function that returns a ClmVarCtl instance with default values.
     This provides a clean interface for initializing the control variables
     and allows for future extension with additional parameters.
+    
+    Args:
+        iulog: Log file unit number (default: 6 for stdout)
     
     Returns:
         ClmVarCtl: Default run control variables with iulog=6
@@ -84,7 +87,7 @@ def create_clm_varctl() -> ClmVarCtl:
         >>> ctl = create_clm_varctl()
         >>> assert ctl.iulog == 6
     """
-    return ClmVarCtl(iulog=6)
+    return ClmVarCtl(iulog=iulog)
 
 
 # =============================================================================
@@ -94,6 +97,10 @@ def create_clm_varctl() -> ClmVarCtl:
 # Default instance for convenience - can be used throughout the codebase
 # without needing to call create_clm_varctl() repeatedly
 DEFAULT_CLM_VARCTL = create_clm_varctl()
+
+# Module-level variable for backward compatibility with Fortran code
+# that accessed iulog directly as a module variable
+iulog = DEFAULT_CLM_VARCTL.iulog
 
 
 # =============================================================================

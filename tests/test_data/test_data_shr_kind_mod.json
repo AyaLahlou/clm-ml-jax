@@ -1,0 +1,257 @@
+{
+  "function_name": "shr_kind_mod",
+  "test_cases": [
+    {
+      "name": "test_r8_dtype_properties",
+      "inputs": {},
+      "expected": {
+        "dtype": "float64",
+        "itemsize": 8,
+        "kind": "f",
+        "precision_digits": 15
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify SHR_KIND_R8 and r8 alias have correct float64 properties",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_in_dtype_properties",
+      "inputs": {},
+      "expected": {
+        "dtype": "int32",
+        "itemsize": 4,
+        "kind": "i",
+        "min_value": -2147483648,
+        "max_value": 2147483647
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify SHR_KIND_IN has correct int32 properties and range",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_r8_array_creation_scalar",
+      "inputs": {
+        "value": 273.15,
+        "shape": []
+      },
+      "expected": {
+        "array": 273.15,
+        "dtype": "float64",
+        "shape": []
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Create scalar array with r8 dtype (typical temperature value)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_r8_array_creation_1d",
+      "inputs": {
+        "values": [
+          0.5,
+          1.0,
+          2.5,
+          10.0,
+          100.0
+        ],
+        "shape": [
+          5
+        ]
+      },
+      "expected": {
+        "dtype": "float64",
+        "shape": [
+          5
+        ],
+        "sum": 114.0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Create 1D array with r8 dtype (typical physical quantities)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_in_array_creation_indices",
+      "inputs": {
+        "start": 0,
+        "stop": 1000,
+        "shape": [
+          1000
+        ]
+      },
+      "expected": {
+        "dtype": "int32",
+        "shape": [
+          1000
+        ],
+        "min": 0,
+        "max": 999
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Create index array with SHR_KIND_IN dtype (typical loop counter range)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_r8_precision_edge_very_small",
+      "inputs": {
+        "values": [
+          1e-300,
+          1e-200,
+          1e-100,
+          1e-50,
+          1e-15
+        ],
+        "shape": [
+          5
+        ]
+      },
+      "expected": {
+        "dtype": "float64",
+        "all_positive": true,
+        "all_finite": true,
+        "min_representable": 2.2250738585072014e-308
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test r8 dtype with very small positive values near underflow limit",
+        "edge_cases": [
+          "very_small_magnitude",
+          "precision_limit"
+        ]
+      }
+    },
+    {
+      "name": "test_r8_precision_edge_very_large",
+      "inputs": {
+        "values": [
+          1000000000000000.0,
+          1e+50,
+          1e+100,
+          1e+200,
+          1e+300
+        ],
+        "shape": [
+          5
+        ]
+      },
+      "expected": {
+        "dtype": "float64",
+        "all_positive": true,
+        "all_finite": true,
+        "max_representable": 1.7976931348623157e+308
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test r8 dtype with very large values near overflow limit",
+        "edge_cases": [
+          "very_large_magnitude",
+          "overflow_boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_in_boundary_values",
+      "inputs": {
+        "values": [
+          -2147483648,
+          -1000000,
+          0,
+          1000000,
+          2147483647
+        ],
+        "shape": [
+          5
+        ]
+      },
+      "expected": {
+        "dtype": "int32",
+        "min": -2147483648,
+        "max": 2147483647,
+        "contains_zero": true
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test SHR_KIND_IN with boundary values (min, max, zero)",
+        "edge_cases": [
+          "int32_min",
+          "int32_max",
+          "zero"
+        ]
+      }
+    },
+    {
+      "name": "test_r8_special_values",
+      "inputs": {
+        "values": [
+          0.0,
+          -0.0,
+          1.0,
+          -1.0
+        ],
+        "shape": [
+          4
+        ]
+      },
+      "expected": {
+        "dtype": "float64",
+        "contains_zero": true,
+        "contains_negative": true,
+        "all_finite": true
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test r8 dtype with special float values including signed zeros",
+        "edge_cases": [
+          "zero",
+          "negative_zero",
+          "signed_values"
+        ]
+      }
+    },
+    {
+      "name": "test_multidimensional_array_creation",
+      "inputs": {
+        "r8_shape": [
+          10,
+          20,
+          30
+        ],
+        "in_shape": [
+          5,
+          10
+        ],
+        "r8_fill_value": 1.5,
+        "in_fill_value": 42
+      },
+      "expected": {
+        "r8_dtype": "float64",
+        "r8_shape": [
+          10,
+          20,
+          30
+        ],
+        "r8_size": 6000,
+        "in_dtype": "int32",
+        "in_shape": [
+          5,
+          10
+        ],
+        "in_size": 50
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Test dtype constants with multidimensional arrays (3D and 2D)",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generated for a constants-only module. Since shr_kind_mod defines dtype constants rather than functions, tests focus on: (1) Verifying dtype properties match specifications (itemsize, kind, precision), (2) Testing array creation with these dtypes across various shapes and dimensions, (3) Edge cases test numerical boundaries (int32 min/max, float64 underflow/overflow limits), (4) Special cases include signed zeros, multidimensional arrays, and typical scientific computing use cases. All test values are physically plausible where applicable (positive temperatures, valid indices). The tests ensure JAX/NumPy dtype compatibility and verify that constants can be used in typical CTSM computational patterns."
+}

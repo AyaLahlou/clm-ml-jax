@@ -1,0 +1,783 @@
+{
+  "function_name": "SurfaceAlbedoType",
+  "test_cases": [
+    {
+      "name": "test_init_surface_albedo_state_nominal",
+      "function": "init_surface_albedo_state",
+      "inputs": {
+        "ncol": 10,
+        "npatch": 25,
+        "numrad": 2
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Standard initialization with typical grid dimensions for a small domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_surface_albedo_state_single_column",
+      "function": "init_surface_albedo_state",
+      "inputs": {
+        "ncol": 1,
+        "npatch": 1,
+        "numrad": 2
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum valid grid size with single column and patch",
+        "edge_cases": [
+          "minimum_dimensions"
+        ]
+      }
+    },
+    {
+      "name": "test_init_surface_albedo_state_large_grid",
+      "function": "init_surface_albedo_state",
+      "inputs": {
+        "ncol": 1000,
+        "npatch": 5000,
+        "numrad": 2
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large-scale simulation with many columns and patches",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_nominal_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 49,
+          "begc": 0,
+          "endc": 19,
+          "begg": 0,
+          "endg": 9,
+          "begl": 0,
+          "endl": 14
+        },
+        "numrad": 2
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Standard bounds initialization with typical domain decomposition",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_single_element",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 0,
+          "begc": 0,
+          "endc": 0,
+          "begg": 0,
+          "endg": 0,
+          "begl": 0,
+          "endl": 0
+        },
+        "numrad": 2
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum bounds with single element in each dimension",
+        "edge_cases": [
+          "minimum_bounds"
+        ]
+      }
+    },
+    {
+      "name": "test_init_allocate_custom_numrad",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 29,
+          "begc": 0,
+          "endc": 14,
+          "begg": 0,
+          "endg": 4,
+          "begl": 0,
+          "endl": 9
+        },
+        "numrad": 4
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Non-default radiation bands (4 instead of 2) for multi-spectral simulation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_surface_albedo_state_full_update",
+      "function": "update_surface_albedo_state",
+      "inputs": {
+        "state": {
+          "coszen_col": [
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9
+          ],
+          "albd_patch": [
+            [
+              0.15,
+              0.25
+            ],
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.18,
+              0.28
+            ],
+            [
+              0.22,
+              0.32
+            ],
+            [
+              0.16,
+              0.26
+            ],
+            [
+              0.19,
+              0.29
+            ],
+            [
+              0.21,
+              0.31
+            ],
+            [
+              0.17,
+              0.27
+            ]
+          ],
+          "albi_patch": [
+            [
+              0.25,
+              0.35
+            ],
+            [
+              0.3,
+              0.4
+            ],
+            [
+              0.28,
+              0.38
+            ],
+            [
+              0.32,
+              0.42
+            ],
+            [
+              0.26,
+              0.36
+            ],
+            [
+              0.29,
+              0.39
+            ],
+            [
+              0.31,
+              0.41
+            ],
+            [
+              0.27,
+              0.37
+            ]
+          ],
+          "albgrd_col": [
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.22,
+              0.32
+            ],
+            [
+              0.24,
+              0.34
+            ],
+            [
+              0.26,
+              0.36
+            ],
+            [
+              0.28,
+              0.38
+            ]
+          ],
+          "albgri_col": [
+            [
+              0.3,
+              0.4
+            ],
+            [
+              0.32,
+              0.42
+            ],
+            [
+              0.34,
+              0.44
+            ],
+            [
+              0.36,
+              0.46
+            ],
+            [
+              0.38,
+              0.48
+            ]
+          ]
+        },
+        "coszen_col": [
+          0.55,
+          0.65,
+          0.75,
+          0.85,
+          0.95
+        ],
+        "albd_patch": [
+          [
+            0.1,
+            0.2
+          ],
+          [
+            0.12,
+            0.22
+          ],
+          [
+            0.14,
+            0.24
+          ],
+          [
+            0.16,
+            0.26
+          ],
+          [
+            0.11,
+            0.21
+          ],
+          [
+            0.13,
+            0.23
+          ],
+          [
+            0.15,
+            0.25
+          ],
+          [
+            0.17,
+            0.27
+          ]
+        ],
+        "albi_patch": [
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.22,
+            0.32
+          ],
+          [
+            0.24,
+            0.34
+          ],
+          [
+            0.26,
+            0.36
+          ],
+          [
+            0.21,
+            0.31
+          ],
+          [
+            0.23,
+            0.33
+          ],
+          [
+            0.25,
+            0.35
+          ],
+          [
+            0.27,
+            0.37
+          ]
+        ],
+        "albgrd_col": [
+          [
+            0.18,
+            0.28
+          ],
+          [
+            0.19,
+            0.29
+          ],
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.21,
+            0.31
+          ],
+          [
+            0.22,
+            0.32
+          ]
+        ],
+        "albgri_col": [
+          [
+            0.28,
+            0.38
+          ],
+          [
+            0.29,
+            0.39
+          ],
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.31,
+            0.41
+          ],
+          [
+            0.32,
+            0.42
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update all fields with typical daytime albedo values and solar angles",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_surface_albedo_state_partial_update",
+      "function": "update_surface_albedo_state",
+      "inputs": {
+        "state": {
+          "coszen_col": [
+            0.4,
+            0.5,
+            0.6
+          ],
+          "albd_patch": [
+            [
+              0.15,
+              0.25
+            ],
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.18,
+              0.28
+            ],
+            [
+              0.22,
+              0.32
+            ]
+          ],
+          "albi_patch": [
+            [
+              0.25,
+              0.35
+            ],
+            [
+              0.3,
+              0.4
+            ],
+            [
+              0.28,
+              0.38
+            ],
+            [
+              0.32,
+              0.42
+            ]
+          ],
+          "albgrd_col": [
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.22,
+              0.32
+            ],
+            [
+              0.24,
+              0.34
+            ]
+          ],
+          "albgri_col": [
+            [
+              0.3,
+              0.4
+            ],
+            [
+              0.32,
+              0.42
+            ],
+            [
+              0.34,
+              0.44
+            ]
+          ]
+        },
+        "coszen_col": [
+          0.7,
+          0.8,
+          0.9
+        ],
+        "albd_patch": null,
+        "albi_patch": null,
+        "albgrd_col": [
+          [
+            0.19,
+            0.29
+          ],
+          [
+            0.21,
+            0.31
+          ],
+          [
+            0.23,
+            0.33
+          ]
+        ],
+        "albgri_col": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Partial update with only coszen and ground direct albedo changed",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_surface_albedo_state_extreme_albedo",
+      "function": "update_surface_albedo_state",
+      "inputs": {
+        "state": {
+          "coszen_col": [
+            0.5,
+            0.6
+          ],
+          "albd_patch": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "albi_patch": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "albgrd_col": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "albgri_col": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ]
+        },
+        "coszen_col": [
+          0.0,
+          1.0
+        ],
+        "albd_patch": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0
+          ],
+          [
+            0.05,
+            0.95
+          ]
+        ],
+        "albi_patch": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0
+          ],
+          [
+            0.05,
+            0.95
+          ]
+        ],
+        "albgrd_col": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0
+          ]
+        ],
+        "albgri_col": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Boundary albedo values (0.0 for perfect absorption, 1.0 for perfect reflection) and extreme solar angles",
+        "edge_cases": [
+          "zero_albedo",
+          "unity_albedo",
+          "zero_coszen",
+          "unity_coszen"
+        ]
+      }
+    },
+    {
+      "name": "test_update_surface_albedo_state_nighttime",
+      "function": "update_surface_albedo_state",
+      "inputs": {
+        "state": {
+          "coszen_col": [
+            0.5,
+            0.6,
+            0.7,
+            0.8
+          ],
+          "albd_patch": [
+            [
+              0.15,
+              0.25
+            ],
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.18,
+              0.28
+            ],
+            [
+              0.22,
+              0.32
+            ],
+            [
+              0.16,
+              0.26
+            ]
+          ],
+          "albi_patch": [
+            [
+              0.25,
+              0.35
+            ],
+            [
+              0.3,
+              0.4
+            ],
+            [
+              0.28,
+              0.38
+            ],
+            [
+              0.32,
+              0.42
+            ],
+            [
+              0.26,
+              0.36
+            ]
+          ],
+          "albgrd_col": [
+            [
+              0.2,
+              0.3
+            ],
+            [
+              0.22,
+              0.32
+            ],
+            [
+              0.24,
+              0.34
+            ],
+            [
+              0.26,
+              0.36
+            ]
+          ],
+          "albgri_col": [
+            [
+              0.3,
+              0.4
+            ],
+            [
+              0.32,
+              0.42
+            ],
+            [
+              0.34,
+              0.44
+            ],
+            [
+              0.36,
+              0.46
+            ]
+          ]
+        },
+        "coszen_col": [
+          -0.1,
+          -0.3,
+          -0.5,
+          -0.8
+        ],
+        "albd_patch": [
+          [
+            0.12,
+            0.22
+          ],
+          [
+            0.14,
+            0.24
+          ],
+          [
+            0.16,
+            0.26
+          ],
+          [
+            0.18,
+            0.28
+          ],
+          [
+            0.13,
+            0.23
+          ]
+        ],
+        "albi_patch": [
+          [
+            0.22,
+            0.32
+          ],
+          [
+            0.24,
+            0.34
+          ],
+          [
+            0.26,
+            0.36
+          ],
+          [
+            0.28,
+            0.38
+          ],
+          [
+            0.23,
+            0.33
+          ]
+        ],
+        "albgrd_col": [
+          [
+            0.18,
+            0.28
+          ],
+          [
+            0.19,
+            0.29
+          ],
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.21,
+            0.31
+          ]
+        ],
+        "albgri_col": [
+          [
+            0.28,
+            0.38
+          ],
+          [
+            0.29,
+            0.39
+          ],
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.31,
+            0.41
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Nighttime conditions with negative cosine of solar zenith angle (sun below horizon)",
+        "edge_cases": [
+          "negative_coszen",
+          "nighttime"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Constraints:**\n   - Albedo values constrained to [0.0, 1.0] representing fraction of reflected radiation\n   - Cosine of solar zenith angle in [-1.0, 1.0], with negative values for nighttime\n   - Typical daytime coszen values: 0.4-0.95 (solar elevation 24-72 degrees)\n   - Typical albedo ranges: visible (0.1-0.3 for vegetation, 0.15-0.4 for soil), NIR (0.2-0.5)\n\n2. **Dimension Consistency:**\n   - ncol determines size of coszen_col, albgrd_col, albgri_col (first dimension)\n   - npatch determines size of albd_patch, albi_patch (first dimension)\n   - numrad (default 2) determines second dimension of all albedo arrays\n   - Bounds: npatch = endp - begp + 1, ncol = endc - begc + 1\n\n3. **Test Coverage:**\n   - Nominal cases (50%): Tests 1, 3, 4, 7, 8 - typical operational conditions\n   - Edge cases (30%): Tests 2, 5, 9, 10 - boundary values, extreme conditions\n   - Special cases (20%): Tests 6 - non-standard configurations\n\n4. **Radiation Bands:**\n   - Band 0: Visible (0.3-0.7 \u03bcm) - typically lower albedo\n   - Band 1: Near-infrared (0.7-5.0 \u03bcm) - typically higher albedo\n   - Arrays structured as [patch/column, band]\n\n5. **Realistic Scenarios:**\n   - Snow/ice: albedo ~0.8-0.95 (both bands)\n   - Vegetation: visible ~0.1-0.2, NIR ~0.4-0.5\n   - Soil: visible ~0.15-0.25, NIR ~0.25-0.35\n   - Water: albedo ~0.05-0.15 (both bands)\n\n6. **Update Function:**\n   - Supports partial updates (None values preserve existing state)\n   - All arrays must maintain dimensional consistency with initial state\n   - Tests include full updates, partial updates, and extreme value updates"
+}

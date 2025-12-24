@@ -1,0 +1,1362 @@
+{
+  "function_name": "init_atm2lnd_arrays",
+  "test_cases": [
+    {
+      "name": "test_nominal_midlatitude_summer",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 4,
+          "begc": 0,
+          "endc": 8
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          5
+        ],
+        "forc_v_grc": [
+          5
+        ],
+        "forc_pco2_grc": [
+          5
+        ],
+        "forc_po2_grc": [
+          5
+        ],
+        "forc_solad_grc": [
+          5,
+          2
+        ],
+        "forc_solai_grc": [
+          5,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          9
+        ],
+        "forc_q_downscaled_col": [
+          9
+        ],
+        "forc_pbot_downscaled_col": [
+          9
+        ],
+        "forc_lwrad_downscaled_col": [
+          9
+        ],
+        "forc_rain_downscaled_col": [
+          9
+        ],
+        "forc_snow_downscaled_col": [
+          9
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          3.5,
+          -2.1,
+          5.8,
+          1.2,
+          -4.3
+        ],
+        "forc_v_grc": [
+          2.8,
+          4.5,
+          -1.9,
+          3.2,
+          0.7
+        ],
+        "forc_pco2_grc": [
+          40.5,
+          41.2,
+          39.8,
+          40.9,
+          41.5
+        ],
+        "forc_po2_grc": [
+          21278.0,
+          21250.0,
+          21300.0,
+          21265.0,
+          21290.0
+        ],
+        "forc_solad_grc": [
+          [
+            650.0,
+            450.0
+          ],
+          [
+            680.0,
+            470.0
+          ],
+          [
+            620.0,
+            430.0
+          ],
+          [
+            700.0,
+            490.0
+          ],
+          [
+            640.0,
+            440.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            180.0,
+            120.0
+          ],
+          [
+            190.0,
+            130.0
+          ],
+          [
+            170.0,
+            110.0
+          ],
+          [
+            200.0,
+            140.0
+          ],
+          [
+            175.0,
+            115.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          298.15,
+          299.5,
+          297.8,
+          300.2,
+          296.5,
+          301.0,
+          298.9,
+          297.2,
+          299.8
+        ],
+        "forc_q_downscaled_col": [
+          0.012,
+          0.014,
+          0.011,
+          0.015,
+          0.01,
+          0.016,
+          0.013,
+          0.011,
+          0.014
+        ],
+        "forc_pbot_downscaled_col": [
+          101325.0,
+          101200.0,
+          101400.0,
+          101100.0,
+          101500.0,
+          101000.0,
+          101300.0,
+          101250.0,
+          101350.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          380.0,
+          385.0,
+          375.0,
+          390.0,
+          370.0,
+          395.0,
+          382.0,
+          378.0,
+          388.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.0005,
+          0.0008,
+          0.0003,
+          0.001,
+          0.0002,
+          0.0012,
+          0.0006,
+          0.0004,
+          0.0009
+        ],
+        "forc_snow_downscaled_col": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Typical mid-latitude summer conditions with moderate temperatures, humidity, and solar radiation. Light rain, no snow.",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_polar_winter",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 2,
+          "begc": 0,
+          "endc": 5
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          3
+        ],
+        "forc_v_grc": [
+          3
+        ],
+        "forc_pco2_grc": [
+          3
+        ],
+        "forc_po2_grc": [
+          3
+        ],
+        "forc_solad_grc": [
+          3,
+          2
+        ],
+        "forc_solai_grc": [
+          3,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          6
+        ],
+        "forc_q_downscaled_col": [
+          6
+        ],
+        "forc_pbot_downscaled_col": [
+          6
+        ],
+        "forc_lwrad_downscaled_col": [
+          6
+        ],
+        "forc_rain_downscaled_col": [
+          6
+        ],
+        "forc_snow_downscaled_col": [
+          6
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          -8.5,
+          -12.3,
+          -6.7
+        ],
+        "forc_v_grc": [
+          15.2,
+          18.9,
+          11.4
+        ],
+        "forc_pco2_grc": [
+          38.5,
+          38.2,
+          38.8
+        ],
+        "forc_po2_grc": [
+          21500.0,
+          21520.0,
+          21480.0
+        ],
+        "forc_solad_grc": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            5.0,
+            2.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            8.0,
+            3.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          223.15,
+          218.5,
+          228.3,
+          215.8,
+          230.2,
+          220.9
+        ],
+        "forc_q_downscaled_col": [
+          0.0001,
+          8e-05,
+          0.00015,
+          6e-05,
+          0.00018,
+          0.0001
+        ],
+        "forc_pbot_downscaled_col": [
+          102500.0,
+          102800.0,
+          102200.0,
+          103000.0,
+          102000.0,
+          102600.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          180.0,
+          175.0,
+          185.0,
+          170.0,
+          190.0,
+          182.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_snow_downscaled_col": [
+          0.0002,
+          0.0003,
+          0.0001,
+          0.0004,
+          8e-05,
+          0.00025
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Polar winter conditions with very low temperatures, minimal solar radiation, low humidity, and snowfall. Strong winds.",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_tropical_monsoon",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 3,
+          "begc": 0,
+          "endc": 6
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          4
+        ],
+        "forc_v_grc": [
+          4
+        ],
+        "forc_pco2_grc": [
+          4
+        ],
+        "forc_po2_grc": [
+          4
+        ],
+        "forc_solad_grc": [
+          4,
+          2
+        ],
+        "forc_solai_grc": [
+          4,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          7
+        ],
+        "forc_q_downscaled_col": [
+          7
+        ],
+        "forc_pbot_downscaled_col": [
+          7
+        ],
+        "forc_lwrad_downscaled_col": [
+          7
+        ],
+        "forc_rain_downscaled_col": [
+          7
+        ],
+        "forc_snow_downscaled_col": [
+          7
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          -1.2,
+          2.5,
+          -0.8,
+          1.9
+        ],
+        "forc_v_grc": [
+          8.5,
+          9.2,
+          7.8,
+          10.1
+        ],
+        "forc_pco2_grc": [
+          42.0,
+          41.8,
+          42.3,
+          41.5
+        ],
+        "forc_po2_grc": [
+          21100.0,
+          21080.0,
+          21120.0,
+          21090.0
+        ],
+        "forc_solad_grc": [
+          [
+            450.0,
+            320.0
+          ],
+          [
+            480.0,
+            340.0
+          ],
+          [
+            420.0,
+            300.0
+          ],
+          [
+            500.0,
+            360.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            250.0,
+            180.0
+          ],
+          [
+            270.0,
+            195.0
+          ],
+          [
+            230.0,
+            165.0
+          ],
+          [
+            290.0,
+            210.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          303.15,
+          304.2,
+          302.8,
+          305.5,
+          301.9,
+          306.0,
+          303.7
+        ],
+        "forc_q_downscaled_col": [
+          0.022,
+          0.024,
+          0.021,
+          0.026,
+          0.02,
+          0.028,
+          0.023
+        ],
+        "forc_pbot_downscaled_col": [
+          100800.0,
+          100700.0,
+          100900.0,
+          100600.0,
+          101000.0,
+          100500.0,
+          100850.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          420.0,
+          425.0,
+          415.0,
+          430.0,
+          410.0,
+          435.0,
+          422.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.005,
+          0.008,
+          0.003,
+          0.012,
+          0.002,
+          0.015,
+          0.006
+        ],
+        "forc_snow_downscaled_col": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tropical monsoon conditions with high temperatures, very high humidity, heavy rainfall, and cloudy skies reducing direct solar radiation.",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_desert_daytime",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 1,
+          "begc": 0,
+          "endc": 3
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          2
+        ],
+        "forc_v_grc": [
+          2
+        ],
+        "forc_pco2_grc": [
+          2
+        ],
+        "forc_po2_grc": [
+          2
+        ],
+        "forc_solad_grc": [
+          2,
+          2
+        ],
+        "forc_solai_grc": [
+          2,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          4
+        ],
+        "forc_q_downscaled_col": [
+          4
+        ],
+        "forc_pbot_downscaled_col": [
+          4
+        ],
+        "forc_lwrad_downscaled_col": [
+          4
+        ],
+        "forc_rain_downscaled_col": [
+          4
+        ],
+        "forc_snow_downscaled_col": [
+          4
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          4.2,
+          5.8
+        ],
+        "forc_v_grc": [
+          -2.1,
+          -3.5
+        ],
+        "forc_pco2_grc": [
+          39.5,
+          39.8
+        ],
+        "forc_po2_grc": [
+          20800.0,
+          20750.0
+        ],
+        "forc_solad_grc": [
+          [
+            950.0,
+            680.0
+          ],
+          [
+            980.0,
+            710.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            120.0,
+            85.0
+          ],
+          [
+            110.0,
+            80.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          318.15,
+          320.5,
+          316.8,
+          322.0
+        ],
+        "forc_q_downscaled_col": [
+          0.003,
+          0.0025,
+          0.0035,
+          0.002
+        ],
+        "forc_pbot_downscaled_col": [
+          98500.0,
+          98300.0,
+          98700.0,
+          98100.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          450.0,
+          460.0,
+          440.0,
+          470.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_snow_downscaled_col": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Desert daytime conditions with very high temperatures, extremely low humidity, intense solar radiation, and no precipitation. Lower pressure due to elevation.",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_mountain_conditions",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 2,
+          "begc": 0,
+          "endc": 4
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          3
+        ],
+        "forc_v_grc": [
+          3
+        ],
+        "forc_pco2_grc": [
+          3
+        ],
+        "forc_po2_grc": [
+          3
+        ],
+        "forc_solad_grc": [
+          3,
+          2
+        ],
+        "forc_solai_grc": [
+          3,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          5
+        ],
+        "forc_q_downscaled_col": [
+          5
+        ],
+        "forc_pbot_downscaled_col": [
+          5
+        ],
+        "forc_lwrad_downscaled_col": [
+          5
+        ],
+        "forc_rain_downscaled_col": [
+          5
+        ],
+        "forc_snow_downscaled_col": [
+          5
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          12.5,
+          15.8,
+          10.2
+        ],
+        "forc_v_grc": [
+          -8.3,
+          -10.5,
+          -6.7
+        ],
+        "forc_pco2_grc": [
+          28.5,
+          27.8,
+          29.2
+        ],
+        "forc_po2_grc": [
+          15200.0,
+          14900.0,
+          15500.0
+        ],
+        "forc_solad_grc": [
+          [
+            780.0,
+            550.0
+          ],
+          [
+            800.0,
+            570.0
+          ],
+          [
+            760.0,
+            530.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            95.0,
+            68.0
+          ],
+          [
+            100.0,
+            72.0
+          ],
+          [
+            90.0,
+            64.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          268.15,
+          270.5,
+          265.8,
+          272.3,
+          266.9
+        ],
+        "forc_q_downscaled_col": [
+          0.0015,
+          0.0018,
+          0.0012,
+          0.002,
+          0.0013
+        ],
+        "forc_pbot_downscaled_col": [
+          70000.0,
+          69500.0,
+          70500.0,
+          69000.0,
+          71000.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          250.0,
+          255.0,
+          245.0,
+          260.0,
+          248.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.0001,
+          0.00015,
+          8e-05,
+          0.0002,
+          0.0001
+        ],
+        "forc_snow_downscaled_col": [
+          0.0008,
+          0.001,
+          0.0006,
+          0.0012,
+          0.0007
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "High mountain conditions with low pressure, reduced O2/CO2 partial pressures, cold temperatures, strong winds, and mixed precipitation.",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_all_zeros",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 1,
+          "begc": 0,
+          "endc": 2
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          2
+        ],
+        "forc_v_grc": [
+          2
+        ],
+        "forc_pco2_grc": [
+          2
+        ],
+        "forc_po2_grc": [
+          2
+        ],
+        "forc_solad_grc": [
+          2,
+          2
+        ],
+        "forc_solai_grc": [
+          2,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          3
+        ],
+        "forc_q_downscaled_col": [
+          3
+        ],
+        "forc_pbot_downscaled_col": [
+          3
+        ],
+        "forc_lwrad_downscaled_col": [
+          3
+        ],
+        "forc_rain_downscaled_col": [
+          3
+        ],
+        "forc_snow_downscaled_col": [
+          3
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          0.0,
+          0.0
+        ],
+        "forc_v_grc": [
+          0.0,
+          0.0
+        ],
+        "forc_pco2_grc": [
+          0.0,
+          0.0
+        ],
+        "forc_po2_grc": [
+          0.0,
+          0.0
+        ],
+        "forc_solad_grc": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_q_downscaled_col": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_pbot_downscaled_col": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forc_snow_downscaled_col": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All forcing variables set to zero. Tests initialization and handling of zero values. Physically unrealistic but tests numerical stability.",
+        "edge_cases": [
+          "zero_values",
+          "boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_minimum_physical_values",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 1,
+          "begc": 0,
+          "endc": 2
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          2
+        ],
+        "forc_v_grc": [
+          2
+        ],
+        "forc_pco2_grc": [
+          2
+        ],
+        "forc_po2_grc": [
+          2
+        ],
+        "forc_solad_grc": [
+          2,
+          2
+        ],
+        "forc_solai_grc": [
+          2,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          3
+        ],
+        "forc_q_downscaled_col": [
+          3
+        ],
+        "forc_pbot_downscaled_col": [
+          3
+        ],
+        "forc_lwrad_downscaled_col": [
+          3
+        ],
+        "forc_rain_downscaled_col": [
+          3
+        ],
+        "forc_snow_downscaled_col": [
+          3
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          -0.01,
+          0.01
+        ],
+        "forc_v_grc": [
+          -0.01,
+          0.01
+        ],
+        "forc_pco2_grc": [
+          0.1,
+          0.1
+        ],
+        "forc_po2_grc": [
+          1.0,
+          1.0
+        ],
+        "forc_solad_grc": [
+          [
+            0.001,
+            0.001
+          ],
+          [
+            0.001,
+            0.001
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            0.001,
+            0.001
+          ],
+          [
+            0.001,
+            0.001
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          173.15,
+          173.15,
+          173.15
+        ],
+        "forc_q_downscaled_col": [
+          1e-08,
+          1e-08,
+          1e-08
+        ],
+        "forc_pbot_downscaled_col": [
+          1000.0,
+          1000.0,
+          1000.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          0.1,
+          0.1,
+          0.1
+        ],
+        "forc_rain_downscaled_col": [
+          1e-10,
+          1e-10,
+          1e-10
+        ],
+        "forc_snow_downscaled_col": [
+          1e-10,
+          1e-10,
+          1e-10
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum physically realistic values. Temperature at coldest recorded Earth temperature (~173K), near-zero humidity, very low pressure, minimal radiation and precipitation.",
+        "edge_cases": [
+          "minimum_values",
+          "physical_boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_maximum_physical_values",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 1,
+          "begc": 0,
+          "endc": 2
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          2
+        ],
+        "forc_v_grc": [
+          2
+        ],
+        "forc_pco2_grc": [
+          2
+        ],
+        "forc_po2_grc": [
+          2
+        ],
+        "forc_solad_grc": [
+          2,
+          2
+        ],
+        "forc_solai_grc": [
+          2,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          3
+        ],
+        "forc_q_downscaled_col": [
+          3
+        ],
+        "forc_pbot_downscaled_col": [
+          3
+        ],
+        "forc_lwrad_downscaled_col": [
+          3
+        ],
+        "forc_rain_downscaled_col": [
+          3
+        ],
+        "forc_snow_downscaled_col": [
+          3
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          50.0,
+          -50.0
+        ],
+        "forc_v_grc": [
+          50.0,
+          -50.0
+        ],
+        "forc_pco2_grc": [
+          100.0,
+          100.0
+        ],
+        "forc_po2_grc": [
+          25000.0,
+          25000.0
+        ],
+        "forc_solad_grc": [
+          [
+            1200.0,
+            850.0
+          ],
+          [
+            1200.0,
+            850.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            400.0,
+            280.0
+          ],
+          [
+            400.0,
+            280.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          330.0,
+          330.0,
+          330.0
+        ],
+        "forc_q_downscaled_col": [
+          0.05,
+          0.05,
+          0.05
+        ],
+        "forc_pbot_downscaled_col": [
+          108000.0,
+          108000.0,
+          108000.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          550.0,
+          550.0,
+          550.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.05,
+          0.05,
+          0.05
+        ],
+        "forc_snow_downscaled_col": [
+          0.01,
+          0.01,
+          0.01
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Maximum physically realistic values. Extreme desert heat (~330K), hurricane-force winds, intense solar radiation, very heavy precipitation, high pressure.",
+        "edge_cases": [
+          "maximum_values",
+          "extreme_conditions"
+        ]
+      }
+    },
+    {
+      "name": "test_special_single_gridcell_column",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 0,
+          "begc": 0,
+          "endc": 0
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          1
+        ],
+        "forc_v_grc": [
+          1
+        ],
+        "forc_pco2_grc": [
+          1
+        ],
+        "forc_po2_grc": [
+          1
+        ],
+        "forc_solad_grc": [
+          1,
+          2
+        ],
+        "forc_solai_grc": [
+          1,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          1
+        ],
+        "forc_q_downscaled_col": [
+          1
+        ],
+        "forc_pbot_downscaled_col": [
+          1
+        ],
+        "forc_lwrad_downscaled_col": [
+          1
+        ],
+        "forc_rain_downscaled_col": [
+          1
+        ],
+        "forc_snow_downscaled_col": [
+          1
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": [
+          2.5
+        ],
+        "forc_v_grc": [
+          3.2
+        ],
+        "forc_pco2_grc": [
+          40.0
+        ],
+        "forc_po2_grc": [
+          21000.0
+        ],
+        "forc_solad_grc": [
+          [
+            600.0,
+            420.0
+          ]
+        ],
+        "forc_solai_grc": [
+          [
+            150.0,
+            105.0
+          ]
+        ],
+        "forc_t_downscaled_col": [
+          288.15
+        ],
+        "forc_q_downscaled_col": [
+          0.008
+        ],
+        "forc_pbot_downscaled_col": [
+          101325.0
+        ],
+        "forc_lwrad_downscaled_col": [
+          350.0
+        ],
+        "forc_rain_downscaled_col": [
+          0.0002
+        ],
+        "forc_snow_downscaled_col": [
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Minimum size case with single gridcell and single column. Tests array handling with minimal dimensions.",
+        "edge_cases": [
+          "minimal_dimensions"
+        ]
+      }
+    },
+    {
+      "name": "test_special_large_domain",
+      "inputs": {
+        "bounds_dict": {
+          "begg": 0,
+          "endg": 99,
+          "begc": 0,
+          "endc": 499
+        }
+      },
+      "expected_shapes": {
+        "forc_u_grc": [
+          100
+        ],
+        "forc_v_grc": [
+          100
+        ],
+        "forc_pco2_grc": [
+          100
+        ],
+        "forc_po2_grc": [
+          100
+        ],
+        "forc_solad_grc": [
+          100,
+          2
+        ],
+        "forc_solai_grc": [
+          100,
+          2
+        ],
+        "forc_t_downscaled_col": [
+          500
+        ],
+        "forc_q_downscaled_col": [
+          500
+        ],
+        "forc_pbot_downscaled_col": [
+          500
+        ],
+        "forc_lwrad_downscaled_col": [
+          500
+        ],
+        "forc_rain_downscaled_col": [
+          500
+        ],
+        "forc_snow_downscaled_col": [
+          500
+        ]
+      },
+      "sample_values": {
+        "forc_u_grc": "array of 100 values ranging from -15.0 to 15.0",
+        "forc_v_grc": "array of 100 values ranging from -15.0 to 15.0",
+        "forc_pco2_grc": "array of 100 values ranging from 35.0 to 45.0",
+        "forc_po2_grc": "array of 100 values ranging from 18000.0 to 22000.0",
+        "forc_solad_grc": "array of shape [100, 2] with values ranging from 0.0 to 1000.0",
+        "forc_solai_grc": "array of shape [100, 2] with values ranging from 0.0 to 300.0",
+        "forc_t_downscaled_col": "array of 500 values ranging from 220.0 to 320.0",
+        "forc_q_downscaled_col": "array of 500 values ranging from 0.0001 to 0.03",
+        "forc_pbot_downscaled_col": "array of 500 values ranging from 70000.0 to 105000.0",
+        "forc_lwrad_downscaled_col": "array of 500 values ranging from 150.0 to 500.0",
+        "forc_rain_downscaled_col": "array of 500 values ranging from 0.0 to 0.01",
+        "forc_snow_downscaled_col": "array of 500 values ranging from 0.0 to 0.005"
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large domain with 100 gridcells and 500 columns (5:1 column-to-grid ratio). Tests scalability and memory handling with realistic global domain sizes.",
+        "edge_cases": [
+          "large_dimensions",
+          "scalability"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation methodology:\n\n1. **Nominal cases (5 tests)**: Cover diverse climate regimes:\n   - Mid-latitude summer: Moderate conditions, typical temperate climate\n   - Polar winter: Extreme cold, minimal solar, strong winds\n   - Tropical monsoon: High humidity, heavy rain, warm temperatures\n   - Desert daytime: Extreme heat, low humidity, intense solar\n   - Mountain: High elevation effects (low pressure/O2/CO2, cold, strong winds)\n\n2. **Edge cases (3 tests)**:\n   - All zeros: Tests numerical stability with zero initialization\n   - Minimum physical: Coldest Earth temps (~173K Antarctica), near-vacuum conditions\n   - Maximum physical: Hottest deserts (~330K), hurricane winds (50 m/s), extreme precipitation\n\n3. **Special cases (2 tests)**:\n   - Single gridcell/column: Minimal array dimensions\n   - Large domain: 100 gridcells, 500 columns (realistic global model scale)\n\n**Physical constraints enforced**:\n- Temperature: 173.15K (coldest recorded) to 330K (hottest deserts)\n- Humidity: 0 to 0.05 kg/kg (saturation at high temps)\n- Pressure: 1000 Pa (near-vacuum) to 108000 Pa (sea level + weather)\n- CO2: 0.1 to 100 Pa (pre-industrial to enriched)\n- O2: 1 to 25000 Pa (high altitude to sea level)\n- Solar radiation: 0 to 1200 W/m\u00b2 direct, 0 to 400 W/m\u00b2 diffuse\n- Longwave: 0 to 550 W/m\u00b2 (clear sky to cloudy)\n- Precipitation: 0 to 0.05 mm/s (dry to extreme rainfall)\n- Wind: -50 to 50 m/s (hurricane force)\n\n**Array dimensions**: Grid size = endg - begg + 1, Column size = endc - begc + 1\n**Radiation bands (numrad=2)**: [0] = visible, [1] = near-infrared\n\nAll test cases use consistent dimensions within each test and physically realistic value combinations (e.g., cold temps with snow, hot temps with rain)."
+}

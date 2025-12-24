@@ -1,0 +1,202 @@
+{
+  "function_name": "initialize_functions",
+  "test_cases": [
+    {
+      "name": "test_single_gridcell_single_column_single_patch",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 0,
+          "begc": 0,
+          "endc": 0,
+          "begp": 0,
+          "endp": 0
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Minimal valid configuration with single gridcell, column, and patch",
+        "edge_cases": [],
+        "physical_interpretation": "Represents smallest possible simulation domain"
+      }
+    },
+    {
+      "name": "test_small_grid_typical_hierarchy",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 9,
+          "begc": 0,
+          "endc": 49,
+          "begp": 0,
+          "endp": 249
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Small 10-gridcell domain with typical 5 columns per gridcell and 5 patches per column",
+        "edge_cases": [],
+        "physical_interpretation": "Typical small regional simulation with hierarchical subgrid structure"
+      }
+    },
+    {
+      "name": "test_medium_grid_realistic_domain",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 99,
+          "begc": 0,
+          "endc": 999,
+          "begp": 0,
+          "endp": 9999
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Medium-sized domain with 100 gridcells, 1000 columns, 10000 patches",
+        "edge_cases": [],
+        "physical_interpretation": "Regional climate simulation with realistic subgrid heterogeneity"
+      }
+    },
+    {
+      "name": "test_large_global_simulation",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 999,
+          "begc": 0,
+          "endc": 19999,
+          "begp": 0,
+          "endp": 199999
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Large global-scale simulation with 1000 gridcells",
+        "edge_cases": [],
+        "physical_interpretation": "Global climate model configuration with extensive subgrid tiling"
+      }
+    },
+    {
+      "name": "test_non_zero_starting_indices",
+      "inputs": {
+        "bounds": {
+          "begg": 100,
+          "endg": 149,
+          "begc": 500,
+          "endc": 749,
+          "begp": 2500,
+          "endp": 3749
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Domain decomposition with non-zero starting indices (MPI subdomain)",
+        "edge_cases": [],
+        "physical_interpretation": "Parallel processing subdomain assigned to specific MPI rank"
+      }
+    },
+    {
+      "name": "test_edge_equal_begin_end_indices",
+      "inputs": {
+        "bounds": {
+          "begg": 5,
+          "endg": 5,
+          "begc": 25,
+          "endc": 25,
+          "begp": 125,
+          "endp": 125
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case where begin equals end for all hierarchy levels",
+        "edge_cases": [
+          "boundary_equality"
+        ],
+        "physical_interpretation": "Single element at each hierarchy level with offset indices"
+      }
+    },
+    {
+      "name": "test_edge_minimal_column_patch_ratio",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 49,
+          "begc": 0,
+          "endc": 49,
+          "begp": 0,
+          "endp": 49
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case with 1:1:1 ratio (one column per gridcell, one patch per column)",
+        "edge_cases": [
+          "minimal_hierarchy"
+        ],
+        "physical_interpretation": "Homogeneous landscape with no subgrid heterogeneity"
+      }
+    },
+    {
+      "name": "test_edge_high_patch_density",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 4,
+          "begc": 0,
+          "endc": 24,
+          "begp": 0,
+          "endp": 499
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case with very high patch-to-gridcell ratio (100 patches per gridcell)",
+        "edge_cases": [
+          "high_subgrid_density"
+        ],
+        "physical_interpretation": "Highly heterogeneous landscape requiring fine-scale representation"
+      }
+    },
+    {
+      "name": "test_special_asymmetric_hierarchy",
+      "inputs": {
+        "bounds": {
+          "begg": 10,
+          "endg": 29,
+          "begc": 50,
+          "endc": 109,
+          "begp": 300,
+          "endp": 899
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Asymmetric subgrid hierarchy with varying ratios across levels",
+        "edge_cases": [],
+        "physical_interpretation": "Variable subgrid tiling reflecting heterogeneous land cover distribution"
+      }
+    },
+    {
+      "name": "test_special_sparse_patch_distribution",
+      "inputs": {
+        "bounds": {
+          "begg": 0,
+          "endg": 199,
+          "begc": 0,
+          "endc": 399,
+          "begp": 0,
+          "endp": 599
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Sparse patch distribution (only 3 patches per gridcell on average)",
+        "edge_cases": [],
+        "physical_interpretation": "Simplified land surface with limited plant functional type diversity"
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Bounds Structure**: All test cases use the bounds_type namedtuple with six integer fields (begg, endg, begc, endc, begp, endp) representing the hierarchical grid structure in CLM (Community Land Model).\n\n2. **Hierarchy Constraints**: \n   - Gridcells (g): begg <= endg\n   - Columns (c): begc <= endc  \n   - Patches (p): begp <= endp\n   - Typical hierarchy: patches > columns > gridcells (reflecting subgrid tiling)\n   - All indices are non-negative integers\n\n3. **Physical Realism**:\n   - Gridcells represent atmospheric forcing grid\n   - Columns represent soil columns with distinct properties\n   - Patches represent plant functional types (PFTs) or land cover types\n   - Ratios reflect realistic subgrid heterogeneity in land surface models\n\n4. **Test Coverage**:\n   - Nominal cases (50%): Tests 1-5 cover typical simulation scales from single-cell to global\n   - Edge cases (30%): Tests 6-8 cover boundary conditions (equal indices, minimal ratios, high density)\n   - Special cases (20%): Tests 9-10 cover asymmetric and sparse configurations\n\n5. **Index Ranges**:\n   - Small simulations: O(1-100) gridcells\n   - Medium simulations: O(100-1000) gridcells  \n   - Large simulations: O(1000+) gridcells\n   - Column/patch ratios vary from 1:1:1 (homogeneous) to 1:20:200 (highly heterogeneous)\n\n6. **MPI Decomposition**: Test 5 demonstrates non-zero starting indices typical of parallel domain decomposition where each processor handles a subset of the global domain.\n\n7. **Validation**: All test cases satisfy the constraints that begin <= end for each hierarchy level and all indices are non-negative integers. The validate_initialization function should verify these constraints plus check that initialization side effects completed successfully.\n\n8. **JIT Compilation**: The _jit variants use the same test data but are compiled with static_argnames=['bounds'] for performance optimization in JAX."
+}

@@ -1,0 +1,295 @@
+{
+  "function_name": "SolarAbsorbedType_module",
+  "test_cases": [
+    {
+      "name": "test_init_solar_abs_state_single_patch",
+      "function": "init_solar_abs_state",
+      "inputs": {
+        "n_patches": 1
+      },
+      "expected_behavior": {
+        "fsa_patch_shape": [
+          1
+        ],
+        "fsa_patch_dtype": "float",
+        "contains_nan": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests initialization with minimum valid patch count (single patch)",
+        "edge_cases": [
+          "minimum_patches"
+        ]
+      }
+    },
+    {
+      "name": "test_init_solar_abs_state_typical_grid",
+      "function": "init_solar_abs_state",
+      "inputs": {
+        "n_patches": 100
+      },
+      "expected_behavior": {
+        "fsa_patch_shape": [
+          100
+        ],
+        "fsa_patch_dtype": "float",
+        "contains_nan": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests initialization with typical grid size for regional simulation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_solar_abs_large_domain",
+      "function": "init_allocate_solar_abs",
+      "inputs": {
+        "n_patches": 10000
+      },
+      "expected_behavior": {
+        "fsa_patch_shape": [
+          10000
+        ],
+        "fsa_patch_dtype": "float",
+        "contains_nan": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests allocation with large domain size (global simulation scale)",
+        "edge_cases": [
+          "large_array"
+        ]
+      }
+    },
+    {
+      "name": "test_init_allocate_with_bounds_typical",
+      "function": "init_allocate",
+      "inputs": {
+        "this": {
+          "fsa_patch": [
+            null
+          ]
+        },
+        "bounds": {
+          "begp": 0,
+          "endp": 49
+        }
+      },
+      "expected_behavior": {
+        "fsa_patch_shape": [
+          50
+        ],
+        "fsa_patch_dtype": "float",
+        "contains_nan": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests allocation with typical bounds range (50 patches)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_with_bounds_single_patch",
+      "function": "init_allocate",
+      "inputs": {
+        "this": {
+          "fsa_patch": [
+            null
+          ]
+        },
+        "bounds": {
+          "begp": 5,
+          "endp": 5
+        }
+      },
+      "expected_behavior": {
+        "fsa_patch_shape": [
+          1
+        ],
+        "fsa_patch_dtype": "float",
+        "contains_nan": true
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests allocation when begp equals endp (single patch boundary case)",
+        "edge_cases": [
+          "boundary_equality",
+          "minimum_range"
+        ]
+      }
+    },
+    {
+      "name": "test_init_with_bounds_zero_based",
+      "function": "init",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 999
+        }
+      },
+      "expected_behavior": {
+        "fsa_patch_shape": [
+          1000
+        ],
+        "fsa_patch_dtype": "float",
+        "contains_nan": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests full initialization with zero-based indexing (1000 patches)",
+        "edge_cases": [
+          "zero_based_indexing"
+        ]
+      }
+    },
+    {
+      "name": "test_update_fsa_patch_clear_sky_noon",
+      "function": "update_fsa_patch",
+      "inputs": {
+        "state": {
+          "fsa_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "fsa_patch": [
+          850.5,
+          862.3,
+          845.0,
+          870.2,
+          855.8
+        ]
+      },
+      "expected_behavior": {
+        "fsa_patch_values": [
+          850.5,
+          862.3,
+          845.0,
+          870.2,
+          855.8
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests update with typical clear-sky solar noon values (~850-870 W/m\u00b2)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_fsa_patch_zero_nighttime",
+      "function": "update_fsa_patch",
+      "inputs": {
+        "state": {
+          "fsa_patch": [
+            500.0,
+            500.0,
+            500.0
+          ]
+        },
+        "fsa_patch": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "expected_behavior": {
+        "fsa_patch_values": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests update with zero values representing nighttime conditions",
+        "edge_cases": [
+          "zero_flux",
+          "nighttime"
+        ]
+      }
+    },
+    {
+      "name": "test_update_fsa_patch_maximum_toa",
+      "function": "update_fsa_patch",
+      "inputs": {
+        "state": {
+          "fsa_patch": [
+            0.0,
+            0.0
+          ]
+        },
+        "fsa_patch": [
+          1361.0,
+          1360.8
+        ]
+      },
+      "expected_behavior": {
+        "fsa_patch_values": [
+          1361.0,
+          1360.8
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests update with maximum physically realistic values (solar constant at TOA)",
+        "edge_cases": [
+          "maximum_physical_value",
+          "top_of_atmosphere"
+        ]
+      }
+    },
+    {
+      "name": "test_update_fsa_patch_mixed_conditions",
+      "function": "update_fsa_patch",
+      "inputs": {
+        "state": {
+          "fsa_patch": [
+            100.0,
+            200.0,
+            300.0,
+            400.0,
+            500.0,
+            600.0,
+            700.0,
+            800.0
+          ]
+        },
+        "fsa_patch": [
+          0.0,
+          125.5,
+          450.3,
+          678.9,
+          892.1,
+          1050.0,
+          234.7,
+          15.2
+        ]
+      },
+      "expected_behavior": {
+        "fsa_patch_values": [
+          0.0,
+          125.5,
+          450.3,
+          678.9,
+          892.1,
+          1050.0,
+          234.7,
+          15.2
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests update with heterogeneous conditions: nighttime, dawn/dusk, partial cloud, clear sky",
+        "edge_cases": [
+          "heterogeneous_conditions",
+          "diurnal_variation"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**:\n   - Solar radiation values (fsa_patch) range from 0 W/m\u00b2 (nighttime) to ~1361 W/m\u00b2 (solar constant at top of atmosphere)\n   - Surface values typically 0-1050 W/m\u00b2 accounting for atmospheric absorption\n   - Clear-sky noon values typically 800-900 W/m\u00b2 at surface\n   - Dawn/dusk values: 15-250 W/m\u00b2\n\n2. **Patch Counts**:\n   - Minimum: 1 patch (edge case)\n   - Typical: 50-1000 patches (regional to continental scale)\n   - Large: 10,000 patches (global simulation)\n\n3. **Bounds Constraints**:\n   - Always ensure endp >= begp\n   - Test zero-based indexing (begp=0)\n   - Test boundary case where begp == endp (single patch)\n   - Array size = endp - begp + 1 (inclusive range)\n\n4. **Initialization Behavior**:\n   - All init functions should create arrays filled with NaN\n   - NaN indicates uninitialized state requiring subsequent update\n\n5. **Update Scenarios**:\n   - Nighttime: 0.0 W/m\u00b2\n   - Dawn/dusk: 15-250 W/m\u00b2\n   - Partial cloud: 200-600 W/m\u00b2\n   - Clear sky: 800-900 W/m\u00b2\n   - Maximum (TOA): ~1361 W/m\u00b2\n\n6. **Edge Cases Covered**:\n   - Minimum array size (1 element)\n   - Large arrays (10,000 elements)\n   - Zero values (nighttime)\n   - Maximum physical values (solar constant)\n   - Boundary equality (begp == endp)\n   - Heterogeneous spatial conditions\n\n7. **JAX Compatibility**:\n   - All arrays represented as nested Python lists for JSON serialization\n   - Will be converted to JAX arrays in actual tests\n   - Shapes explicitly validated in expected_behavior\n\n8. **Test Coverage**:\n   - 50% nominal cases (tests 2, 4, 6, 7, 10)\n   - 30% edge cases (tests 1, 5, 8, 9)\n   - 20% special cases (tests 3, 10 overlaps)"
+}

@@ -1,0 +1,1263 @@
+{
+  "function_name": "calc_soilevap_resis",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_column_moderate_moisture",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 1
+        },
+        "num_nolakec": 1,
+        "filter_nolakec": [
+          0
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            50.0
+          ],
+          "soilresis_col": [
+            5000.0
+          ],
+          "watsat": [
+            [
+              0.45,
+              0.43,
+              0.41,
+              0.39,
+              0.37
+            ]
+          ],
+          "sucsat": [
+            [
+              200.0,
+              220.0,
+              240.0,
+              260.0,
+              280.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.5,
+              4.8,
+              5.1,
+              5.4,
+              5.7
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              25.0,
+              30.0,
+              35.0,
+              40.0,
+              45.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              285.0,
+              284.0,
+              283.0,
+              282.0,
+              281.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.02,
+              0.04,
+              0.06,
+              0.08,
+              0.1
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single column with moderate soil moisture, typical temperature, and standard soil properties",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_multiple_columns_varied_conditions",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 3,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 3
+        },
+        "num_nolakec": 3,
+        "filter_nolakec": [
+          0,
+          1,
+          2
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            30.0,
+            75.0,
+            120.0
+          ],
+          "soilresis_col": [
+            3000.0,
+            8000.0,
+            15000.0
+          ],
+          "watsat": [
+            [
+              0.5,
+              0.48,
+              0.46,
+              0.44
+            ],
+            [
+              0.4,
+              0.38,
+              0.36,
+              0.34
+            ],
+            [
+              0.35,
+              0.33,
+              0.31,
+              0.29
+            ]
+          ],
+          "sucsat": [
+            [
+              150.0,
+              180.0,
+              210.0,
+              240.0
+            ],
+            [
+              250.0,
+              280.0,
+              310.0,
+              340.0
+            ],
+            [
+              300.0,
+              330.0,
+              360.0,
+              390.0
+            ]
+          ],
+          "bsw": [
+            [
+              3.5,
+              4.0,
+              4.5,
+              5.0
+            ],
+            [
+              5.5,
+              6.0,
+              6.5,
+              7.0
+            ],
+            [
+              7.5,
+              8.0,
+              8.5,
+              9.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              5.0,
+              8.0,
+              10.0,
+              12.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              40.0,
+              45.0,
+              50.0,
+              55.0
+            ],
+            [
+              20.0,
+              25.0,
+              30.0,
+              35.0
+            ],
+            [
+              10.0,
+              15.0,
+              20.0,
+              25.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              290.0,
+              289.0,
+              288.0,
+              287.0
+            ],
+            [
+              275.0,
+              274.0,
+              273.5,
+              273.0
+            ],
+            [
+              295.0,
+              294.0,
+              293.0,
+              292.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.025,
+              0.05,
+              0.075,
+              0.1
+            ],
+            [
+              0.03,
+              0.06,
+              0.09,
+              0.12
+            ],
+            [
+              0.02,
+              0.04,
+              0.06,
+              0.08
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Three columns with varied moisture, temperature (including near-freezing), and soil properties",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_deep_soil_profile",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 2
+        },
+        "num_nolakec": 2,
+        "filter_nolakec": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            60.0,
+            90.0
+          ],
+          "soilresis_col": [
+            6000.0,
+            12000.0
+          ],
+          "watsat": [
+            [
+              0.48,
+              0.46,
+              0.44,
+              0.42,
+              0.4,
+              0.38,
+              0.36
+            ],
+            [
+              0.42,
+              0.4,
+              0.38,
+              0.36,
+              0.34,
+              0.32,
+              0.3
+            ]
+          ],
+          "sucsat": [
+            [
+              180.0,
+              200.0,
+              220.0,
+              240.0,
+              260.0,
+              280.0,
+              300.0
+            ],
+            [
+              220.0,
+              240.0,
+              260.0,
+              280.0,
+              300.0,
+              320.0,
+              340.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.0,
+              4.5,
+              5.0,
+              5.5,
+              6.0,
+              6.5,
+              7.0
+            ],
+            [
+              5.0,
+              5.5,
+              6.0,
+              6.5,
+              7.0,
+              7.5,
+              8.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              35.0,
+              38.0,
+              41.0,
+              44.0,
+              47.0,
+              50.0,
+              53.0
+            ],
+            [
+              22.0,
+              26.0,
+              30.0,
+              34.0,
+              38.0,
+              42.0,
+              46.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              288.0,
+              287.5,
+              287.0,
+              286.5,
+              286.0,
+              285.5,
+              285.0
+            ],
+            [
+              280.0,
+              279.5,
+              279.0,
+              278.5,
+              278.0,
+              277.5,
+              277.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.02,
+              0.04,
+              0.06,
+              0.08,
+              0.1,
+              0.12,
+              0.14
+            ],
+            [
+              0.025,
+              0.05,
+              0.075,
+              0.1,
+              0.125,
+              0.15,
+              0.175
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Deeper soil profile with 7 layers, testing vertical gradients in properties",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_dry_soil_zero_liquid_water",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 2
+        },
+        "num_nolakec": 2,
+        "filter_nolakec": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            150.0,
+            180.0
+          ],
+          "soilresis_col": [
+            50000.0,
+            80000.0
+          ],
+          "watsat": [
+            [
+              0.45,
+              0.43,
+              0.41
+            ],
+            [
+              0.4,
+              0.38,
+              0.36
+            ]
+          ],
+          "sucsat": [
+            [
+              200.0,
+              220.0,
+              240.0
+            ],
+            [
+              250.0,
+              270.0,
+              290.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.5,
+              5.0,
+              5.5
+            ],
+            [
+              5.5,
+              6.0,
+              6.5
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.1,
+              0.05,
+              0.01
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              305.0,
+              303.0,
+              301.0
+            ],
+            [
+              310.0,
+              308.0,
+              306.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.03,
+              0.06,
+              0.09
+            ],
+            [
+              0.025,
+              0.05,
+              0.075
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Extremely dry soil with zero or near-zero liquid water, high temperatures",
+        "edge_cases": [
+          "zero_liquid_water",
+          "high_temperature",
+          "maximum_dsl"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_saturated_soil_maximum_moisture",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 1
+        },
+        "num_nolakec": 1,
+        "filter_nolakec": [
+          0
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            0.0
+          ],
+          "soilresis_col": [
+            0.0
+          ],
+          "watsat": [
+            [
+              0.55,
+              0.53,
+              0.51,
+              0.49
+            ]
+          ],
+          "sucsat": [
+            [
+              100.0,
+              120.0,
+              140.0,
+              160.0
+            ]
+          ],
+          "bsw": [
+            [
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              110.0,
+              106.0,
+              102.0,
+              98.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              285.0,
+              284.5,
+              284.0,
+              283.5
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.02,
+              0.04,
+              0.06,
+              0.08
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Saturated soil with maximum liquid water content, zero initial dsl and resistance",
+        "edge_cases": [
+          "zero_dsl",
+          "zero_resistance",
+          "saturated_soil"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_frozen_soil_all_ice",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 2
+        },
+        "num_nolakec": 2,
+        "filter_nolakec": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            100.0,
+            120.0
+          ],
+          "soilresis_col": [
+            25000.0,
+            35000.0
+          ],
+          "watsat": [
+            [
+              0.48,
+              0.46,
+              0.44
+            ],
+            [
+              0.42,
+              0.4,
+              0.38
+            ]
+          ],
+          "sucsat": [
+            [
+              180.0,
+              200.0,
+              220.0
+            ],
+            [
+              220.0,
+              240.0,
+              260.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.2,
+              4.7,
+              5.2
+            ],
+            [
+              5.2,
+              5.7,
+              6.2
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              50.0,
+              55.0,
+              60.0
+            ],
+            [
+              45.0,
+              50.0,
+              55.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.2,
+              0.1
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              268.0,
+              267.0,
+              266.0
+            ],
+            [
+              270.0,
+              269.0,
+              268.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.03,
+              0.06,
+              0.09
+            ],
+            [
+              0.025,
+              0.05,
+              0.075
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Frozen soil with all or nearly all water as ice, below-freezing temperatures",
+        "edge_cases": [
+          "frozen_soil",
+          "below_freezing",
+          "all_ice"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_minimum_porosity_high_bsw",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 1
+        },
+        "num_nolakec": 1,
+        "filter_nolakec": [
+          0
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            80.0
+          ],
+          "soilresis_col": [
+            10000.0
+          ],
+          "watsat": [
+            [
+              0.25,
+              0.23,
+              0.21,
+              0.19,
+              0.17
+            ]
+          ],
+          "sucsat": [
+            [
+              400.0,
+              450.0,
+              500.0,
+              550.0,
+              600.0
+            ]
+          ],
+          "bsw": [
+            [
+              10.0,
+              11.0,
+              12.0,
+              13.0,
+              14.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              8.0,
+              10.0,
+              12.0,
+              14.0,
+              16.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              290.0,
+              289.0,
+              288.0,
+              287.0,
+              286.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.02,
+              0.04,
+              0.06,
+              0.08,
+              0.1
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Low porosity (clay-like) soil with high Clapp-Hornberger b parameter and high suction",
+        "edge_cases": [
+          "low_porosity",
+          "high_bsw",
+          "high_suction"
+        ]
+      }
+    },
+    {
+      "name": "test_special_empty_filter_no_processing",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 3,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 3
+        },
+        "num_nolakec": 0,
+        "filter_nolakec": [],
+        "soilstate_inst": {
+          "dsl_col": [
+            50.0,
+            60.0,
+            70.0
+          ],
+          "soilresis_col": [
+            5000.0,
+            6000.0,
+            7000.0
+          ],
+          "watsat": [
+            [
+              0.45,
+              0.43
+            ],
+            [
+              0.42,
+              0.4
+            ],
+            [
+              0.4,
+              0.38
+            ]
+          ],
+          "sucsat": [
+            [
+              200.0,
+              220.0
+            ],
+            [
+              220.0,
+              240.0
+            ],
+            [
+              240.0,
+              260.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.5,
+              5.0
+            ],
+            [
+              5.0,
+              5.5
+            ],
+            [
+              5.5,
+              6.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              25.0,
+              30.0
+            ],
+            [
+              28.0,
+              33.0
+            ],
+            [
+              30.0,
+              35.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              285.0,
+              284.0
+            ],
+            [
+              286.0,
+              285.0
+            ],
+            [
+              287.0,
+              286.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.03,
+              0.06
+            ],
+            [
+              0.03,
+              0.06
+            ],
+            [
+              0.03,
+              0.06
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Empty filter (all lake points), should return unchanged soilstate",
+        "edge_cases": [
+          "empty_filter"
+        ]
+      }
+    },
+    {
+      "name": "test_special_single_layer_soil",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 2
+        },
+        "num_nolakec": 2,
+        "filter_nolakec": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            40.0,
+            55.0
+          ],
+          "soilresis_col": [
+            4000.0,
+            5500.0
+          ],
+          "watsat": [
+            [
+              0.47
+            ],
+            [
+              0.41
+            ]
+          ],
+          "sucsat": [
+            [
+              190.0
+            ],
+            [
+              230.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.3
+            ],
+            [
+              5.8
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0
+            ],
+            [
+              3.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              32.0
+            ],
+            [
+              24.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              288.0
+            ],
+            [
+              276.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.05
+            ],
+            [
+              0.04
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Single soil layer configuration, testing minimal vertical structure",
+        "edge_cases": [
+          "single_layer"
+        ]
+      }
+    },
+    {
+      "name": "test_special_extreme_temperature_gradient",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1,
+          "begp": 0,
+          "endp": 1
+        },
+        "num_nolakec": 1,
+        "filter_nolakec": [
+          0
+        ],
+        "soilstate_inst": {
+          "dsl_col": [
+            65.0
+          ],
+          "soilresis_col": [
+            7500.0
+          ],
+          "watsat": [
+            [
+              0.46,
+              0.44,
+              0.42,
+              0.4,
+              0.38,
+              0.36
+            ]
+          ],
+          "sucsat": [
+            [
+              190.0,
+              210.0,
+              230.0,
+              250.0,
+              270.0,
+              290.0
+            ]
+          ],
+          "bsw": [
+            [
+              4.4,
+              4.9,
+              5.4,
+              5.9,
+              6.4,
+              6.9
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_ice": [
+            [
+              0.0,
+              0.0,
+              5.0,
+              15.0,
+              25.0,
+              35.0
+            ]
+          ],
+          "h2osoi_liq": [
+            [
+              35.0,
+              32.0,
+              28.0,
+              20.0,
+              12.0,
+              5.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno": [
+            [
+              298.0,
+              285.0,
+              275.0,
+              270.0,
+              268.0,
+              265.0
+            ]
+          ]
+        },
+        "col": {
+          "dz": [
+            [
+              0.02,
+              0.04,
+              0.06,
+              0.08,
+              0.1,
+              0.12
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Extreme temperature gradient from warm surface to frozen deep layers with phase transition",
+        "edge_cases": [
+          "temperature_gradient",
+          "phase_transition"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**:\n   - Temperatures in Kelvin (>0K), ranging from 265K (frozen) to 310K (hot)\n   - Porosity (watsat) in [0.17, 0.55] representing clay to sand\n   - Clapp-Hornberger b (bsw) in [3.0, 14.0] for various soil textures\n   - Suction (sucsat) in [100, 600] mm for different soil types\n   - Water content (h2osoi_liq, h2osoi_ice) >= 0 kg/m\u00b2\n   - Layer thickness (dz) in [0.02, 0.175] m\n   - DSL in [0, 200] mm as per constraints\n   - Soil resistance in [0, 80000] s/m\n\n2. **Test Coverage**:\n   - Nominal cases (tests 1-3): 30% - typical field conditions with varied moisture, temperature, and soil types\n   - Edge cases (tests 4-7): 40% - boundary conditions including dry soil, saturated soil, frozen soil, extreme properties\n   - Special cases (tests 8-10): 30% - unusual configurations like empty filters, single layers, extreme gradients\n\n3. **Dimensional Consistency**:\n   - All arrays within a test case have consistent ncols dimension\n   - nlevs varies from 1 to 7 layers to test different soil profile depths\n   - filter_nolakec indices are always valid (< ncols)\n\n4. **Edge Case Rationale**:\n   - Zero liquid water: Tests numerical stability in dry conditions\n   - Saturated soil: Tests upper moisture limit behavior\n   - Frozen soil: Tests ice-dominated conditions and phase effects\n   - Low porosity/high bsw: Tests clay-like soils with strong capillary forces\n   - Empty filter: Tests no-op behavior when all columns are lakes\n   - Single layer: Tests minimal vertical discretization\n   - Temperature gradients: Tests realistic vertical heterogeneity\n\n5. **Physical Constants Used**:\n   - DENH2O = 1000 kg/m\u00b3 (water density)\n   - DENICE = 917 kg/m\u00b3 (ice density)\n   - These are used internally for volumetric calculations\n\n6. **Array Generation**:\n   - Nested lists represent 2D arrays [ncols, nlevs]\n   - Single lists represent 1D arrays [ncols]\n   - Values chosen to span realistic ranges while maintaining physical consistency"
+}

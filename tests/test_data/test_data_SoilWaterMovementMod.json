@@ -1,0 +1,1529 @@
+{
+  "function_name": "soil_water",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_column_sandy_soil",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1
+        },
+        "num_hydrologyc": 1,
+        "filter_hydrologyc": [
+          0
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.45,
+                0.43,
+                0.41,
+                0.39,
+                0.38
+              ]
+            ],
+            "hksat": [
+              [
+                0.0176,
+                0.0156,
+                0.0136,
+                0.0116,
+                0.0096
+              ]
+            ],
+            "sucsat": [
+              [
+                121.0,
+                131.0,
+                141.0,
+                151.0,
+                161.0
+              ]
+            ],
+            "bsw": [
+              [
+                4.05,
+                4.15,
+                4.25,
+                4.35,
+                4.45
+              ]
+            ],
+            "nbedrock": [
+              5
+            ],
+            "dz": [
+              [
+                0.1,
+                0.15,
+                0.25,
+                0.35,
+                0.45
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              35.0,
+              48.0,
+              75.0,
+              95.0,
+              110.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single column with sandy soil properties, moderate water content across 5 layers",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_multiple_columns_varied_soils",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 3
+        },
+        "num_hydrologyc": 3,
+        "filter_hydrologyc": [
+          0,
+          1,
+          2
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.45,
+                0.43,
+                0.41,
+                0.39
+              ],
+              [
+                0.52,
+                0.5,
+                0.48,
+                0.46
+              ],
+              [
+                0.38,
+                0.36,
+                0.34,
+                0.32
+              ]
+            ],
+            "hksat": [
+              [
+                0.0176,
+                0.0156,
+                0.0136,
+                0.0116
+              ],
+              [
+                0.0056,
+                0.0046,
+                0.0036,
+                0.0026
+              ],
+              [
+                0.0256,
+                0.0236,
+                0.0216,
+                0.0196
+              ]
+            ],
+            "sucsat": [
+              [
+                121.0,
+                131.0,
+                141.0,
+                151.0
+              ],
+              [
+                258.0,
+                268.0,
+                278.0,
+                288.0
+              ],
+              [
+                78.0,
+                88.0,
+                98.0,
+                108.0
+              ]
+            ],
+            "bsw": [
+              [
+                4.05,
+                4.15,
+                4.25,
+                4.35
+              ],
+              [
+                7.12,
+                7.22,
+                7.32,
+                7.42
+              ],
+              [
+                2.79,
+                2.89,
+                2.99,
+                3.09
+              ]
+            ],
+            "nbedrock": [
+              4,
+              4,
+              4
+            ],
+            "dz": [
+              [
+                0.1,
+                0.2,
+                0.3,
+                0.4
+              ],
+              [
+                0.1,
+                0.2,
+                0.3,
+                0.4
+              ],
+              [
+                0.1,
+                0.2,
+                0.3,
+                0.4
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              30.0,
+              50.0,
+              70.0,
+              85.0
+            ],
+            [
+              40.0,
+              65.0,
+              90.0,
+              110.0
+            ],
+            [
+              25.0,
+              42.0,
+              58.0,
+              72.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Three columns with different soil types (sandy, loamy, coarse) and varying water contents",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_deep_profile_gradual_drying",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2
+        },
+        "num_hydrologyc": 2,
+        "filter_hydrologyc": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.48,
+                0.46,
+                0.44,
+                0.42,
+                0.4,
+                0.38,
+                0.36
+              ],
+              [
+                0.5,
+                0.48,
+                0.46,
+                0.44,
+                0.42,
+                0.4,
+                0.38
+              ]
+            ],
+            "hksat": [
+              [
+                0.012,
+                0.011,
+                0.01,
+                0.009,
+                0.008,
+                0.007,
+                0.006
+              ],
+              [
+                0.014,
+                0.013,
+                0.012,
+                0.011,
+                0.01,
+                0.009,
+                0.008
+              ]
+            ],
+            "sucsat": [
+              [
+                150.0,
+                160.0,
+                170.0,
+                180.0,
+                190.0,
+                200.0,
+                210.0
+              ],
+              [
+                140.0,
+                150.0,
+                160.0,
+                170.0,
+                180.0,
+                190.0,
+                200.0
+              ]
+            ],
+            "bsw": [
+              [
+                5.0,
+                5.1,
+                5.2,
+                5.3,
+                5.4,
+                5.5,
+                5.6
+              ],
+              [
+                4.8,
+                4.9,
+                5.0,
+                5.1,
+                5.2,
+                5.3,
+                5.4
+              ]
+            ],
+            "nbedrock": [
+              7,
+              7
+            ],
+            "dz": [
+              [
+                0.05,
+                0.1,
+                0.15,
+                0.2,
+                0.3,
+                0.4,
+                0.5
+              ],
+              [
+                0.05,
+                0.1,
+                0.15,
+                0.2,
+                0.3,
+                0.4,
+                0.5
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              18.0,
+              32.0,
+              48.0,
+              58.0,
+              72.0,
+              88.0,
+              105.0
+            ],
+            [
+              20.0,
+              35.0,
+              52.0,
+              64.0,
+              80.0,
+              98.0,
+              118.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Deep soil profile (7 layers) with gradual increase in water content with depth",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_near_saturation",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2
+        },
+        "num_hydrologyc": 2,
+        "filter_hydrologyc": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.45,
+                0.43,
+                0.41
+              ],
+              [
+                0.5,
+                0.48,
+                0.46
+              ]
+            ],
+            "hksat": [
+              [
+                0.0176,
+                0.0156,
+                0.0136
+              ],
+              [
+                0.008,
+                0.007,
+                0.006
+              ]
+            ],
+            "sucsat": [
+              [
+                121.0,
+                131.0,
+                141.0
+              ],
+              [
+                200.0,
+                210.0,
+                220.0
+              ]
+            ],
+            "bsw": [
+              [
+                4.05,
+                4.15,
+                4.25
+              ],
+              [
+                6.5,
+                6.6,
+                6.7
+              ]
+            ],
+            "nbedrock": [
+              3,
+              3
+            ],
+            "dz": [
+              [
+                0.1,
+                0.2,
+                0.3
+              ],
+              [
+                0.1,
+                0.2,
+                0.3
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              44.9,
+              85.9,
+              122.9
+            ],
+            [
+              49.9,
+              95.9,
+              137.9
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Water content very close to saturation (99.8% of watsat), testing near-boundary hydraulic properties",
+        "edge_cases": [
+          "near_saturation"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_very_dry_soil",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1
+        },
+        "num_hydrologyc": 1,
+        "filter_hydrologyc": [
+          0
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.42,
+                0.4,
+                0.38,
+                0.36
+              ]
+            ],
+            "hksat": [
+              [
+                0.015,
+                0.013,
+                0.011,
+                0.009
+              ]
+            ],
+            "sucsat": [
+              [
+                180.0,
+                190.0,
+                200.0,
+                210.0
+              ]
+            ],
+            "bsw": [
+              [
+                5.5,
+                5.6,
+                5.7,
+                5.8
+              ]
+            ],
+            "nbedrock": [
+              4
+            ],
+            "dz": [
+              [
+                0.1,
+                0.2,
+                0.3,
+                0.4
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              0.0005,
+              0.0008,
+              0.001,
+              0.0012
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Extremely dry soil with minimal water content, testing lower bound clamping (1e-6 minimum)",
+        "edge_cases": [
+          "very_dry",
+          "minimum_water"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_high_clay_content",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1
+        },
+        "num_hydrologyc": 1,
+        "filter_hydrologyc": [
+          0
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.58,
+                0.56,
+                0.54,
+                0.52,
+                0.5
+              ]
+            ],
+            "hksat": [
+              [
+                0.0012,
+                0.001,
+                0.0008,
+                0.0006,
+                0.0004
+              ]
+            ],
+            "sucsat": [
+              [
+                478.0,
+                488.0,
+                498.0,
+                508.0,
+                518.0
+              ]
+            ],
+            "bsw": [
+              [
+                11.4,
+                11.5,
+                11.6,
+                11.7,
+                11.8
+              ]
+            ],
+            "nbedrock": [
+              5
+            ],
+            "dz": [
+              [
+                0.08,
+                0.12,
+                0.18,
+                0.28,
+                0.38
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              25.0,
+              38.0,
+              52.0,
+              68.0,
+              82.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Heavy clay soil with high porosity, low hydraulic conductivity, high suction, and large b parameter",
+        "edge_cases": [
+          "high_clay",
+          "low_conductivity",
+          "high_suction"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_shallow_bedrock",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2
+        },
+        "num_hydrologyc": 2,
+        "filter_hydrologyc": [
+          0,
+          1
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.4,
+                0.38,
+                0.36,
+                0.34,
+                0.32,
+                0.3
+              ],
+              [
+                0.42,
+                0.4,
+                0.38,
+                0.36,
+                0.34,
+                0.32
+              ]
+            ],
+            "hksat": [
+              [
+                0.018,
+                0.016,
+                0.014,
+                0.012,
+                0.01,
+                0.008
+              ],
+              [
+                0.02,
+                0.018,
+                0.016,
+                0.014,
+                0.012,
+                0.01
+              ]
+            ],
+            "sucsat": [
+              [
+                100.0,
+                110.0,
+                120.0,
+                130.0,
+                140.0,
+                150.0
+              ],
+              [
+                95.0,
+                105.0,
+                115.0,
+                125.0,
+                135.0,
+                145.0
+              ]
+            ],
+            "bsw": [
+              [
+                3.5,
+                3.6,
+                3.7,
+                3.8,
+                3.9,
+                4.0
+              ],
+              [
+                3.4,
+                3.5,
+                3.6,
+                3.7,
+                3.8,
+                3.9
+              ]
+            ],
+            "nbedrock": [
+              2,
+              3
+            ],
+            "dz": [
+              [
+                0.1,
+                0.15,
+                0.2,
+                0.25,
+                0.3,
+                0.35
+              ],
+              [
+                0.1,
+                0.15,
+                0.2,
+                0.25,
+                0.3,
+                0.35
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              28.0,
+              38.0,
+              45.0,
+              52.0,
+              58.0,
+              62.0
+            ],
+            [
+              30.0,
+              42.0,
+              52.0,
+              60.0,
+              66.0,
+              70.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Shallow bedrock at different depths (layer 2 and 3), testing nbedrock boundary conditions",
+        "edge_cases": [
+          "shallow_bedrock",
+          "variable_bedrock_depth"
+        ]
+      }
+    },
+    {
+      "name": "test_special_single_layer_profile",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1
+        },
+        "num_hydrologyc": 1,
+        "filter_hydrologyc": [
+          0
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.44
+              ]
+            ],
+            "hksat": [
+              [
+                0.0165
+              ]
+            ],
+            "sucsat": [
+              [
+                155.0
+              ]
+            ],
+            "bsw": [
+              [
+                4.8
+              ]
+            ],
+            "nbedrock": [
+              1
+            ],
+            "dz": [
+              [
+                0.5
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              150.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Single soil layer profile with bedrock at first layer, testing minimal dimension case",
+        "edge_cases": [
+          "single_layer",
+          "minimal_profile"
+        ]
+      }
+    },
+    {
+      "name": "test_special_partial_filter",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 5
+        },
+        "num_hydrologyc": 3,
+        "filter_hydrologyc": [
+          1,
+          2,
+          4
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.4,
+                0.38,
+                0.36
+              ],
+              [
+                0.45,
+                0.43,
+                0.41
+              ],
+              [
+                0.48,
+                0.46,
+                0.44
+              ],
+              [
+                0.42,
+                0.4,
+                0.38
+              ],
+              [
+                0.5,
+                0.48,
+                0.46
+              ]
+            ],
+            "hksat": [
+              [
+                0.02,
+                0.018,
+                0.016
+              ],
+              [
+                0.015,
+                0.013,
+                0.011
+              ],
+              [
+                0.01,
+                0.008,
+                0.006
+              ],
+              [
+                0.017,
+                0.015,
+                0.013
+              ],
+              [
+                0.009,
+                0.007,
+                0.005
+              ]
+            ],
+            "sucsat": [
+              [
+                90.0,
+                100.0,
+                110.0
+              ],
+              [
+                130.0,
+                140.0,
+                150.0
+              ],
+              [
+                180.0,
+                190.0,
+                200.0
+              ],
+              [
+                110.0,
+                120.0,
+                130.0
+              ],
+              [
+                220.0,
+                230.0,
+                240.0
+              ]
+            ],
+            "bsw": [
+              [
+                3.2,
+                3.3,
+                3.4
+              ],
+              [
+                4.5,
+                4.6,
+                4.7
+              ],
+              [
+                6.0,
+                6.1,
+                6.2
+              ],
+              [
+                3.8,
+                3.9,
+                4.0
+              ],
+              [
+                7.5,
+                7.6,
+                7.7
+              ]
+            ],
+            "nbedrock": [
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "dz": [
+              [
+                0.1,
+                0.2,
+                0.3
+              ],
+              [
+                0.1,
+                0.2,
+                0.3
+              ],
+              [
+                0.1,
+                0.2,
+                0.3
+              ],
+              [
+                0.1,
+                0.2,
+                0.3
+              ],
+              [
+                0.1,
+                0.2,
+                0.3
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              25.0,
+              42.0,
+              58.0
+            ],
+            [
+              32.0,
+              52.0,
+              72.0
+            ],
+            [
+              38.0,
+              60.0,
+              82.0
+            ],
+            [
+              28.0,
+              46.0,
+              64.0
+            ],
+            [
+              42.0,
+              68.0,
+              94.0
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Five columns with only three in hydrology filter (non-contiguous indices 1,2,4), testing selective processing",
+        "edge_cases": [
+          "partial_filter",
+          "non_contiguous_indices"
+        ]
+      }
+    },
+    {
+      "name": "test_special_extreme_matric_potential",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1
+        },
+        "num_hydrologyc": 1,
+        "filter_hydrologyc": [
+          0
+        ],
+        "soilstate_inst": {
+          "soil_arrays": {
+            "watsat": [
+              [
+                0.35,
+                0.33,
+                0.31
+              ]
+            ],
+            "hksat": [
+              [
+                0.025,
+                0.023,
+                0.021
+              ]
+            ],
+            "sucsat": [
+              [
+                600.0,
+                650.0,
+                700.0
+              ]
+            ],
+            "bsw": [
+              [
+                12.0,
+                12.5,
+                13.0
+              ]
+            ],
+            "nbedrock": [
+              3
+            ],
+            "dz": [
+              [
+                0.15,
+                0.25,
+                0.35
+              ]
+            ]
+          },
+          "vwc_liq": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "hk": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "smp": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_liq": [
+            [
+              0.002,
+              0.003,
+              0.004
+            ]
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Extremely dry conditions with very high suction and large b parameter, testing matric potential clamping at -1e8 mm",
+        "edge_cases": [
+          "extreme_matric_potential",
+          "clamping_test",
+          "very_high_suction"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions and methodology:\n\n1. **Physical Realism**: All parameters follow realistic soil physics:\n   - watsat (porosity): 0.30-0.58 representing sand to clay\n   - hksat: 0.0004-0.0256 mm/s (clay to coarse sand)\n   - sucsat: 78-700 mm (coarse to fine textures)\n   - bsw: 2.79-13.0 (Clapp-Hornberger b parameter range)\n   - dz: 0.05-0.50 m (typical soil layer thicknesses)\n   - h2osoi_liq: 0.0005-150 kg/m\u00b2 (very dry to saturated)\n\n2. **Dimensional Consistency**: Within each test case:\n   - ncolumns matches bounds (endc - begc)\n   - filter_hydrologyc length equals num_hydrologyc\n   - All soil arrays have shape (ncolumns, nlevsoi)\n   - nlevsoi varies from 1-7 layers across tests\n\n3. **Test Coverage**:\n   - Nominal (5 cases): Typical soil types (sandy, loamy, clay), various depths\n   - Edge (4 cases): Near-saturation, very dry, extreme clay, shallow bedrock\n   - Special (1 case): Single layer, partial filters, extreme matric potential\n\n4. **Edge Case Strategy**:\n   - Near-saturation: h2osoi_liq \u2248 0.998 * watsat * dz * 1000\n   - Very dry: h2osoi_liq < 1e-3 to trigger minimum clamping\n   - Extreme matric potential: Very low water content with high bsw to test -1e8 clamping\n   - Shallow bedrock: nbedrock = 1-3 to test early termination\n\n5. **Clapp-Hornberger Physics**:\n   - Hydraulic conductivity: K = Ksat * (\u03b8/\u03b8sat)^(2b+3)\n   - Matric potential: \u03c8 = -\u03c8sat * (\u03b8/\u03b8sat)^(-b), clamped to [-1e8, 0]\n   - VWC calculation: \u03b8 = max(h2osoi_liq, 1e-6) / (dz * 1000)\n\n6. **Filter Mechanics**: Tests include:\n   - Full filter (all columns)\n   - Partial filter (subset of columns)\n   - Non-contiguous indices\n\n7. **Initialization**: Input vwc_liq, hk, smp set to 0.0 as they are computed outputs"
+}

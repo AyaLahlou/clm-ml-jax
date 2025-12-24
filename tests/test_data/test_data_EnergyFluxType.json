@@ -1,0 +1,441 @@
+{
+  "function_name": "energy_flux_state_functions",
+  "test_cases": [
+    {
+      "name": "test_init_allocate_single_patch",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 0,
+          "begc": 0,
+          "endc": 0,
+          "begg": 0,
+          "endg": 0
+        }
+      },
+      "expected_behavior": {
+        "array_size": 1,
+        "fill_value": "NaN",
+        "all_fields_present": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests initialization with single patch domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_multiple_patches",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 99,
+          "begc": 0,
+          "endc": 49,
+          "begg": 0,
+          "endg": 24
+        }
+      },
+      "expected_behavior": {
+        "array_size": 100,
+        "fill_value": "NaN",
+        "all_fields_present": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests initialization with typical multi-patch domain (100 patches)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_large_domain",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 9999,
+          "begc": 0,
+          "endc": 4999,
+          "begg": 0,
+          "endg": 999
+        }
+      },
+      "expected_behavior": {
+        "array_size": 10000,
+        "fill_value": "NaN",
+        "all_fields_present": true
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests initialization with large domain (10000 patches)",
+        "edge_cases": [
+          "large_array"
+        ]
+      }
+    },
+    {
+      "name": "test_init_energyflux_state_minimal",
+      "function": "init_energyflux_state",
+      "inputs": {
+        "n_patches": 1
+      },
+      "expected_behavior": {
+        "array_size": 1,
+        "fill_value": 0.0,
+        "all_fields_present": true
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests initialization with minimum valid patch count",
+        "edge_cases": [
+          "minimum_size"
+        ]
+      }
+    },
+    {
+      "name": "test_init_energyflux_state_typical",
+      "function": "init_energyflux_state",
+      "inputs": {
+        "n_patches": 50
+      },
+      "expected_behavior": {
+        "array_size": 50,
+        "fill_value": 0.0,
+        "all_fields_present": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests initialization with typical patch count",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_all_fields_positive_fluxes",
+      "function": "update_energyflux_state",
+      "inputs": {
+        "state": {
+          "eflx_sh_tot_patch": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eflx_lh_tot_patch": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eflx_lwrad_out_patch": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "taux_patch": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "tauy_patch": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "eflx_sh_tot_patch": [
+          150.5,
+          200.3,
+          175.8
+        ],
+        "eflx_lh_tot_patch": [
+          85.2,
+          120.7,
+          95.4
+        ],
+        "eflx_lwrad_out_patch": [
+          400.0,
+          425.5,
+          410.2
+        ],
+        "taux_patch": [
+          0.05,
+          0.08,
+          0.06
+        ],
+        "tauy_patch": [
+          0.03,
+          0.04,
+          0.035
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests updating all fields with typical positive flux values (daytime conditions)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_negative_sensible_heat",
+      "function": "update_energyflux_state",
+      "inputs": {
+        "state": {
+          "eflx_sh_tot_patch": [
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "eflx_lh_tot_patch": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "eflx_lwrad_out_patch": [
+            400.0,
+            400.0,
+            400.0,
+            400.0
+          ],
+          "taux_patch": [
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "tauy_patch": [
+            0.03,
+            0.03,
+            0.03,
+            0.03
+          ]
+        },
+        "eflx_sh_tot_patch": [
+          -50.2,
+          -75.8,
+          -30.5,
+          -100.0
+        ],
+        "eflx_lh_tot_patch": [
+          20.5,
+          15.3,
+          25.8,
+          18.2
+        ],
+        "eflx_lwrad_out_patch": [
+          350.0,
+          340.0,
+          360.0,
+          345.0
+        ],
+        "taux_patch": null,
+        "tauy_patch": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests negative sensible heat flux (heat flux from atmosphere to surface, nighttime/stable conditions)",
+        "edge_cases": [
+          "negative_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_update_partial_fields_only",
+      "function": "update_energyflux_state",
+      "inputs": {
+        "state": {
+          "eflx_sh_tot_patch": [
+            100.0,
+            150.0
+          ],
+          "eflx_lh_tot_patch": [
+            50.0,
+            75.0
+          ],
+          "eflx_lwrad_out_patch": [
+            400.0,
+            420.0
+          ],
+          "taux_patch": [
+            0.05,
+            0.06
+          ],
+          "tauy_patch": [
+            0.03,
+            0.04
+          ]
+        },
+        "eflx_sh_tot_patch": null,
+        "eflx_lh_tot_patch": [
+          60.5,
+          80.2
+        ],
+        "eflx_lwrad_out_patch": null,
+        "taux_patch": null,
+        "tauy_patch": [
+          0.035,
+          0.045
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests partial update with only some fields modified (None values should preserve existing)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_extreme_values",
+      "function": "update_energyflux_state",
+      "inputs": {
+        "state": {
+          "eflx_sh_tot_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eflx_lh_tot_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eflx_lwrad_out_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "taux_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "tauy_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "eflx_sh_tot_patch": [
+          1000.0,
+          -500.0,
+          0.0,
+          0.001,
+          -0.001
+        ],
+        "eflx_lh_tot_patch": [
+          800.0,
+          -200.0,
+          0.0,
+          0.0001,
+          -0.0001
+        ],
+        "eflx_lwrad_out_patch": [
+          600.0,
+          100.0,
+          0.001,
+          500.0,
+          450.0
+        ],
+        "taux_patch": [
+          5.0,
+          -5.0,
+          0.0,
+          1e-05,
+          -1e-05
+        ],
+        "tauy_patch": [
+          3.0,
+          -3.0,
+          0.0,
+          1e-05,
+          -1e-05
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests extreme but physically valid values including very large fluxes, near-zero, and negative values",
+        "edge_cases": [
+          "extreme_values",
+          "near_zero",
+          "negative_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_update_zero_radiation_constraint",
+      "function": "update_energyflux_state",
+      "inputs": {
+        "state": {
+          "eflx_sh_tot_patch": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "eflx_lh_tot_patch": [
+            50.0,
+            50.0,
+            50.0
+          ],
+          "eflx_lwrad_out_patch": [
+            400.0,
+            400.0,
+            400.0
+          ],
+          "taux_patch": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "tauy_patch": [
+            0.03,
+            0.03,
+            0.03
+          ]
+        },
+        "eflx_sh_tot_patch": [
+          120.0,
+          130.0,
+          110.0
+        ],
+        "eflx_lh_tot_patch": [
+          55.0,
+          60.0,
+          52.0
+        ],
+        "eflx_lwrad_out_patch": [
+          0.001,
+          0.0,
+          450.0
+        ],
+        "taux_patch": [
+          0.06,
+          0.055,
+          0.052
+        ],
+        "tauy_patch": [
+          0.032,
+          0.031,
+          0.029
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests longwave radiation at boundary (zero and near-zero, which is minimum physical constraint)",
+        "edge_cases": [
+          "zero_radiation",
+          "boundary_constraint"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**:\n   - Sensible heat flux (eflx_sh_tot_patch): Can be positive (to atmosphere) or negative (to surface). Typical range: -500 to 1000 W/m\u00b2. Negative values occur during stable nighttime conditions.\n   - Latent heat flux (eflx_lh_tot_patch): Can be positive (evaporation) or negative (condensation/dew). Typical range: -200 to 800 W/m\u00b2.\n   - Longwave radiation (eflx_lwrad_out_patch): Must be >= 0 (Stefan-Boltzmann constraint). Typical range: 100-600 W/m\u00b2 for Earth surface temperatures.\n   - Wind stress (taux_patch, tauy_patch): Can be positive or negative (directional). Typical range: -5 to 5 kg/m/s\u00b2 for extreme conditions, usually much smaller (0.001-0.5).\n\n2. **Domain Decomposition**:\n   - BoundsType represents parallel domain decomposition with patches, columns, and gridcells.\n   - begp/endp are inclusive indices, so n_patches = endp - begp + 1.\n   - Tested single patch (minimal), typical (50-100), and large (10000) domains.\n\n3. **Array Initialization**:\n   - init_allocate: Creates NaN-filled arrays (uninitialized state).\n   - init_energyflux_state: Creates zero-filled arrays (initialized state).\n   - init: Wrapper that calls init_allocate (based on naming convention).\n\n4. **Update Semantics**:\n   - None values in update_energyflux_state should preserve existing state values.\n   - All arrays must have consistent dimensions within a test case.\n   - Partial updates are common in scientific codes (updating only computed fields).\n\n5. **Edge Cases Covered**:\n   - Minimum array size (1 patch)\n   - Large arrays (10000 patches)\n   - Zero and near-zero values\n   - Negative fluxes (physically valid)\n   - Extreme but valid magnitudes\n   - Boundary constraints (radiation >= 0)\n   - Partial updates (None values)\n\n6. **Test Distribution**:\n   - 5 nominal cases (50%): Typical operating conditions\n   - 3 edge cases (30%): Boundaries, extremes, constraints\n   - 2 special cases (20%): Partial updates, mixed conditions"
+}

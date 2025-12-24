@@ -1,0 +1,625 @@
+{
+  "function_name": "WaterStateType_functions",
+  "test_cases": [
+    {
+      "name": "test_init_waterstate_nominal_small_domain",
+      "function": "init_waterstate",
+      "inputs": {
+        "ncols": 5,
+        "npatches": 10,
+        "nlevgrnd": 15,
+        "nlevsno": 5,
+        "fill_value": 0.0
+      },
+      "expected_shapes": {
+        "bw_col": [
+          5,
+          5
+        ],
+        "h2osno_col": [
+          5
+        ],
+        "h2osoi_liq_col": [
+          5,
+          20
+        ],
+        "h2osoi_ice_col": [
+          5,
+          20
+        ],
+        "h2osoi_vol_col": [
+          5,
+          15
+        ],
+        "h2osfc_col": [
+          5
+        ],
+        "q_ref2m_patch": [
+          10
+        ],
+        "frac_sno_eff_col": [
+          5
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Small domain with typical layer counts, zero initialization",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_waterstate_nominal_large_domain",
+      "function": "init_waterstate",
+      "inputs": {
+        "ncols": 100,
+        "npatches": 500,
+        "nlevgrnd": 20,
+        "nlevsno": 10,
+        "fill_value": 1.5
+      },
+      "expected_shapes": {
+        "bw_col": [
+          100,
+          10
+        ],
+        "h2osno_col": [
+          100
+        ],
+        "h2osoi_liq_col": [
+          100,
+          30
+        ],
+        "h2osoi_ice_col": [
+          100,
+          30
+        ],
+        "h2osoi_vol_col": [
+          100,
+          20
+        ],
+        "h2osfc_col": [
+          100
+        ],
+        "q_ref2m_patch": [
+          500
+        ],
+        "frac_sno_eff_col": [
+          100
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Large domain with non-zero initialization value",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_waterstate_edge_minimum_dimensions",
+      "function": "init_waterstate",
+      "inputs": {
+        "ncols": 1,
+        "npatches": 1,
+        "nlevgrnd": 1,
+        "nlevsno": 1,
+        "fill_value": 0.0
+      },
+      "expected_shapes": {
+        "bw_col": [
+          1,
+          1
+        ],
+        "h2osno_col": [
+          1
+        ],
+        "h2osoi_liq_col": [
+          1,
+          2
+        ],
+        "h2osoi_ice_col": [
+          1,
+          2
+        ],
+        "h2osoi_vol_col": [
+          1,
+          1
+        ],
+        "h2osfc_col": [
+          1
+        ],
+        "q_ref2m_patch": [
+          1
+        ],
+        "frac_sno_eff_col": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum valid dimensions (all = 1)",
+        "edge_cases": [
+          "minimum_dimensions"
+        ]
+      }
+    },
+    {
+      "name": "test_init_waterstate_edge_negative_fill",
+      "function": "init_waterstate",
+      "inputs": {
+        "ncols": 10,
+        "npatches": 20,
+        "nlevgrnd": 10,
+        "nlevsno": 5,
+        "fill_value": -999.0
+      },
+      "expected_shapes": {
+        "bw_col": [
+          10,
+          5
+        ],
+        "h2osno_col": [
+          10
+        ],
+        "h2osoi_liq_col": [
+          10,
+          15
+        ],
+        "h2osoi_ice_col": [
+          10,
+          15
+        ],
+        "h2osoi_vol_col": [
+          10,
+          10
+        ],
+        "h2osfc_col": [
+          10
+        ],
+        "q_ref2m_patch": [
+          20
+        ],
+        "frac_sno_eff_col": [
+          10
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Negative fill value (sentinel/missing data pattern)",
+        "edge_cases": [
+          "negative_fill_value"
+        ]
+      }
+    },
+    {
+      "name": "test_init_allocate_water_state_nominal_with_nan",
+      "function": "init_allocate_water_state",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 50,
+          "begc": 0,
+          "endc": 25,
+          "begg": 0,
+          "endg": 10
+        },
+        "nlevsno": 5,
+        "nlevgrnd": 15,
+        "use_nan": true
+      },
+      "expected_shapes": {
+        "bw_col": [
+          25,
+          5
+        ],
+        "h2osno_col": [
+          25
+        ],
+        "h2osoi_liq_col": [
+          25,
+          20
+        ],
+        "h2osoi_ice_col": [
+          25,
+          20
+        ],
+        "h2osoi_vol_col": [
+          25,
+          15
+        ],
+        "h2osfc_col": [
+          25
+        ],
+        "q_ref2m_patch": [
+          50
+        ],
+        "frac_sno_eff_col": [
+          25
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Allocate with NaN initialization for uninitialized data detection",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_water_state_nominal_with_zeros",
+      "function": "init_allocate_water_state",
+      "inputs": {
+        "bounds": {
+          "begp": 10,
+          "endp": 110,
+          "begc": 5,
+          "endc": 55,
+          "begg": 0,
+          "endg": 20
+        },
+        "nlevsno": 8,
+        "nlevgrnd": 25,
+        "use_nan": false
+      },
+      "expected_shapes": {
+        "bw_col": [
+          50,
+          8
+        ],
+        "h2osno_col": [
+          50
+        ],
+        "h2osoi_liq_col": [
+          50,
+          33
+        ],
+        "h2osoi_ice_col": [
+          50,
+          33
+        ],
+        "h2osoi_vol_col": [
+          50,
+          25
+        ],
+        "h2osfc_col": [
+          50
+        ],
+        "q_ref2m_patch": [
+          100
+        ],
+        "frac_sno_eff_col": [
+          50
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Allocate with zero initialization, non-zero starting indices",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_water_state_edge_single_element",
+      "function": "init_allocate_water_state",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "nlevsno": 1,
+        "nlevgrnd": 1,
+        "use_nan": false
+      },
+      "expected_shapes": {
+        "bw_col": [
+          1,
+          1
+        ],
+        "h2osno_col": [
+          1
+        ],
+        "h2osoi_liq_col": [
+          1,
+          2
+        ],
+        "h2osoi_ice_col": [
+          1,
+          2
+        ],
+        "h2osoi_vol_col": [
+          1,
+          1
+        ],
+        "h2osfc_col": [
+          1
+        ],
+        "q_ref2m_patch": [
+          1
+        ],
+        "frac_sno_eff_col": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Single element domain with minimum layers",
+        "edge_cases": [
+          "minimum_domain"
+        ]
+      }
+    },
+    {
+      "name": "test_update_waterstate_nominal_partial_update",
+      "function": "update_waterstate",
+      "inputs": {
+        "state": {
+          "bw_col": [
+            [
+              100.0,
+              150.0,
+              200.0
+            ],
+            [
+              120.0,
+              160.0,
+              210.0
+            ]
+          ],
+          "h2osno_col": [
+            50.0,
+            75.0
+          ],
+          "h2osoi_liq_col": [
+            [
+              10.0,
+              15.0,
+              20.0,
+              25.0
+            ],
+            [
+              12.0,
+              18.0,
+              22.0,
+              28.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              5.0,
+              8.0,
+              10.0,
+              12.0
+            ],
+            [
+              6.0,
+              9.0,
+              11.0,
+              13.0
+            ]
+          ],
+          "h2osoi_vol_col": [
+            [
+              0.3,
+              0.35
+            ],
+            [
+              0.32,
+              0.38
+            ]
+          ],
+          "h2osfc_col": [
+            2.0,
+            3.0
+          ],
+          "q_ref2m_patch": [
+            0.008,
+            0.01,
+            0.012
+          ],
+          "frac_sno_eff_col": [
+            0.6,
+            0.7
+          ]
+        },
+        "updates": {
+          "h2osno_col": [
+            60.0,
+            80.0
+          ],
+          "frac_sno_eff_col": [
+            0.65,
+            0.75
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update subset of fields while preserving others",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_total_water_mass_nominal",
+      "function": "get_total_water_mass",
+      "inputs": {
+        "state": {
+          "bw_col": [
+            [
+              100.0,
+              150.0
+            ],
+            [
+              120.0,
+              160.0
+            ],
+            [
+              110.0,
+              155.0
+            ]
+          ],
+          "h2osno_col": [
+            50.0,
+            75.0,
+            60.0
+          ],
+          "h2osoi_liq_col": [
+            [
+              10.0,
+              15.0,
+              20.0
+            ],
+            [
+              12.0,
+              18.0,
+              22.0
+            ],
+            [
+              11.0,
+              16.0,
+              21.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              5.0,
+              8.0,
+              10.0
+            ],
+            [
+              6.0,
+              9.0,
+              11.0
+            ],
+            [
+              5.5,
+              8.5,
+              10.5
+            ]
+          ],
+          "h2osoi_vol_col": [
+            [
+              0.3
+            ],
+            [
+              0.32
+            ],
+            [
+              0.31
+            ]
+          ],
+          "h2osfc_col": [
+            2.0,
+            3.0,
+            2.5
+          ],
+          "q_ref2m_patch": [
+            0.008,
+            0.01
+          ],
+          "frac_sno_eff_col": [
+            0.6,
+            0.7,
+            0.65
+          ]
+        }
+      },
+      "expected_output": {
+        "shape": [
+          3
+        ],
+        "description": "Sum of h2osno_col, h2osfc_col, and all h2osoi_liq_col and h2osoi_ice_col"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Calculate total water mass across all components",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_soil_water_mass_edge_zero_snow",
+      "function": "get_soil_water_mass",
+      "inputs": {
+        "state": {
+          "bw_col": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osno_col": [
+            0.0,
+            0.0
+          ],
+          "h2osoi_liq_col": [
+            [
+              0.0,
+              0.0,
+              25.0,
+              30.0
+            ],
+            [
+              0.0,
+              0.0,
+              28.0,
+              32.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              0.0,
+              0.0,
+              15.0,
+              18.0
+            ],
+            [
+              0.0,
+              0.0,
+              16.0,
+              19.0
+            ]
+          ],
+          "h2osoi_vol_col": [
+            [
+              0.35,
+              0.4
+            ],
+            [
+              0.38,
+              0.42
+            ]
+          ],
+          "h2osfc_col": [
+            0.0,
+            0.0
+          ],
+          "q_ref2m_patch": [
+            0.005
+          ],
+          "frac_sno_eff_col": [
+            0.0,
+            0.0
+          ]
+        },
+        "nlevsno": 2
+      },
+      "expected_output": {
+        "shape": [
+          2
+        ],
+        "description": "Sum of soil layers only (excluding snow layers)"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "No snow present, only soil water mass calculation",
+        "edge_cases": [
+          "zero_snow",
+          "soil_only"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Dimension Consistency**: All array dimensions within each test case are internally consistent. For combined arrays (h2osoi_liq_col, h2osoi_ice_col), total layers = nlevsno + nlevgrnd.\n\n2. **Physical Realism**:\n   - Water densities (bw_col) range 100-300 kg/m\u00b3 (typical for snow)\n   - Snow water (h2osno_col) ranges 0-100 mm\n   - Liquid/ice water masses are positive\n   - Volumetric soil water (h2osoi_vol_col) constrained to [0, 1]\n   - Specific humidity (q_ref2m_patch) ranges 0.005-0.015 kg/kg (typical atmospheric values)\n   - Snow fraction (frac_sno_eff_col) constrained to [0, 1]\n\n3. **Edge Cases**:\n   - Minimum dimensions (all = 1) test boundary conditions\n   - Zero snow tests snow-free conditions\n   - Negative fill values test sentinel/missing data patterns\n   - NaN initialization tests uninitialized data detection\n\n4. **Bounds Object**: For init_allocate_water_state, bounds define index ranges. Array sizes are computed as (endc - begc) for columns and (endp - begp) for patches.\n\n5. **Update Function**: Tests immutable update pattern where only specified fields change.\n\n6. **Mass Calculations**: Total water mass includes all water components; soil water mass excludes snow layers (first nlevsno indices).\n\n7. **Array Indexing**: Snow layers are indexed negatively in Fortran convention but represented as first nlevsno elements in arrays for testing.\n\n8. **Test Coverage**:\n   - 50% nominal cases (tests 1, 2, 5, 6, 8, 9)\n   - 30% edge cases (tests 3, 4, 7, 10)\n   - 20% special cases (distributed across tests with varying dimensions)\n\n9. **JAX Compatibility**: All test data uses standard Python types (lists, dicts) that can be converted to JAX arrays. No special JAX-specific initialization required for test data generation."
+}

@@ -1,0 +1,469 @@
+{
+  "function_name": "FrictionVelocityMod",
+  "test_cases": [
+    {
+      "name": "test_init_frictionvel_type_nominal_single_patch",
+      "function": "init_frictionvel_type",
+      "inputs": {
+        "n_patches": 1
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "array_shapes": {
+          "forc_hgt_u_patch": [
+            1
+          ],
+          "u10_clm_patch": [
+            1
+          ],
+          "fv_patch": [
+            1
+          ]
+        },
+        "array_values": "all NaN"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize friction velocity state for single patch domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_frictionvel_type_nominal_multiple_patches",
+      "function": "init_frictionvel_type",
+      "inputs": {
+        "n_patches": 100
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "array_shapes": {
+          "forc_hgt_u_patch": [
+            100
+          ],
+          "u10_clm_patch": [
+            100
+          ],
+          "fv_patch": [
+            100
+          ]
+        },
+        "array_values": "all NaN"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize friction velocity state for typical multi-patch domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_nominal_contiguous_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 49
+        }
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "array_shapes": {
+          "forc_hgt_u_patch": [
+            50
+          ],
+          "u10_clm_patch": [
+            50
+          ],
+          "fv_patch": [
+            50
+          ]
+        },
+        "array_values": "all NaN",
+        "size_calculation": "endp - begp + 1 = 50"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Allocate arrays for contiguous patch bounds starting at zero",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_edge_single_patch_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 5,
+          "endp": 5
+        }
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "array_shapes": {
+          "forc_hgt_u_patch": [
+            1
+          ],
+          "u10_clm_patch": [
+            1
+          ],
+          "fv_patch": [
+            1
+          ]
+        },
+        "array_values": "all NaN",
+        "size_calculation": "endp - begp + 1 = 1"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Allocate for single patch where begp equals endp",
+        "edge_cases": [
+          "single_patch",
+          "begp_equals_endp"
+        ]
+      }
+    },
+    {
+      "name": "test_init_allocate_edge_large_offset_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 1000,
+          "endp": 1999
+        }
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "array_shapes": {
+          "forc_hgt_u_patch": [
+            1000
+          ],
+          "u10_clm_patch": [
+            1000
+          ],
+          "fv_patch": [
+            1000
+          ]
+        },
+        "array_values": "all NaN",
+        "size_calculation": "endp - begp + 1 = 1000"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Allocate with large offset indices (non-zero starting point)",
+        "edge_cases": [
+          "large_offset"
+        ]
+      }
+    },
+    {
+      "name": "test_update_frictionvel_type_nominal_all_fields",
+      "function": "update_frictionvel_type",
+      "inputs": {
+        "state": {
+          "forc_hgt_u_patch": [
+            10.0,
+            10.0,
+            10.0
+          ],
+          "u10_clm_patch": [
+            5.0,
+            5.0,
+            5.0
+          ],
+          "fv_patch": [
+            0.4,
+            0.4,
+            0.4
+          ]
+        },
+        "forc_hgt_u_patch": [
+          30.0,
+          25.0,
+          20.0
+        ],
+        "u10_clm_patch": [
+          8.5,
+          7.2,
+          6.1
+        ],
+        "fv_patch": [
+          0.65,
+          0.58,
+          0.52
+        ]
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "updated_values": {
+          "forc_hgt_u_patch": [
+            30.0,
+            25.0,
+            20.0
+          ],
+          "u10_clm_patch": [
+            8.5,
+            7.2,
+            6.1
+          ],
+          "fv_patch": [
+            0.65,
+            0.58,
+            0.52
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update all fields with typical atmospheric boundary layer values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_frictionvel_type_nominal_partial_update",
+      "function": "update_frictionvel_type",
+      "inputs": {
+        "state": {
+          "forc_hgt_u_patch": [
+            10.0,
+            15.0
+          ],
+          "u10_clm_patch": [
+            4.5,
+            5.5
+          ],
+          "fv_patch": [
+            0.35,
+            0.42
+          ]
+        },
+        "forc_hgt_u_patch": null,
+        "u10_clm_patch": [
+          6.8,
+          7.3
+        ],
+        "fv_patch": null
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "updated_values": {
+          "forc_hgt_u_patch": [
+            10.0,
+            15.0
+          ],
+          "u10_clm_patch": [
+            6.8,
+            7.3
+          ],
+          "fv_patch": [
+            0.35,
+            0.42
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update only wind speed field, preserving other fields",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_frictionvel_type_edge_zero_values",
+      "function": "update_frictionvel_type",
+      "inputs": {
+        "state": {
+          "forc_hgt_u_patch": [
+            10.0,
+            20.0,
+            30.0,
+            40.0
+          ],
+          "u10_clm_patch": [
+            5.0,
+            6.0,
+            7.0,
+            8.0
+          ],
+          "fv_patch": [
+            0.4,
+            0.5,
+            0.6,
+            0.7
+          ]
+        },
+        "forc_hgt_u_patch": [
+          0.0,
+          10.0,
+          20.0,
+          30.0
+        ],
+        "u10_clm_patch": [
+          0.0,
+          0.0,
+          5.0,
+          10.0
+        ],
+        "fv_patch": [
+          0.0,
+          0.0,
+          0.0,
+          0.5
+        ]
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "updated_values": {
+          "forc_hgt_u_patch": [
+            0.0,
+            10.0,
+            20.0,
+            30.0
+          ],
+          "u10_clm_patch": [
+            0.0,
+            0.0,
+            5.0,
+            10.0
+          ],
+          "fv_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.5
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Update with zero values (calm conditions, ground level)",
+        "edge_cases": [
+          "zero_wind",
+          "zero_height",
+          "zero_friction"
+        ]
+      }
+    },
+    {
+      "name": "test_update_frictionvel_type_edge_extreme_values",
+      "function": "update_frictionvel_type",
+      "inputs": {
+        "state": {
+          "forc_hgt_u_patch": [
+            10.0,
+            20.0
+          ],
+          "u10_clm_patch": [
+            5.0,
+            6.0
+          ],
+          "fv_patch": [
+            0.4,
+            0.5
+          ]
+        },
+        "forc_hgt_u_patch": [
+          500.0,
+          1000.0
+        ],
+        "u10_clm_patch": [
+          50.0,
+          75.0
+        ],
+        "fv_patch": [
+          5.0,
+          7.5
+        ]
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "updated_values": {
+          "forc_hgt_u_patch": [
+            500.0,
+            1000.0
+          ],
+          "u10_clm_patch": [
+            50.0,
+            75.0
+          ],
+          "fv_patch": [
+            5.0,
+            7.5
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Update with extreme but physically valid values (hurricane conditions, high altitude)",
+        "edge_cases": [
+          "extreme_height",
+          "extreme_wind",
+          "extreme_friction"
+        ]
+      }
+    },
+    {
+      "name": "test_update_frictionvel_type_special_very_small_values",
+      "function": "update_frictionvel_type",
+      "inputs": {
+        "state": {
+          "forc_hgt_u_patch": [
+            10.0,
+            20.0,
+            30.0
+          ],
+          "u10_clm_patch": [
+            5.0,
+            6.0,
+            7.0
+          ],
+          "fv_patch": [
+            0.4,
+            0.5,
+            0.6
+          ]
+        },
+        "forc_hgt_u_patch": [
+          0.01,
+          0.1,
+          1.0
+        ],
+        "u10_clm_patch": [
+          0.001,
+          0.01,
+          0.1
+        ],
+        "fv_patch": [
+          0.0001,
+          0.001,
+          0.01
+        ]
+      },
+      "expected_behavior": {
+        "output_type": "FrictionVelType",
+        "updated_values": {
+          "forc_hgt_u_patch": [
+            0.01,
+            0.1,
+            1.0
+          ],
+          "u10_clm_patch": [
+            0.001,
+            0.01,
+            0.1
+          ],
+          "fv_patch": [
+            0.0001,
+            0.001,
+            0.01
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Update with very small but non-zero values (near-calm conditions, numerical precision testing)",
+        "edge_cases": [
+          "very_small_values",
+          "numerical_precision"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**: All values respect physical constraints:\n   - Heights (forc_hgt_u_patch) >= 0 m, typical range 0-1000m\n   - Wind speeds (u10_clm_patch) >= 0 m/s, typical range 0-75 m/s (hurricane force)\n   - Friction velocities (fv_patch) >= 0 m/s, typical range 0-7.5 m/s\n\n2. **Bounds Constraints**: All BoundsType instances satisfy endp >= begp\n\n3. **Array Dimensions**: Within each test case, all arrays have consistent dimensions matching n_patches or (endp - begp + 1)\n\n4. **Initialization Tests**: Tests for init_frictionvel_type and init_allocate expect NaN-filled arrays, which is the standard initialization pattern in scientific computing\n\n5. **Update Tests**: Cover immutable update patterns following JAX functional paradigm:\n   - Full updates (all fields)\n   - Partial updates (some fields None)\n   - Edge cases (zeros, extremes, very small values)\n\n6. **Test Distribution**:\n   - Nominal cases (50%): Tests 1, 2, 3, 6, 7\n   - Edge cases (30%): Tests 4, 5, 8, 9\n   - Special cases (20%): Test 10\n\n7. **Coverage**: Tests span:\n   - Single patch to large domains (1-1000 patches)\n   - Zero-based and offset indices\n   - Calm to extreme weather conditions\n   - Numerical precision boundaries\n   - All function signatures in the module"
+}

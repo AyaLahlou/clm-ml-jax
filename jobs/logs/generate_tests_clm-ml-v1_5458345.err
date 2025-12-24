@@ -1,0 +1,60 @@
+Traceback (most recent call last):
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/examples/generate_tests.py", line 66, in generate_tests_for_module
+    result = test_agent.generate_tests(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/src/jax_agents/test_agent.py", line 173, in generate_tests
+    test_data = self._generate_test_data(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/src/jax_agents/test_agent.py", line 271, in _generate_test_data
+    return json.loads(json_str)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ^^^^^^^^^^^^^^^^^^^^^^
+json.decoder.JSONDecodeError: Expecting ',' delimiter: line 116 column 28 (char 4139)
+Traceback (most recent call last):
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/examples/generate_tests.py", line 66, in generate_tests_for_module
+    result = test_agent.generate_tests(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/src/jax_agents/test_agent.py", line 173, in generate_tests
+    test_data = self._generate_test_data(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/src/jax_agents/test_agent.py", line 271, in _generate_test_data
+    return json.loads(json_str)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ^^^^^^^^^^^^^^^^^^^^^^
+json.decoder.JSONDecodeError: Expecting ',' delimiter: line 261 column 25 (char 16741)
+Traceback (most recent call last):
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/examples/generate_tests.py", line 66, in generate_tests_for_module
+    result = test_agent.generate_tests(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/src/jax_agents/test_agent.py", line 173, in generate_tests
+    test_data = self._generate_test_data(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/burg-archive/home/mck2199/clm-ml-jax/jax-agents/src/jax_agents/test_agent.py", line 271, in _generate_test_data
+    return json.loads(json_str)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ^^^^^^^^^^^^^^^^^^^^^^
+json.decoder.JSONDecodeError: Expecting ',' delimiter: line 150 column 47 (char 6274)
