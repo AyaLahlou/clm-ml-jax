@@ -456,7 +456,7 @@ def compute_soil_hydraulic_properties_for_layer(
     
     # Sand/clay based (CLM5 method)
     watsat_sc = 0.489 - 0.00126 * sand
-    sucsat_sc = 10.0 * (10.0 ** (1.88 - 0.0131 * sand))
+    sucsat_sc = -10.0 * (10.0 ** (1.88 - 0.0131 * sand))
     hksat_sc = 0.0070556 * (10.0 ** (-0.884 + 0.0153 * sand))
     bsw_sc = 2.91 + 0.159 * clay
     
@@ -475,7 +475,7 @@ def compute_soil_hydraulic_properties_for_layer(
     
     # Line 228-231: Adjust hydraulic properties for organic matter
     om_watsat = jnp.maximum(0.93 - 0.1 * (z_j / zsapric), 0.83)
-    om_sucsat = jnp.minimum(10.3 - 0.2 * (z_j / zsapric), 10.1)
+    om_sucsat = -jnp.minimum(10.3 - 0.2 * (z_j / zsapric), 10.1)
     om_hksat = jnp.maximum(0.28 - 0.2799 * (z_j / zsapric), hksat_mineral)
     om_b = jnp.minimum(2.7 + 9.3 * (z_j / zsapric), 12.0)
     
@@ -582,6 +582,7 @@ def compute_soil_thermal_properties(
     watsat: float,
     j: int,
     nlevsoi: int,
+    nbedrock: int,
     csol_bedrock: float = 2.0e6
 ) -> Tuple[float, float]:
     """Compute thermal conductivity and heat capacity of soil.
@@ -597,6 +598,7 @@ def compute_soil_thermal_properties(
         watsat: Volumetric soil water at saturation [m3/m3]
         j: Current layer index (0-based)
         nlevsoi: Number of soil layers
+        nbedrock: Number of layers above bedrock for this column
         csol_bedrock: Heat capacity of bedrock [J/m3/K]
     
     Returns:
@@ -610,8 +612,8 @@ def compute_soil_thermal_properties(
     tksol_other = 3.0    # Thermal conductivity of other minerals [W/m/K]
     om_cvsol = 2.5e6     # Heat capacity of organic matter [J/m3/K]
     
-    # Check if in soil layer
-    is_soil = j < nlevsoi
+    # Check if in soil layer (before bedrock)
+    is_soil = j < nbedrock
     
     # Lines 300-306: Thermal conductivity of soil minerals
     tksol_min = jnp.power(tksol_quartz, quartz) * jnp.power(tksol_other, 1.0 - quartz)
@@ -622,12 +624,10 @@ def compute_soil_thermal_properties(
     tkmg = jnp.where(is_soil, tkmg_soil, 3.0)
     
     # Lines 312-323: Heat capacity of soil solids
-    if tex == 0:
-        # Use sand and clay fractions
-        cvsol = ((2.128 * sand + 2.385 * clay) / (sand + clay)) * 1.0e6
-    else:
-        # Default value
-        cvsol = 1.926e6
+    # Use jnp.where instead of if/else for JAX compatibility
+    cvsol_sand_clay = ((2.128 * sand + 2.385 * clay) / (sand + clay)) * 1.0e6
+    cvsol_default = 1.926e6
+    cvsol = jnp.where(tex == 0, cvsol_sand_clay, cvsol_default)
     
     csol_soil = (1.0 - om_frac_therm) * cvsol + om_frac_therm * om_cvsol
     csol = jnp.where(is_soil, csol_soil, csol_bedrock)
@@ -673,8 +673,8 @@ def soilstate_init_time_const(
     Note:
         This is a pure function with no side effects. All state is immutable.
     """
-    npatch = bounds.endp - bounds.begp + 1
-    ncol = bounds.endc - bounds.begc + 1
+    npatch = bounds.endp - bounds.begp
+    ncol = bounds.endc - bounds.begc
     nlevgrnd = config.nlevgrnd
     nlevsoi = config.nlevsoi
     
@@ -708,6 +708,10 @@ def soilstate_init_time_const(
     
     # Vectorize over all patches
     rootfr = jax.vmap(compute_patch_roots)(jnp.arange(npatch))
+    
+    # Normalize root fractions to sum to exactly 1.0
+    rootfr_sum = jnp.sum(rootfr, axis=1, keepdims=True)
+    rootfr = jnp.where(rootfr_sum > 0, rootfr / rootfr_sum, rootfr)
     
     # ========================================================================
     # Step 2: Adjust roots for bedrock (lines 142-154)
@@ -796,6 +800,7 @@ def soilstate_init_time_const(
                 watsat_j,
                 j,
                 nlevsoi,
+                col.nbedrock[c_idx],
                 config.csol_bedrock,
             )
             

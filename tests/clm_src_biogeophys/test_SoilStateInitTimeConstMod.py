@@ -750,9 +750,13 @@ def test_soilstate_init_organic_matter_effects(test_data):
     assert jnp.mean(high_om_result.tkdry) < jnp.mean(zero_om_result.tkdry), \
         "High organic matter should decrease tkdry"
     
-    # Organic matter should decrease heat capacity
-    assert jnp.mean(high_om_result.csol) < jnp.mean(zero_om_result.csol), \
-        "High organic matter should decrease csol"
+    # Organic matter has heat capacity of 2.5e6 J/m3/K, which is typically
+    # higher than sandy soils (2.1e6) but can be lower than clay-rich soils (2.4e6).
+    # In this test, zero OM is sandy soil (92% sand) with csol~2.1e6,
+    # while high OM is clayey soil (40% clay) with csol trending toward 2.5e6.
+    # So high OM should have higher csol in this specific comparison.
+    assert jnp.mean(high_om_result.csol) > jnp.mean(zero_om_result.csol), \
+        "High organic matter should increase csol (organic matter has higher heat capacity than sand)"
 
 
 def test_soilstate_init_texture_consistency(test_data):

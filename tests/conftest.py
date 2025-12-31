@@ -15,7 +15,7 @@ SRC_DIR = PROJECT_ROOT / "src"
 sys.path.insert(0, str(SRC_DIR))
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def jax_config():
     """Configure JAX for testing."""
     # Use CPU for tests by default

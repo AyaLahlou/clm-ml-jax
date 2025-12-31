@@ -108,10 +108,10 @@ DENH2O = 1000.0
 # Private Helper Functions
 # ============================================================================
 
-@partial(jit, static_argnums=(1,))
+@jit
 def _compute_vwc_liq_single_column(
     h2osoi_liq: Array,
-    nlayers: int,
+    nlayers: Array,
     dz: Array
 ) -> Array:
     """Compute liquid volumetric water content for a single column.
@@ -128,16 +128,10 @@ def _compute_vwc_liq_single_column(
         
     Note:
         Formula: vwc_liq = max(h2osoi_liq, 1.0e-6) / (dz * denh2o)
-        Applied only to active layers (above bedrock)
+        Computed for all layers regardless of bedrock depth.
     """
     # Fortran line 94-95: vwc_liq(c,j) = max(h2osoi_liq(c,j),1.0e-6_r8)/(dz(c,j)*denh2o)
-    layer_mask = jnp.arange(h2osoi_liq.shape[0]) < nlayers
-    
-    vwc_liq = jnp.where(
-        layer_mask,
-        jnp.maximum(h2osoi_liq, 1.0e-6) / (dz * DENH2O),
-        0.0  # Inactive layers set to zero
-    )
+    vwc_liq = jnp.maximum(h2osoi_liq, 1.0e-6) / (dz * DENH2O)
     
     return vwc_liq
 

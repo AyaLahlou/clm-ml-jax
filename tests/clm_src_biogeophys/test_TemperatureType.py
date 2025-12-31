@@ -326,23 +326,24 @@ def test_init_temperature_many_snow_layers():
 
 def test_init_temperature_default_value():
     """
-    Test that init_temperature initializes to default temperature (273.15 K).
+    Test that init_temperature initializes to NaN (uninitialized).
     
-    Verifies that when no initial_temp is specified, arrays are
-    initialized to the freezing point of water.
+    Verifies that init_temperature creates arrays with NaN values
+    to help detect uninitialized usage. Use init_temperature_state
+    with initial_temp parameter if a default value is needed.
     """
     bounds = BoundsType(begp=0, endp=9, begc=0, endc=4, begg=0, endg=1)
     state = init_temperature(bounds, nlevsno=3, nlevgrnd=12)
 
-    # Should initialize to default 273.15 K
-    assert jnp.allclose(state.t_soisno_col, 273.15, atol=1e-6), (
-        "Default initialization should be 273.15 K"
+    # Should initialize to NaN to detect uninitialized values
+    assert jnp.all(jnp.isnan(state.t_soisno_col)), (
+        "Default initialization should be NaN"
     )
-    assert jnp.allclose(state.t_a10_patch, 273.15, atol=1e-6), (
-        "Default initialization should be 273.15 K"
+    assert jnp.all(jnp.isnan(state.t_a10_patch)), (
+        "Default initialization should be NaN"
     )
-    assert jnp.allclose(state.t_ref2m_patch, 273.15, atol=1e-6), (
-        "Default initialization should be 273.15 K"
+    assert jnp.all(jnp.isnan(state.t_ref2m_patch)), (
+        "Default initialization should be NaN"
     )
 
 
@@ -1038,13 +1039,17 @@ def test_integration_bounds_and_surface():
 
     # Update some temperatures to create a profile
     nlevsno = 5
-    state = update_soil_temperature(state, col_idx=0, layer_idx=-2, nlevsno=nlevsno, new_temp=260.0)
-    state = update_soil_temperature(state, col_idx=0, layer_idx=0, nlevsno=nlevsno, new_temp=268.0)
+    # For snl=-3, surface is at Fortran layer (snl+1)=-2, JAX index: -2+5-1=2
+    # Update deeper snow layer
+    state = update_soil_temperature(state, col_idx=0, layer_idx=-4, nlevsno=nlevsno, new_temp=255.0)
+    # Update surface snow layer (will be surface for snl=-3)
+    state = update_soil_temperature(state, col_idx=0, layer_idx=-2, nlevsno=nlevsno, new_temp=268.0)
+    # Update top soil layer (will be surface for snl=0)
     state = update_soil_temperature(state, col_idx=0, layer_idx=1, nlevsno=nlevsno, new_temp=273.15)
 
-    # Get surface temperature with snow
+    # Get surface temperature with snow (snl=-3, surface at Fortran layer -2)
     surf_temp_snow = get_surface_temperature(state, col_idx=0, nlevsno=nlevsno, snl=-3)
-    # Surface index = 5 + (-3) = 2, which should have been updated to 268.0
+    # Surface is at Fortran layer (snl+1)=-2, which we set to 268.0
     assert jnp.allclose(surf_temp_snow, 268.0, atol=1e-6), (
         f"Surface temp with snow should be 268.0, got {surf_temp_snow}"
     )

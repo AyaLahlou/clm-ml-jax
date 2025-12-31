@@ -299,13 +299,13 @@ def test_init_waterflux_type_dtypes():
     """
     Test that init_waterflux_type creates arrays with correct data types.
     
-    Verifies that the qflx_evap_tot_patch array uses float32 dtype
-    for efficient computation in JAX.
+    Verifies that the qflx_evap_tot_patch array uses float64 dtype
+    for accurate computation in JAX (enabled by jax_config fixture).
     """
     result = init_waterflux_type(10)
-    
-    assert result.qflx_evap_tot_patch.dtype == jnp.float32, (
-        f"Expected float32 dtype, got {result.qflx_evap_tot_patch.dtype}"
+
+    assert result.qflx_evap_tot_patch.dtype == jnp.float64, (
+        f"Expected float64 dtype, got {result.qflx_evap_tot_patch.dtype}"
     )
 
 
@@ -419,14 +419,14 @@ def test_init_allocate_dtypes():
     """
     Test that init_allocate creates arrays with correct data types.
     
-    Verifies float32 dtype for efficient JAX computation.
+    Verifies float64 dtype for accurate JAX computation.
     """
     waterflux_state = WaterFluxType(qflx_evap_tot_patch=None)
     bounds = BoundsType(begp=1, endp=10)
     result = init_allocate(waterflux_state, bounds)
-    
-    assert result.qflx_evap_tot_patch.dtype == jnp.float32, (
-        f"Expected float32 dtype, got {result.qflx_evap_tot_patch.dtype}"
+
+    assert result.qflx_evap_tot_patch.dtype == jnp.float64, (
+        f"Expected float64 dtype, got {result.qflx_evap_tot_patch.dtype}"
     )
 
 
@@ -490,14 +490,14 @@ def test_init_dtypes():
     """
     Test that init function creates arrays with correct data types.
     
-    Verifies float32 dtype for the complete initialization.
+    Verifies float64 dtype for the complete initialization.
     """
     waterflux_state = WaterFluxType(qflx_evap_tot_patch=None)
     bounds = BoundsType(begp=1, endp=30)
     result = init(waterflux_state, bounds)
-    
-    assert result.qflx_evap_tot_patch.dtype == jnp.float32, (
-        f"Expected float32 dtype, got {result.qflx_evap_tot_patch.dtype}"
+
+    assert result.qflx_evap_tot_patch.dtype == jnp.float64, (
+        f"Expected float64 dtype, got {result.qflx_evap_tot_patch.dtype}"
     )
 
 
@@ -646,15 +646,15 @@ def test_update_qflx_evap_tot_patch_dtypes():
     """
     Test that update_qflx_evap_tot_patch preserves data types.
     
-    Verifies that the updated array maintains float32 dtype.
+    Verifies that the updated array maintains float64 dtype.
     """
     waterflux = WaterFluxType(qflx_evap_tot_patch=jnp.array([0.0, 0.0, 0.0]))
     qflx_evap_tot_patch = jnp.array([0.001, 0.002, 0.003])
-    
+
     result = update_qflx_evap_tot_patch(waterflux, qflx_evap_tot_patch)
-    
-    assert result.qflx_evap_tot_patch.dtype == jnp.float32, (
-        f"Expected float32 dtype, got {result.qflx_evap_tot_patch.dtype}"
+
+    assert result.qflx_evap_tot_patch.dtype == jnp.float64, (
+        f"Expected float64 dtype, got {result.qflx_evap_tot_patch.dtype}"
     )
 
 
