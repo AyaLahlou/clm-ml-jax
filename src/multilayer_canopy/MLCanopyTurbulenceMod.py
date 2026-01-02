@@ -1060,7 +1060,17 @@ def initialize_rsl_tables(rsl_file_path: str) -> RSLPsihatTable:
     # Return empty/default lookup table structure
     # In production, this would contain actual lookup table data from the file
     return RSLPsihatTable(
-        npts=0,  # Number of lookup table points
-        data=jnp.array([]),  # Placeholder for lookup table data
-    )# Backward compatibility alias (capitalize)
+        initialized=False,
+        nZ=0,
+        nL=0,
+        zdtgrid_m=jnp.array([]),
+        dtLgrid_m=jnp.array([]),
+        psigrid_m=jnp.array([]),
+        zdtgrid_h=jnp.array([]),
+        dtLgrid_h=jnp.array([]),
+        psigrid_h=jnp.array([]),
+    )
+
+
+# Backward compatibility alias (capitalize)
 LookupPsihatINI = initialize_rsl_tables

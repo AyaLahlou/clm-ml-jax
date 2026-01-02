@@ -62,7 +62,24 @@ def clm_drv(bounds: bounds_type, time_indx: int, fin: str) -> None:
         bounds: CLM bounds structure
         time_indx: Time index from reference date (0Z January 1 of current year, when calday = 1.000)
         fin: File name
+        
+    Raises:
+        ValueError: If bounds are invalid (begc > endc or begp > endp) or time_indx is negative
+        TypeError: If time_indx is not an integer
+        FileNotFoundError: If fin file doesn't exist
     """
+    # Validate inputs
+    if not isinstance(time_indx, int):
+        raise TypeError(f"time_indx must be an integer, got {type(time_indx)}")
+    
+    if time_indx < 0:
+        raise ValueError(f"time_indx must be non-negative, got {time_indx}")
+    
+    # Validate bounds
+    if bounds.begc > bounds.endc:
+        raise ValueError(f"Invalid column bounds: begc ({bounds.begc}) > endc ({bounds.endc})")
+    if bounds.begp > bounds.endp:
+        raise ValueError(f"Invalid patch bounds: begp ({bounds.begp}) > endp ({bounds.endp})")
     
     # Initialize local arrays with proper dimensions
     cv_shape = (bounds.endc - bounds.begc + 1, nlevgrnd + nlevsno)
@@ -81,6 +98,7 @@ def clm_drv(bounds: bounds_type, time_indx: int, fin: str) -> None:
     h2osfc = waterstate_inst.h2osfc_col
     
     # Read CLM data for current time slice
+    # Note: clmData will raise FileNotFoundError if fin doesn't exist
     clmData(fin, time_indx, bounds.begp, bounds.endp, bounds.begc, bounds.endc,
             soilstate_inst, waterstate_inst, canopystate_inst, surfalb_inst)
     
@@ -95,9 +113,9 @@ def clm_drv(bounds: bounds_type, time_indx: int, fin: str) -> None:
     SoilAlbedo(bounds, filter.num_nourbanc, filter.nourbanc, 
                waterstate_inst, surfalb_inst)
     
-    # Calculate CLM moisture stress/resistance for soil evaporation
-    calc_soilevap_resis(bounds, filter.num_nolakec, filter.nolakec,
-                        soilstate_inst, waterstate_inst, temperature_inst)
+    # Calculate CLM moisture stress/resistance for soil evaporation  
+    soilstate_updated = calc_soilevap_resis(bounds, filter.num_nolakec, filter.nolakec,
+                        soilstate_inst, waterstate_inst, temperature_inst, col)
     
     # Zero out snow and surface water
     # Using JAX array operations for vectorized updates
@@ -119,22 +137,22 @@ def clm_drv(bounds: bounds_type, time_indx: int, fin: str) -> None:
     # of the first snow/soil layer
     SoilThermProp(bounds, filter.num_nolakec, filter.nolakec,
                   tk, cv, tk_h2osfc,
-                  temperature_inst, waterstate_inst, soilstate_inst)
+                  temperature_inst, waterstate_inst, soilstate_updated)
     
     # CLM hydraulic conductivity and soil matric potential
     SoilWater(bounds, filter.num_hydrologyc, filter.hydrologyc,
-              soilstate_inst, waterstate_inst)
+              soilstate_updated, waterstate_inst)
     
     # Multilayer canopy and soil fluxes
     MLCanopyFluxes(bounds, filter.num_exposedvegp, filter.exposedvegp,
-                   atm2lnd_inst, canopystate_inst, soilstate_inst, 
+                   atm2lnd_inst, canopystate_inst, soilstate_updated, 
                    temperature_inst, waterstate_inst, waterflux_inst, 
                    energyflux_inst, frictionvel_inst, surfalb_inst, 
                    solarabs_inst, mlcanopy_inst)
     
     # Update CLM soil temperatures
     SoilTemperature(bounds, filter.num_nolakec, filter.nolakec,
-                    soilstate_inst, temperature_inst, waterstate_inst, 
+                    soilstate_updated, temperature_inst, waterstate_inst, 
                     mlcanopy_inst)
 
 

@@ -101,7 +101,6 @@ DENICE = 917.0
 # Private Functions
 # =============================================================================
 
-@jit
 def _calc_soil_resistance_sl14(
     soilstate: SoilStateType,
     waterstate: WaterStateType,
@@ -137,9 +136,9 @@ def _calc_soil_resistance_sl14(
     """
     ncols = soilstate.watsat.shape[0]
     
-    # Initialize output arrays
-    dsl = jnp.zeros(ncols)
-    soilresis = jnp.zeros(ncols)
+    # Initialize output arrays with input values (preserve unfiltered columns)
+    dsl = soilstate.dsl_col
+    soilresis = soilstate.soilresis_col
     
     # Extract first soil layer (index 0 in Python, index 1 in Fortran)
     # Fortran lines 95-100
@@ -193,7 +192,6 @@ def _calc_soil_resistance_sl14(
 # Public Functions
 # =============================================================================
 
-@jit
 def calc_soilevap_resis(
     bounds: BoundsType,
     num_nolakec: int,

@@ -38,12 +38,8 @@ except (ImportError, AttributeError):
 
 # Import related modules
 try:
-    from .abortutils import handle_err, CLMError
+    from .abortutils import CLMError
 except ImportError:
-    def handle_err(status: int, context: str = "") -> None:
-        if status != 0:
-            raise RuntimeError(f"NetCDF error {status} in {context}")
-    
     CLMError = RuntimeError
 
 # Set up logger
@@ -106,7 +102,7 @@ class file_desc_t:
         if not self.is_open:
             return True  # Closed state is valid
         
-        # Check that we have either xarray or netCDF4 handle
+        # If marked as open, must have at least one valid handle
         return (self.dataset is not None) or (self.nc_file is not None)
     
     def get_info(self) -> Dict[str, Any]:
@@ -242,7 +238,6 @@ def ncd_pio_openfile(ncid: file_desc_t, fname: str, mode: Optional[Union[str, Fi
     except Exception as e:
         error_msg = f"Failed to open NetCDF file '{fname}': {e}"
         logger.error(error_msg)
-        handle_err(1, error_msg)
         raise CLMError(error_msg) from e
 
 
@@ -288,7 +283,6 @@ def ncd_pio_closefile(ncid: file_desc_t) -> None:
     except Exception as e:
         error_msg = f"Failed to close NetCDF file: {e}"
         logger.error(error_msg)
-        handle_err(1, error_msg)
         raise CLMError(error_msg) from e
 
 
@@ -327,7 +321,7 @@ def ncd_inqdid(ncid: file_desc_t, name: str) -> int:
     except Exception as e:
         error_msg = f"Failed to inquire dimension id for '{name}': {e}"
         logger.error(error_msg)
-        handle_err(1, error_msg)
+
         raise CLMError(error_msg) from e
 
 
@@ -373,7 +367,7 @@ def ncd_inqdlen(ncid: file_desc_t, dimid: Union[int, str]) -> int:
     except Exception as e:
         error_msg = f"Failed to inquire dimension length for '{dimid}': {e}"
         logger.error(error_msg)
-        handle_err(1, error_msg)
+
         raise CLMError(error_msg) from e
 
 
@@ -443,7 +437,6 @@ def ncd_io_1d(varname: str,
     except Exception as e:
         error_msg = f"NetCDF I/O 1D failed for variable '{varname}': {e}"
         logger.error(error_msg)
-        handle_err(1, error_msg)
         raise CLMError(error_msg) from e
 
 
@@ -490,7 +483,6 @@ def ncd_io_2d(varname: str,
     except Exception as e:
         error_msg = f"NetCDF I/O 2D failed for variable '{varname}': {e}"
         logger.error(error_msg)
-        handle_err(1, error_msg)
         raise CLMError(error_msg) from e
 
 
@@ -656,9 +648,18 @@ def _write_variable_2d(ncid: file_desc_t, varname: str, data: jnp.ndarray, nt: O
         
         # Create variable if it doesn't exist
         if varname not in ncid.nc_file.variables:
-            # Create dimensions if needed
-            dim1_name = f"{varname}_dim1"
-            dim2_name = f"{varname}_dim2"
+            # Create dimensions with common names if they don't exist
+            # Use 'time' for first dimension and 'space' for second if not already defined
+            dims = list(ncid.nc_file.dimensions.keys())
+            
+            if len(dims) >= 2:
+                # Reuse existing dimensions if sizes match
+                dim1_name = dims[0]
+                dim2_name = dims[1] if len(dims) > 1 else f"{varname}_dim2"
+            else:
+                # Create new dimensions with standard names
+                dim1_name = 'time' if 'time' not in dims else f"{varname}_dim1"
+                dim2_name = 'space' if 'space' not in dims else f"{varname}_dim2"
             
             if dim1_name not in ncid.nc_file.dimensions:
                 ncid.nc_file.createDimension(dim1_name, np_data.shape[0])

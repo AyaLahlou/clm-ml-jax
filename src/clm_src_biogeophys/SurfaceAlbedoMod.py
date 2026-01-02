@@ -14,6 +14,7 @@ Key components:
 """
 
 from typing import NamedTuple, Optional
+from functools import partial
 import jax.numpy as jnp
 from jax import Array, jit
 
@@ -296,7 +297,7 @@ def surface_albedo_init_time_const(
 # Soil Albedo Calculation
 # =============================================================================
 
-@jit
+@partial(jit, static_argnums=(1,))
 def soil_albedo(
     inputs: SoilAlbedoInputs,
     numrad: int = NUMRAD

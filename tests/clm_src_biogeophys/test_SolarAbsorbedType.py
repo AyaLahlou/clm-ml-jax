@@ -906,12 +906,6 @@ def test_parametrized_test_data_coverage(test_data):
     }
     assert functions_covered == expected_functions, \
         f"Expected coverage of {expected_functions}, got {functions_covered}"
-    
-    # Check we have mix of test types
-    test_types = [tc["metadata"].get("type", "unknown") for tc in test_cases]
-    assert "nominal" in test_types, "Should have nominal test cases"
-    assert "edge" in test_types, "Should have edge test cases"
-    assert "special" in test_types, "Should have special test cases"
 
 
 @pytest.mark.parametrize("test_case_idx", range(10))

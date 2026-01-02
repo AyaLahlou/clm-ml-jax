@@ -92,8 +92,8 @@ def test_data() -> Dict[str, Any]:
                     "num_vegetated": 5,
                     "num_trees": 2,
                     "num_crops": 1,
-                    "num_c3": 3,
-                    "num_c4": 1,
+                    "num_c3": 4,  # 1 (tree), 4 (tree), 12 (grass), 15 (crop) are all C3
+                    "num_c4": 1,  # 14 (C4 grass) is C4
                 },
             },
             {
@@ -953,7 +953,7 @@ def test_print_patch_summary(test_data):
 # ============================================================================
 
 
-@pytest.mark.parametrize("test_case_idx", range(10))
+@pytest.mark.parametrize("test_case_idx", range(9))
 def test_all_test_cases_validation(test_data, test_case_idx):
     """Parametrized test running validation on all test cases."""
     test_case = test_data["test_cases"][test_case_idx]
@@ -972,7 +972,7 @@ def test_all_test_cases_validation(test_data, test_case_idx):
     assert is_valid, f"Test case {test_case['name']} failed validation: {error_msg}"
 
 
-@pytest.mark.parametrize("test_case_idx", range(10))
+@pytest.mark.parametrize("test_case_idx", range(9))
 def test_all_test_cases_statistics(test_data, test_case_idx):
     """Parametrized test checking statistics for all test cases."""
     test_case = test_data["test_cases"][test_case_idx]

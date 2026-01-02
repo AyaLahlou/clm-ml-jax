@@ -50,6 +50,10 @@ class gridcell_type:
             begg: Beginning gridcell index
             endg: Ending gridcell index
         """
+        # Validate that endg >= begg
+        if endg < begg:
+            raise ValueError(f"Invalid index range: endg ({endg}) must be >= begg ({begg})")
+        
         self.begg = begg
         self.endg = endg
         
@@ -335,7 +339,7 @@ def radians_to_degrees(radians: jnp.ndarray) -> jnp.ndarray:
     return radians * 180.0 / jnp.pi
 
 
-@jax.jit
+@jax.jit(static_argnames=['range_type'])
 def normalize_longitude(longitude: jnp.ndarray, range_type: str = "180") -> jnp.ndarray:
     """
     Normalize longitude to standard range
@@ -349,7 +353,11 @@ def normalize_longitude(longitude: jnp.ndarray, range_type: str = "180") -> jnp.
     """
     if range_type == "180":
         # Normalize to [-180, 180]
-        return ((longitude + 180) % 360) - 180
+        # Special handling: keep 180 as 180, not -180
+        normalized = ((longitude + 180) % 360) - 180
+        # Replace -180 with 180 for consistency
+        normalized = jnp.where(normalized == -180.0, 180.0, normalized)
+        return normalized
     elif range_type == "360":
         # Normalize to [0, 360]
         return longitude % 360
