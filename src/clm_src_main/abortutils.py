@@ -83,10 +83,10 @@ def endrun(msg: Optional[str] = None) -> None:
 
 def handle_err(status: int, errmsg: str) -> None:
     """
-    Handle NetCDF errors by checking status and aborting if necessary
+    Handle NetCDF errors by checking status and terminating if necessary.
     
-    This function checks a NetCDF status code and terminates execution
-    if an error occurred, printing the NetCDF error message along with
+    This function checks a NetCDF status code and calls endrun
+    if an error occurred, including the NetCDF error message along with
     a custom error message.
     
     Args:
@@ -100,18 +100,11 @@ def handle_err(status: int, errmsg: str) -> None:
         except (AttributeError, TypeError):
             netcdf_error = f"NetCDF error code: {status}"
         
-        # Print error message (equivalent to Fortran print)
+        # Build error message
         error_message = f"{netcdf_error.strip()}: {errmsg}"
-        print(error_message)
         
-        # Log the error if possible
-        try:
-            logging.error(error_message)
-        except Exception:
-            pass
-        
-        # Terminate execution (equivalent to Fortran stop "Stopped")
-        sys.exit(1)
+        # Call endrun to terminate
+        endrun(error_message)
 
 
 def check_netcdf_status(status: int, operation: str = "NetCDF operation") -> None:

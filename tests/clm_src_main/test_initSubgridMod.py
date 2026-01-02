@@ -412,13 +412,14 @@ class TestGetPatchStatistics:
         data = test_data["patch_statistics"]["diverse_types"]
         result = get_patch_statistics(data["patch_types"], data["active_mask"])
         
-        assert isinstance(result["num_active_patches"], (int, np.integer, float, np.floating)), \
+        # Accept JAX arrays in addition to numpy/python types
+        assert isinstance(result["num_active_patches"], (int, np.integer, float, np.floating, jnp.ndarray)), \
             "num_active_patches should be numeric"
-        assert isinstance(result["min_patch_type"], (int, np.integer, float, np.floating)), \
+        assert isinstance(result["min_patch_type"], (int, np.integer, float, np.floating, jnp.ndarray)), \
             "min_patch_type should be numeric"
-        assert isinstance(result["max_patch_type"], (int, np.integer, float, np.floating)), \
+        assert isinstance(result["max_patch_type"], (int, np.integer, float, np.floating, jnp.ndarray)), \
             "max_patch_type should be numeric"
-        assert isinstance(result["mean_patch_type"], (float, np.floating)), \
+        assert isinstance(result["mean_patch_type"], (float, np.floating, jnp.ndarray)), \
             "mean_patch_type should be float"
 
 

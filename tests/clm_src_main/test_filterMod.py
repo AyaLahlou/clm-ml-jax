@@ -407,7 +407,8 @@ def test_setExposedvegpFilter_jax_output_shapes():
     )
     
     assert isinstance(exposed_indices, jnp.ndarray)
-    assert isinstance(num_exposed, (int, jnp.integer))
+    # num_exposed is a JAX array scalar from JIT-compiled function
+    assert isinstance(num_exposed, (int, jnp.ndarray))
     assert exposed_indices.shape == (max_patches,)
 
 

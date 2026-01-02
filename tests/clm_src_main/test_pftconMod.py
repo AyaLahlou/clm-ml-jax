@@ -536,17 +536,17 @@ def test_validate_pftcon():
     assert is_valid == False, "Should be invalid before initialization"
     assert isinstance(message, str), "Should return error message string"
     
-    # After initialization
-    pft = pftcon_type()
-    pft.Init()
+    # After initialization - reinitialize the global pftcon
+    from clm_src_main.pftconMod import pftcon
+    pftcon.Init()
     is_valid, message = validate_pftcon()
     assert is_valid == True, "Should be valid after initialization"
 
 
 def test_create_pftcon_subset():
     """Test create_pftcon_subset returns correct subset of PFT data."""
-    pft = pftcon_type()
-    pft.Init()
+    from clm_src_main.pftconMod import pftcon
+    pftcon.Init()
     
     subset_indices = [1, 2, 3]
     subset = create_pftcon_subset(subset_indices)
@@ -580,10 +580,11 @@ def test_edge_case_minimum_values(test_data):
     
     pft.is_initialized = True
     
-    # Verify minimum values are accepted
-    assert jnp.all(pft.dleaf >= 0.0), "Minimum dleaf values should be valid"
-    assert jnp.all(pft.vcmaxpft >= 0.0), "Minimum vcmaxpft values should be valid"
-    assert jnp.all(pft.emleaf >= 0.0), "Minimum emleaf values should be valid"
+    # Verify minimum values are accepted - only check the PFTs that were set
+    for idx in data["pft_indices"]:
+        assert pft.dleaf[idx] >= 0.0, f"Minimum dleaf should be valid for PFT {idx}"
+        assert pft.vcmaxpft[idx] >= 0.0, f"Minimum vcmaxpft should be valid for PFT {idx}"
+        assert pft.emleaf[idx] >= 0.0, f"Minimum emleaf should be valid for PFT {idx}"
 
 
 def test_edge_case_maximum_values(test_data):
@@ -754,17 +755,17 @@ def test_shapes_2d_arrays():
 def test_integration_full_workflow():
     """Test complete workflow: initialize, validate, query, and subset."""
     # Initialize
-    pft = pftcon_type()
-    pft.Init()
+    from clm_src_main.pftconMod import pftcon
+    pftcon.Init()
     
     # Validate
-    assert pft.is_valid(), "PFT constants should be valid after initialization"
+    assert pftcon.is_valid(), "PFT constants should be valid after initialization"
     is_valid, message = validate_pftcon()
     assert is_valid, f"Validation should pass: {message}"
     
     # Query specific PFT
     pft_idx = 5
-    params = pft.get_pft_parameters(pft_idx)
+    params = pftcon.get_pft_parameters(pft_idx)
     assert len(params) > 0, "Should retrieve parameters for PFT"
     
     # Create subset
@@ -866,8 +867,9 @@ def test_parametrized_test_cases(test_data, test_case_name):
     
     pft.is_initialized = True
     
-    # Verify basic constraints
-    assert jnp.all(pft.dleaf >= 0.0), f"dleaf should be non-negative in {test_case_name}"
+    # Verify basic constraints - only check the PFT indices that were set
+    for idx in data["pft_indices"]:
+        assert pft.dleaf[idx] >= 0.0, f"dleaf should be non-negative for PFT {idx} in {test_case_name}"
     
     # Check c3psn values
     for idx in data["pft_indices"]:

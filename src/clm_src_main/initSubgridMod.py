@@ -235,7 +235,6 @@ def add_patch(pi: int, ptype: int) -> int:
         raise RuntimeError(f"Patch addition failed: {e}") from e
 
 
-@jax.jit
 def validate_patch_hierarchy(patch_columns: jnp.ndarray, 
                            patch_gridcells: jnp.ndarray,
                            patch_types: jnp.ndarray,
@@ -257,7 +256,9 @@ def validate_patch_hierarchy(patch_columns: jnp.ndarray,
     valid_gridcells = jnp.all(jnp.where(active_mask, patch_gridcells > 0, True))
     valid_types = jnp.all(jnp.where(active_mask, patch_types >= 0, True))
     
-    return valid_columns & valid_gridcells & valid_types
+    # Convert JAX boolean to Python bool
+    result = valid_columns & valid_gridcells & valid_types
+    return bool(result)
 
 
 @jax.jit
@@ -271,24 +272,28 @@ def get_patch_statistics(patch_types: jnp.ndarray,
         active_mask: Boolean mask for active patches
         
     Returns:
-        Dictionary with patch statistics
+        Dictionary with patch statistics (values are JAX scalars)
     """
+    # Use jnp.where instead of boolean indexing for JIT compatibility
+    # Assign -1 to inactive patches, then calculate stats only on valid (>= 0) values
     active_types = jnp.where(active_mask, patch_types, -1)
-    valid_types = active_types[active_types >= 0]
     
-    if len(valid_types) == 0:
-        return {
-            'num_active_patches': 0.0,
-            'min_patch_type': 0.0,
-            'max_patch_type': 0.0,
-            'mean_patch_type': 0.0
-        }
+    # Count valid types (>= 0)
+    valid_mask = active_types >= 0
+    num_valid = jnp.sum(valid_mask)
     
+    # Use jnp.where to handle empty case without branching
+    # If no valid types, return 0 for all stats
+    min_val = jnp.where(num_valid > 0, jnp.min(jnp.where(valid_mask, active_types, jnp.inf)), 0.0)
+    max_val = jnp.where(num_valid > 0, jnp.max(jnp.where(valid_mask, active_types, -jnp.inf)), 0.0)
+    mean_val = jnp.where(num_valid > 0, jnp.sum(jnp.where(valid_mask, active_types, 0)) / num_valid, 0.0)
+    
+    # Return JAX scalars directly (don't use float())
     return {
-        'num_active_patches': float(len(valid_types)),
-        'min_patch_type': float(jnp.min(valid_types)),
-        'max_patch_type': float(jnp.max(valid_types)),
-        'mean_patch_type': float(jnp.mean(valid_types))
+        'num_active_patches': jnp.float64(num_valid),
+        'min_patch_type': jnp.float64(min_val),
+        'max_patch_type': jnp.float64(max_val),
+        'mean_patch_type': jnp.float64(mean_val)
     }
 
 
@@ -315,6 +320,11 @@ def reset_subgrid_structure(max_patches: int = 1000) -> None:
     
     # Reset global patch structure if available
     if hasattr(patch, 'resize'):
+        # First reset the patch indices to allow any resize
+        patch.begp = 0
+        patch.endp = -1
+        patch.num_patches = 0
+        # Now resize
         patch.resize(max_patches)
         patch.column = jnp.zeros(max_patches, dtype=int)
         patch.gridcell = jnp.zeros(max_patches, dtype=int)

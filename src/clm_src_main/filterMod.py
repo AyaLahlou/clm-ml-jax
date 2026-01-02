@@ -191,6 +191,9 @@ def setFilters(filter_inst: clumpfilter) -> None:
         raise RuntimeError("Filter arrays must be allocated before setting filters")
     
     # Set simple filters (all contain single element with index 1)
+    filter_inst.num_exposedvegp = 1
+    filter_inst.exposedvegp = filter_inst.exposedvegp.at[0].set(1)
+    
     filter_inst.num_nolakeurbanp = 1
     filter_inst.nolakeurbanp = filter_inst.nolakeurbanp.at[0].set(1)
     
@@ -236,7 +239,7 @@ def setExposedvegpFilter(filter_inst: clumpfilter, frac_veg_nosno: jnp.ndarray) 
         filter_inst.exposedvegp = filter_inst.exposedvegp.at[:fe].set(exposed_array)
 
 
-@jax.jit
+@jax.jit(static_argnums=(2,))
 def setExposedvegpFilter_jax(nolakeurban_indices: jnp.ndarray, 
                             frac_veg_nosno: jnp.ndarray,
                             max_patches: int) -> tuple:
@@ -256,20 +259,30 @@ def setExposedvegpFilter_jax(nolakeurban_indices: jnp.ndarray,
     adjusted_indices = jnp.where(valid_mask, nolakeurban_indices - 1, 0)  # Convert to 0-based
     veg_mask = jnp.where(valid_mask, frac_veg_nosno[adjusted_indices] > 0, False)
     
-    # Get exposed patch indices
+    # Get exposed patch indices (only those with vegetation)
     exposed_indices = jnp.where(veg_mask, nolakeurban_indices, 0)
     
     # Count non-zero entries
-    num_exposed = jnp.sum(exposed_indices > 0)
+    num_exposed = jnp.sum(exposed_indices > 0, dtype=jnp.int32)
     
     # Create properly sized output array
     output_indices = jnp.zeros(max_patches, dtype=jnp.int32)
     
     # Compact non-zero indices to the beginning of the array
-    valid_positions = jnp.cumsum(exposed_indices > 0) - 1
-    output_indices = output_indices.at[valid_positions].set(
-        jnp.where(exposed_indices > 0, exposed_indices, 0)
-    )
+    # For each element, compute its position in the output (cumsum gives us this)
+    is_valid = exposed_indices > 0
+    positions = jnp.cumsum(is_valid, dtype=jnp.int32) - 1
+    
+    # Use scatter to place valid indices at their compacted positions
+    # We need to filter out the zeros first
+    valid_exposed = jnp.where(is_valid, exposed_indices, 0)
+    valid_positions = jnp.where(is_valid, positions, 0)
+    
+    # Scatter using a loop-free approach: for each valid entry, place it at its position
+    def scatter_one(i, arr):
+        return jnp.where(is_valid[i], arr.at[valid_positions[i]].set(valid_exposed[i]), arr)
+    
+    output_indices = jax.lax.fori_loop(0, len(exposed_indices), scatter_one, output_indices)
     
     return output_indices, num_exposed
 
