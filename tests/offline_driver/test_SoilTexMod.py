@@ -266,15 +266,24 @@ def test_get_texture_class_index_constants_consistency(module_constants):
         "silt",  # Not a valid class (only part of other classes)
         "sandy_loam",  # Underscore instead of space
         "sandyloam",  # No space
-        "Sand",  # Capitalized (if case-sensitive)
-        "LOAM",  # All caps
-        "SaNdY cLaY",  # Mixed case
     ],
 )
 def test_get_texture_class_index_invalid_names(invalid_name):
-    """Test that invalid texture names raise appropriate errors."""
+    """Test that invalid texture names raise appropriate errors.
+    
+    Note: The function is case-insensitive, so 'Sand', 'LOAM', etc. are valid.
+    """
     with pytest.raises((ValueError, KeyError, IndexError)):
         get_texture_class_index(invalid_name)
+
+
+def test_get_texture_class_index_case_insensitive():
+    """Test that texture class lookup is case-insensitive."""
+    # Test various capitalizations of valid names
+    assert get_texture_class_index('sand') == get_texture_class_index('Sand')
+    assert get_texture_class_index('loam') == get_texture_class_index('LOAM')
+    assert get_texture_class_index('sandy clay') == get_texture_class_index('SaNdY cLaY')
+    assert get_texture_class_index('clay loam') == get_texture_class_index('Clay Loam')
 
 
 # ============================================================================

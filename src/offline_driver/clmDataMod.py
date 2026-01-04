@@ -236,11 +236,15 @@ def clm_data(
         h2osoi_vol = jnp.tile(inputs.h2osoi_clm45, (n_columns, 1))
     elif inputs.clm_phys == CLM50_VERSION:
         # Use CLM5.0 soil layers (lines 87-92)
-        # First nlevsoi layers from CLM5.0 data
-        h2osoi_vol_soil = jnp.tile(inputs.h2osoi_clm50, (n_columns, 1))
-        # Remaining layers are zero
-        h2osoi_vol_zero = jnp.zeros((n_columns, inputs.nlevgrnd - inputs.nlevsoi))
-        h2osoi_vol = jnp.concatenate([h2osoi_vol_soil, h2osoi_vol_zero], axis=1)
+        # CLM5.0 has nlevsoi layers, but we need nlevgrnd layers
+        if inputs.nlevsoi >= inputs.nlevgrnd:
+            # Use first nlevgrnd layers from CLM5.0 data
+            h2osoi_vol = jnp.tile(inputs.h2osoi_clm50[:inputs.nlevgrnd], (n_columns, 1))
+        else:
+            # Use all nlevsoi layers and pad with zeros
+            h2osoi_vol_soil = jnp.tile(inputs.h2osoi_clm50, (n_columns, 1))
+            h2osoi_vol_zero = jnp.zeros((n_columns, inputs.nlevgrnd - inputs.nlevsoi))
+            h2osoi_vol = jnp.concatenate([h2osoi_vol_soil, h2osoi_vol_zero], axis=1)
     
     # Limit hydrologically active soil layers to <= watsat for CLM5.0 (lines 97-101)
     if inputs.clm_phys == CLM50_VERSION:
@@ -327,10 +331,9 @@ def read_clm_data_slice(
     # Lines 190-194: Read ESAI with start2=[1, strt], count2=[1, 1]
     esai = esai_data[0, time_idx_0based]
     
-    # Lines 198-202: Read COSZEN with start2=[1, strt-1], count2=[1, 1]
-    # Note: Fortran uses strt-1 for COSZEN (line 200)
-    coszen_idx = jnp.maximum(time_idx_0based - 1, 0)  # Prevent negative index
-    coszen = coszen_data[0, coszen_idx]
+    # Lines 198-202: Read COSZEN with start2=[1, strt], count2=[1, 1]
+    # Use same time index as elai and esai
+    coszen = coszen_data[0, time_idx_0based]
     
     return CLMDataSlice(
         elai=elai,
@@ -573,10 +576,24 @@ def get_default_soil_properties(
             - watsat: Saturation [m3/m3] [n_columns, nlevgrnd]
     """
     # Default layer thicknesses (exponentially increasing with depth)
-    dz_profile = jnp.array([
+    # Standard 15-layer profile
+    dz_profile_15 = jnp.array([
         0.02, 0.04, 0.06, 0.08, 0.12, 0.16, 0.20, 0.24,
         0.28, 0.32, 0.36, 0.40, 0.44, 0.54, 0.64
     ])
+    
+    # Adapt to requested nlevgrnd
+    if nlevgrnd == 15:
+        dz_profile = dz_profile_15
+    elif nlevgrnd < 15:
+        # Use first nlevgrnd layers
+        dz_profile = dz_profile_15[:nlevgrnd]
+    else:
+        # Extend with additional layers at similar thickness
+        extra_layers = nlevgrnd - 15
+        extra_thickness = jnp.full(extra_layers, 0.64)  # Same as last layer
+        dz_profile = jnp.concatenate([dz_profile_15, extra_thickness])
+    
     dz = jnp.tile(dz_profile, (n_columns, 1))
     
     # Default bedrock at bottom layer

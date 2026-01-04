@@ -22,42 +22,13 @@ import numpy as np
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
-from offline_driver.controlMod import control
-
-
-# Define NamedTuples matching the function signature
-class NamelistInput(NamedTuple):
-    """Namelist input parameters for CLM-ML simulation."""
-    tower_name: str
-    start_ymd: int
-    start_tod: int
-    stop_option: str
-    stop_n: int
-    clm_start_ymd: int
-    clm_start_tod: int
-
-
-class TowerData(NamedTuple):
-    """Tower site data containing site identifiers and time intervals."""
-    ntower: int
-    tower_id: tuple
-    tower_time: tuple
-
-
-class ControlConfig(NamedTuple):
-    """Configuration parameters for CLM-ML simulation run."""
-    ntim: int
-    clm_start_ymd: int
-    clm_start_tod: int
-    diratm: str
-    dirclm: str
-    dirout: str
-    dirin: str
-    start_date_ymd: int
-    start_date_tod: int
-    dtstep: int
-    tower_num: int
-    clm_phys: str
+from offline_driver.controlMod import (
+    control,
+    ControlConfig,
+    NamelistInput,
+    TowerData,
+    ControlError,
+)
 
 
 @pytest.fixture
@@ -571,7 +542,7 @@ def test_control_tower_not_found():
     )
     
     # Should raise ValueError or similar
-    with pytest.raises((ValueError, KeyError, IndexError)):
+    with pytest.raises((ValueError, KeyError, IndexError, ControlError)):
         control(namelist, tower_data)
 
 

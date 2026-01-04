@@ -348,6 +348,8 @@ def get_tower_parameter(
     Reference:
         TowerDataMod.F90 lines 1-100
     """
+    if tower_num < 0 or tower_num >= NTOWER:
+        raise IndexError(f"tower_num must be in range [0, {NTOWER-1}], got {tower_num}")
     param_array = getattr(tower_data, parameter)
     return param_array[tower_num]
 
@@ -369,6 +371,8 @@ def get_tower_name(tower_num: int) -> str:
         >>> print(name)
         US-Ha1
     """
+    if tower_num < 0 or tower_num >= NTOWER:
+        raise IndexError(f"tower_num must be in range [0, {NTOWER-1}], got {tower_num}")
     return TOWER_ID_NAMES[tower_num]
 
 
@@ -389,6 +393,8 @@ def get_texture_name(texture_num: int) -> str:
         >>> print(texture)
         loam
     """
+    if texture_num < 0 or texture_num >= len(TOWER_TEX_NAMES):
+        raise IndexError(f"texture_num must be in range [0, {len(TOWER_TEX_NAMES)-1}], got {texture_num}")
     return TOWER_TEX_NAMES[texture_num]
 
 
@@ -413,6 +419,8 @@ def get_tower_metadata(tower_data: TowerData, tower_num: int) -> Dict[str, any]:
         >>> print(f"{metadata['latitude']:.2f}°N, {metadata['longitude']:.2f}°E")
         42.54°N, -72.17°E
     """
+    if tower_num < 0 or tower_num >= NTOWER:
+        raise IndexError(f"tower_num must be in range [0, {NTOWER-1}], got {tower_num}")
     return {
         'name': get_tower_name(tower_num),
         'latitude': float(tower_data.tower_lat[tower_num]),
