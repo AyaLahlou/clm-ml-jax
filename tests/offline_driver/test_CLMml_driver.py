@@ -38,6 +38,7 @@ from offline_driver.CLMml_driver import (
     process_profile_data,
     read_canopy_profiles_physics,
     soil_init_vectorized,
+    PFTParameters,
     tower_veg,
 )
 
@@ -375,40 +376,52 @@ def test_adjust_usme2_pft_parameters_values(test_case: Dict[str, Any]) -> None:
     For other towers, parameters should remain unchanged.
     """
     inputs = test_case["inputs"]
+    pft_dict = inputs["pft_params"]
+    n_pfts = 17  # Standard PFT count
+    
+    # Convert dict to PFTParameters with JAX arrays
+    pft_params = PFTParameters(
+        pbeta_lai=jnp.full(n_pfts, pft_dict["pbeta_lai"]),
+        qbeta_lai=jnp.full(n_pfts, pft_dict["qbeta_lai"]),
+        pbeta_sai=jnp.full(n_pfts, pft_dict["pbeta_sai"]),
+        qbeta_sai=jnp.full(n_pfts, pft_dict["qbeta_sai"]),
+    )
+    
     result = adjust_usme2_pft_parameters(
-        pft_params=inputs["pft_params"],
+        pft_params=pft_params,
         patch_itype=inputs["patch_itype"],
         tower_id=inputs["tower_id"],
     )
     
-    # Check that result is a dictionary with expected keys
-    assert isinstance(result, dict), "Result should be a dictionary"
-    assert "pbeta_lai" in result, "Result should contain pbeta_lai"
-    assert "qbeta_lai" in result, "Result should contain qbeta_lai"
-    assert "pbeta_sai" in result, "Result should contain pbeta_sai"
-    assert "qbeta_sai" in result, "Result should contain qbeta_sai"
+    # Check that result is a PFTParameters with expected attributes
+    assert isinstance(result, PFTParameters), "Result should be a PFTParameters"
+    assert hasattr(result, 'pbeta_lai'), "Result should contain pbeta_lai"
+    assert hasattr(result, 'qbeta_lai'), "Result should contain qbeta_lai"
+    assert hasattr(result, 'pbeta_sai'), "Result should contain pbeta_sai"
+    assert hasattr(result, 'qbeta_sai'), "Result should contain qbeta_sai"
     
     # For non-US-Me2, parameters should be unchanged
     if inputs["tower_id"] != "US-Me2":
-        assert result["pbeta_lai"] == inputs["pft_params"]["pbeta_lai"]
-        assert result["qbeta_lai"] == inputs["pft_params"]["qbeta_lai"]
-        assert result["pbeta_sai"] == inputs["pft_params"]["pbeta_sai"]
-        assert result["qbeta_sai"] == inputs["pft_params"]["qbeta_sai"]
+        assert jnp.allclose(result.pbeta_lai, pft_params.pbeta_lai)
+        assert jnp.allclose(result.qbeta_lai, pft_params.qbeta_lai)
+        assert jnp.allclose(result.pbeta_sai, pft_params.pbeta_sai)
+        assert jnp.allclose(result.qbeta_sai, pft_params.qbeta_sai)
 
 
 def test_adjust_usme2_pft_parameters_dtypes() -> None:
     """Test that adjust_usme2_pft_parameters returns correct data types."""
-    pft_params = {
-        "pbeta_lai": 0.5,
-        "qbeta_lai": 0.5,
-        "pbeta_sai": 0.5,
-        "qbeta_sai": 0.5,
-    }
+    n_pfts = 17  # Standard PFT count
+    pft_params = PFTParameters(
+        pbeta_lai=jnp.full(n_pfts, 0.5),
+        qbeta_lai=jnp.full(n_pfts, 0.5),
+        pbeta_sai=jnp.full(n_pfts, 0.5),
+        qbeta_sai=jnp.full(n_pfts, 0.5),
+    )
     result = adjust_usme2_pft_parameters(pft_params, 8, "US-Me2")
     
-    assert isinstance(result, dict), "Result should be a dictionary"
-    for key in ["pbeta_lai", "qbeta_lai", "pbeta_sai", "qbeta_sai"]:
-        assert isinstance(result[key], (float, int)), f"{key} should be numeric"
+    assert isinstance(result, PFTParameters), "Result should be a PFTParameters"
+    for attr in ["pbeta_lai", "qbeta_lai", "pbeta_sai", "qbeta_sai"]:
+        assert isinstance(getattr(result, attr), jnp.ndarray), f"{attr} should be a JAX array"
 
 
 # ============================================================================

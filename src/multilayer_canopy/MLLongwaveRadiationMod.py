@@ -234,13 +234,15 @@ def tridiag_solve(
     x = jnp.zeros_like(dtri)
     x = x.at[:, n].set(dtri_mod[:, n] / btri_mod[:, n])
     
-    def backward_step(i, x_carry):
+    def backward_step(k, x_carry):
+        # Map k from [0, n) to descending indices [n-1, 0]
+        i = n - 1 - k
         x_new = x_carry.at[:, i].set(
             (dtri_mod[:, i] - ctri[:, i] * x_carry[:, i+1]) / btri_mod[:, i]
         )
         return x_new
     
-    x = jax.lax.fori_loop(n - 1, -1, -1, backward_step, x)
+    x = jax.lax.fori_loop(0, n, backward_step, x)
     
     return x
 
@@ -395,15 +397,19 @@ def setup_tridiagonal_system(
     
     # Soil: downward flux (m=1, Fortran lines 167-176)
     m = 1
-    refld = (1.0 - td[:, nbot]) * rho
-    trand = (1.0 - td[:, nbot]) * tau + td[:, nbot]
+    # Use proper per-patch indexing: select td[i, nbot[i]] for each patch i
+    patch_indices = jnp.arange(n_patches)
+    td_at_nbot = td[patch_indices, nbot]
+    refld = (1.0 - td_at_nbot) * rho
+    trand = (1.0 - td_at_nbot) * tau + td_at_nbot
     aic = refld - trand * trand / refld
     bic = trand / refld
     
     atri = atri.at[:, m].set(-aic)
     btri = btri.at[:, m].set(1.0)
     ctri = ctri.at[:, m].set(-bic)
-    dtri = dtri.at[:, m].set((1.0 - bic) * lw_source[:, nbot])
+    lw_source_at_nbot = lw_source[patch_indices, nbot]
+    dtri = dtri.at[:, m].set((1.0 - bic) * lw_source_at_nbot)
     
     # Leaf layers, excluding top layer (Fortran lines 178-210)
     def process_layer(ic, carry):
@@ -781,7 +787,7 @@ def norman_longwave(
         lwup_layer=part3_output.lwup_layer,
         lwdn_layer=part3_output.lwdn_layer,
         lwleaf_sun=part4_output.lwleaf_sun,
-        lwleaf_shade=part4_output.lwleaf_shade,
+        lwleaf_sha=part4_output.lwleaf_shade,
         lwsoi=part3_output.lwsoi,
         lwveg=part4_output.lwveg,
         lwup=part4_output.lwup,

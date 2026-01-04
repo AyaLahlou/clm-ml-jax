@@ -777,9 +777,18 @@ def init_cold(
     # Initialize intercepted water to zero
     h2ocan_profile = jnp.full((n_patches, nlevmlcan), DEFAULT_H2OCAN)
     
+    # Initialize canopy air temperature to a reasonable default (288K = 15°C)
+    # This ensures validation passes for cold-initialized states
+    taf_canopy = jnp.full((n_patches,), 288.0)
+    
+    # Initialize lwp_mean_profile to a valid default (same as leaf water potential)
+    lwp_mean_profile = jnp.full((n_patches, nlevmlcan), DEFAULT_LWP)
+    
     return state._replace(
         lwp_leaf=lwp_leaf,
         h2ocan_profile=h2ocan_profile,
+        taf_canopy=taf_canopy,
+        lwp_mean_profile=lwp_mean_profile,
     )
 
 
@@ -999,5 +1008,39 @@ def get_history_metadata() -> Dict[str, Dict[str, Any]]:
             'set_lake': SPVAL,
             'set_urb': SPVAL,
         },
-    }# Backward compatibility alias
+    }
+
+
+# Backward compatibility alias
 mlcanopy_type = MLCanopyState
+
+
+def init(
+    bounds: BoundsType,
+    nlevmlcan: int,
+    numrad: int = 2,
+    nlevgrnd: int = 15,
+    nleaf: int = NLEAF,
+) -> MLCanopyState:
+    """
+    Complete initialization of multilayer canopy state.
+    
+    Combines init_allocate and init_cold to provide a fully initialized
+    MLCanopyState with proper default values.
+    
+    Args:
+        bounds: Domain bounds containing patch indices
+        nlevmlcan: Number of canopy layers
+        numrad: Number of radiation bands (typically 2: visible, near-IR)
+        nlevgrnd: Number of ground layers
+        nleaf: Number of leaf types (2: sunlit, shaded)
+        
+    Returns:
+        MLCanopyState with arrays allocated and initialized to physically
+        reasonable default values
+    """
+    # First allocate
+    state = init_allocate(bounds, nlevmlcan, numrad, nlevgrnd, nleaf)
+    # Then apply cold start initialization
+    state = init_cold(bounds, nlevmlcan, nleaf)
+    return state

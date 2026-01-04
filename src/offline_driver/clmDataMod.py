@@ -573,10 +573,18 @@ def get_default_soil_properties(
             - watsat: Saturation [m3/m3] [n_columns, nlevgrnd]
     """
     # Default layer thicknesses (exponentially increasing with depth)
-    dz_profile = jnp.array([
+    # Base profile of 15 layers, truncated or extended as needed
+    dz_base = jnp.array([
         0.02, 0.04, 0.06, 0.08, 0.12, 0.16, 0.20, 0.24,
         0.28, 0.32, 0.36, 0.40, 0.44, 0.54, 0.64
     ])
+    # Truncate or extend to match nlevgrnd
+    if nlevgrnd <= len(dz_base):
+        dz_profile = dz_base[:nlevgrnd]
+    else:
+        # Extend with the last value for deeper layers
+        extension = jnp.full(nlevgrnd - len(dz_base), dz_base[-1])
+        dz_profile = jnp.concatenate([dz_base, extension])
     dz = jnp.tile(dz_profile, (n_columns, 1))
     
     # Default bedrock at bottom layer

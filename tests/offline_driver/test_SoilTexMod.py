@@ -266,15 +266,30 @@ def test_get_texture_class_index_constants_consistency(module_constants):
         "silt",  # Not a valid class (only part of other classes)
         "sandy_loam",  # Underscore instead of space
         "sandyloam",  # No space
-        "Sand",  # Capitalized (if case-sensitive)
-        "LOAM",  # All caps
-        "SaNdY cLaY",  # Mixed case
+        # Note: "Sand", "LOAM", "SaNdY cLaY" are NOT invalid because the
+        # implementation uses .lower() to normalize input (case-insensitive)
     ],
 )
 def test_get_texture_class_index_invalid_names(invalid_name):
     """Test that invalid texture names raise appropriate errors."""
     with pytest.raises((ValueError, KeyError, IndexError)):
         get_texture_class_index(invalid_name)
+
+
+@pytest.mark.parametrize(
+    "case_variant,expected_name",
+    [
+        ("Sand", "sand"),
+        ("LOAM", "loam"),
+        ("SaNdY cLaY", "sandy clay"),
+    ],
+)
+def test_get_texture_class_index_case_insensitive(case_variant, expected_name):
+    """Test that texture name lookup is case-insensitive."""
+    # Should not raise - the implementation uses .lower() to normalize
+    idx_variant = get_texture_class_index(case_variant)
+    idx_expected = get_texture_class_index(expected_name)
+    assert idx_variant == idx_expected, f"{case_variant} should match {expected_name}"
 
 
 # ============================================================================

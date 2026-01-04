@@ -215,12 +215,12 @@ def shr_orb_cosz(
     Notes:
         - Pure function, JIT-compatible
         - Vectorized for array inputs
-        - Formula: cos(zenith) = sin(lat)*sin(declin) - cos(lat)*cos(declin)*cos(jday*2*pi + lon)
+        - Formula: cos(zenith) = sin(lat)*sin(declin) + cos(lat)*cos(declin)*cos(jday*2*pi + lon)
         - The jday term represents the hour angle in the original formulation
         
     Reference: Fortran lines 23-41
     """
-    cosz = (jnp.sin(lat) * jnp.sin(declin) - 
+    cosz = (jnp.sin(lat) * jnp.sin(declin) + 
             jnp.cos(lat) * jnp.cos(declin) * jnp.cos(jday * 2.0 * PI + lon))
     
     return cosz

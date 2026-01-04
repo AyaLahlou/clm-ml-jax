@@ -22,7 +22,7 @@ import numpy as np
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
-from offline_driver.controlMod import control
+from offline_driver.controlMod import control, ControlConfig, ControlError
 
 
 # Define NamedTuples matching the function signature
@@ -44,8 +44,9 @@ class TowerData(NamedTuple):
     tower_time: tuple
 
 
-class ControlConfig(NamedTuple):
-    """Configuration parameters for CLM-ML simulation run."""
+# Note: ControlConfig is imported from the source module to ensure isinstance checks work
+class _ControlConfigFields(NamedTuple):
+    """Reference for ControlConfig fields (for documentation)."""
     ntim: int
     clm_start_ymd: int
     clm_start_tod: int
@@ -570,8 +571,8 @@ def test_control_tower_not_found():
         tower_time=(30, 30)
     )
     
-    # Should raise ValueError or similar
-    with pytest.raises((ValueError, KeyError, IndexError)):
+    # Should raise ControlError when tower not found
+    with pytest.raises(ControlError):
         control(namelist, tower_data)
 
 

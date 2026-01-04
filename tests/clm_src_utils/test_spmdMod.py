@@ -173,8 +173,9 @@ class TestIsMasterProcJAXContexts:
         
         result = jitted_check()
         
-        assert isinstance(result, (bool, np.bool_, jnp.bool_)), \
-            f"JIT result should be bool-like, got {type(result)}"
+        # JIT compilation may return a JAX Array with bool dtype
+        assert isinstance(result, (bool, np.bool_, jnp.ndarray)) or hasattr(result, 'dtype'), \
+            f"JIT result should be bool-like or JAX array, got {type(result)}"
         assert bool(result) is True, \
             "is_master_proc should return True within JIT context"
     
