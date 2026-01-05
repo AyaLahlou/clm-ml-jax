@@ -88,8 +88,7 @@ R8_DTYPE = jnp.float64
 
 # Energy balance tolerance [W/m2]
 # Used for checking energy conservation (line 117)
-# Relaxed to 0.01 W/m2 to account for float32 precision in JAX
-ENERGY_BALANCE_TOL = 1e-2
+ENERGY_BALANCE_TOL = 1e-3
 
 
 # =============================================================================
