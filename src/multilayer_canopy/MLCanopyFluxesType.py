@@ -1040,7 +1040,7 @@ def init(
         reasonable default values
     """
     # First allocate
-    state = init_allocate(bounds, nlevmlcan, numrad, nlevgrnd, nleaf)
+    init_allocate(bounds, nlevmlcan, numrad, nlevgrnd, nleaf)
     # Then apply cold start initialization
     state = init_cold(bounds, nlevmlcan, nleaf)
     return state
