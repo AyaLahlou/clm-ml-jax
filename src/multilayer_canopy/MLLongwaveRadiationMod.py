@@ -199,24 +199,31 @@ def tridiag_solve(
     """Solve tridiagonal system of equations.
     
     Solves: atri[i] * x[i-1] + btri[i] * x[i] + ctri[i] * x[i+1] = dtri[i]
+    for equations indexed from 0 to n (inclusive).
     
     Args:
-        atri: Lower diagonal [n_patches, n_equations]
-        btri: Main diagonal [n_patches, n_equations]
-        ctri: Upper diagonal [n_patches, n_equations]
-        dtri: Right-hand side [n_patches, n_equations]
-        n: Number of equations
+        atri: Lower diagonal [n_patches, max_equations]
+        btri: Main diagonal [n_patches, max_equations]
+        ctri: Upper diagonal [n_patches, max_equations]
+        dtri: Right-hand side [n_patches, max_equations]
+        n: Index of last equation (0-based). System contains (n+1) equations
+           indexed 0, 1, 2, ..., n.
         
     Returns:
-        Solution vector [n_patches, n_equations]
+        Solution vector [n_patches, max_equations]
+        
+    Note:
+        Arrays are sized to hold max_equations but only indices 0 through n are used.
+        The Thomas algorithm is used: forward elimination followed by back substitution.
     """
     n_patches = atri.shape[0]
     
-    # Forward elimination
+    # Forward elimination: Process equations 1 through n
+    # Eliminate lower diagonal by modifying main diagonal and RHS
     def forward_step(i, carry):
         btri_mod, dtri_mod = carry
         
-        # Modify diagonal and RHS
+        # Modify diagonal and RHS to eliminate atri[i] coefficient
         denom = btri_mod[:, i] - atri[:, i] * ctri[:, i-1] / btri_mod[:, i-1]
         btri_new = btri_mod.at[:, i].set(denom)
         
@@ -226,22 +233,28 @@ def tridiag_solve(
         
         return (btri_new, dtri_new)
     
+    # Process equations at indices 1, 2, ..., n
     btri_mod, dtri_mod = jax.lax.fori_loop(
         1, n + 1, forward_step, (btri, dtri)
     )
     
-    # Back substitution
+    # Back substitution: Solve for x from equation n down to equation 0
     x = jnp.zeros_like(dtri)
+    # Start with last equation (index n): btri[n] * x[n] = dtri[n]
     x = x.at[:, n].set(dtri_mod[:, n] / btri_mod[:, n])
     
     def backward_step(k, x_carry):
-        # Map k from [0, n) to descending indices [n-1, 0]
+        # Map k in range [0, n) to equation indices in descending order: n-1, n-2, ..., 0
+        # When k=0: i=n-1, when k=n-1: i=0
         i = n - 1 - k
+        # Solve: btri[i] * x[i] + ctri[i] * x[i+1] = dtri[i]
+        # where x[i+1] is already known from previous iteration
         x_new = x_carry.at[:, i].set(
             (dtri_mod[:, i] - ctri[:, i] * x_carry[:, i+1]) / btri_mod[:, i]
         )
         return x_new
     
+    # Process equations at indices n-1, n-2, ..., 0
     x = jax.lax.fori_loop(0, n, backward_step, x)
     
     return x
