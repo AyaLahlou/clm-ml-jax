@@ -199,15 +199,15 @@ def tridiag_solve(
     """Solve tridiagonal system of equations.
     
     Solves: atri[i] * x[i-1] + btri[i] * x[i] + ctri[i] * x[i+1] = dtri[i]
-    for equations indexed from 0 to n (inclusive), using 0-based indexing.
+    for equations indexed from 0 to n (inclusive).
     
     Args:
         atri: Lower diagonal [n_patches, max_equations]
         btri: Main diagonal [n_patches, max_equations]
         ctri: Upper diagonal [n_patches, max_equations]
         dtri: Right-hand side [n_patches, max_equations]
-        n: Index of last equation (0-based). System has equations 0, 1, 2, ..., n
-           for a total of (n+1) equations.
+        n: Index of last equation (0-based). System contains (n+1) equations
+           indexed 0, 1, 2, ..., n.
         
     Returns:
         Solution vector [n_patches, max_equations]
@@ -244,7 +244,7 @@ def tridiag_solve(
     x = x.at[:, n].set(dtri_mod[:, n] / btri_mod[:, n])
     
     def backward_step(k, x_carry):
-        # Map k ∈ [0, n) to equation indices in descending order: n-1, n-2, ..., 0
+        # Map k in range [0, n) to equation indices in descending order: n-1, n-2, ..., 0
         # When k=0: i=n-1, when k=n-1: i=0
         i = n - 1 - k
         # Solve: btri[i] * x[i] + ctri[i] * x[i+1] = dtri[i]
