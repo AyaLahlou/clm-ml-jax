@@ -15,6 +15,10 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
+# Enable JAX float64 support BEFORE importing jax.numpy
+import jax
+jax.config.update("jax_enable_x64", True)
+
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -497,10 +501,10 @@ def test_leaf_fluxes_output_shapes(test_data):
 
 def test_leaf_fluxes_output_dtypes(test_data):
     """
-    Test that all output fields have correct data types (float32 or float64).
+    Test that all output fields have correct data types (float64).
     
-    Outputs should be floating point. JAX defaults to float32 unless
-    jax_enable_x64 is enabled.
+    Outputs should be float64 for numerical precision. jax_enable_x64 is
+    enabled at the top of this test file.
     """
     case = test_data["nominal_temperate"]
     inputs = case["inputs"]
@@ -513,8 +517,8 @@ def test_leaf_fluxes_output_dtypes(test_data):
     for field in fields:
         value = getattr(result, field)
         if isinstance(value, jnp.ndarray):
-            assert value.dtype in (jnp.float32, jnp.float64), (
-                f"Field {field} should be float32 or float64, got {value.dtype}"
+            assert value.dtype == jnp.float64, (
+                f"Field {field} should be float64 for numerical precision, got {value.dtype}"
             )
 
 

@@ -20,6 +20,10 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any
 
+# Enable JAX float64 support BEFORE importing jax.numpy
+import jax
+jax.config.update("jax_enable_x64", True)
+
 import pytest
 import jax.numpy as jnp
 import numpy as np
@@ -133,17 +137,17 @@ def test_create_tower_data_array_shapes(tower_data, valid_parameter_names):
 
 @pytest.mark.parametrize("field_name,expected_dtype", [
     ("tower_id", jnp.int32),
-    ("tower_lat", jnp.float32),  # JAX defaults to float32
-    ("tower_lon", jnp.float32),
+    ("tower_lat", jnp.float64),  # Using float64 for numerical precision
+    ("tower_lon", jnp.float64),
     ("tower_pft", jnp.int32),
     ("tower_tex", jnp.int32),
-    ("tower_sand", jnp.float32),
-    ("tower_clay", jnp.float32),
-    ("tower_organic", jnp.float32),
+    ("tower_sand", jnp.float64),
+    ("tower_clay", jnp.float64),
+    ("tower_organic", jnp.float64),
     ("tower_isoicol", jnp.int32),
-    ("tower_zbed", jnp.float32),
-    ("tower_ht", jnp.float32),
-    ("tower_canht", jnp.float32),
+    ("tower_zbed", jnp.float64),
+    ("tower_ht", jnp.float64),
+    ("tower_canht", jnp.float64),
     ("tower_time", jnp.int32),
 ])
 def test_create_tower_data_dtypes(tower_data, field_name, expected_dtype):

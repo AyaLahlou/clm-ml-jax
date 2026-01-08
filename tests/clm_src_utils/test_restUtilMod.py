@@ -17,6 +17,10 @@ import sys
 from pathlib import Path
 from typing import NamedTuple, Union
 
+# Enable JAX float64 support BEFORE importing jax.numpy
+import jax
+jax.config.update("jax_enable_x64", True)
+
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -73,7 +77,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (5,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
                 {
                     "name": "test_nominal_write_soil_moisture",
@@ -100,7 +104,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (7,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
                 {
                     "name": "test_nominal_with_all_optional_attributes",
@@ -127,7 +131,7 @@ TEST_DATA = {
                         "nvalid_range": (0, 10),
                     },
                     "expected_shape": (10,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
             ],
             "edge": [
@@ -156,7 +160,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (4,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
                 {
                     "name": "test_edge_single_element_array",
@@ -183,7 +187,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (1,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
                 {
                     "name": "test_edge_large_array_with_extremes",
@@ -214,7 +218,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (20,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
                 {
                     "name": "test_edge_very_small_positive_values",
@@ -241,7 +245,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (8,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
             ],
             "special": [
@@ -297,7 +301,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (6,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
                 {
                     "name": "test_special_switchdim_true",
@@ -327,7 +331,7 @@ TEST_DATA = {
                         "nvalid_range": None,
                     },
                     "expected_shape": (12,),
-                    "expected_dtype": jnp.float32,  # JAX defaults to float32
+                    "expected_dtype": jnp.float64,  # Using float64 for numerical precision
                 },
             ],
         }
