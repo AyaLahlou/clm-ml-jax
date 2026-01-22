@@ -8,6 +8,11 @@ Translated from Fortran CLM code to Python JAX.
 import jax
 import jax.numpy as jnp
 from typing import Any
+from pathlib import Path
+import os
+
+# Enable 64-bit floats in JAX (required for CLM precision)
+jax.config.update("jax_enable_x64", True)
 
 # Import dependencies
 try:
@@ -42,6 +47,27 @@ except ImportError:
 # Alias for backward compatibility
 bounds_type = BoundsType
 
+# Default path for RSL lookup table file
+def _get_default_rsl_path() -> str:
+    """Get default path to RSL lookup table file."""
+    # Try to find the rsl_lookup_tables directory
+    module_dir = Path(__file__).parent.parent
+    
+    # Check common locations
+    possible_paths = [
+        module_dir.parent / "CLM-ml_v1" / "rsl_lookup_tables" / "psihat.nc",
+        module_dir.parent / "rsl_lookup_tables" / "psihat.nc",
+        Path.cwd() / "CLM-ml_v1" / "rsl_lookup_tables" / "psihat.nc",
+    ]
+    
+    for path in possible_paths:
+        if path.exists():
+            return str(path)
+    
+    # If file not found, return a placeholder path
+    # The initialize_rsl_tables function will handle missing files gracefully
+    return str(module_dir.parent / "CLM-ml_v1" / "rsl_lookup_tables" / "psihat.nc")
+
 
 def initialize1(bounds: bounds_type) -> None:
     """
@@ -67,7 +93,8 @@ def initialize1(bounds: bounds_type) -> None:
     
     # Initialize the look-up tables needed to calculate the CLMml
     # roughness sublayer psihat functions
-    LookupPsihatINI()
+    rsl_path = _get_default_rsl_path()
+    LookupPsihatINI(rsl_path)
     
     # Allocate memory for subgrid data structures
     grc.Init(bounds.begg, bounds.endg)
@@ -98,9 +125,11 @@ def initialize2(bounds: bounds_type) -> None:
     clm_instInit(bounds)
 
 
-# JIT-compiled versions for performance
-initialize1_jit = jax.jit(initialize1, static_argnames=['bounds'])
-initialize2_jit = jax.jit(initialize2, static_argnames=['bounds'])
+# Note: JIT compilation is not compatible with these initialization functions
+# because they modify global state. The _jit versions are provided as aliases
+# for API compatibility but do NOT actually use JIT compilation.
+initialize1_jit = initialize1
+initialize2_jit = initialize2
 
 
 def full_initialize(bounds: bounds_type) -> None:
@@ -116,8 +145,8 @@ def full_initialize(bounds: bounds_type) -> None:
     initialize2(bounds)
 
 
-# JIT-compiled version of full initialization
-full_initialize_jit = jax.jit(full_initialize, static_argnames=['bounds'])
+# JIT version is an alias (JIT not compatible with side effects)
+full_initialize_jit = full_initialize
 
 
 def validate_initialization(bounds: bounds_type) -> bool:

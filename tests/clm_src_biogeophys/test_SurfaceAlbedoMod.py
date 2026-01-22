@@ -648,8 +648,9 @@ def test_soil_albedo_dry_conditions(test_data, standard_albedo_tables):
     Test soil_albedo with completely dry soil.
     
     Verifies:
-    - Albedo approaches albdry + moisture correction
+    - Albedo = min(albsat + 0.11, albdry) for dry soil
     - Maximum moisture correction (0.11) is applied
+    - Albedo is capped at albdry
     """
     test_case = "soil_albedo_edge_completely_dry"
     data = test_data[test_case]
@@ -665,20 +666,29 @@ def test_soil_albedo_dry_conditions(test_data, standard_albedo_tables):
     
     result = soil_albedo(inputs=inputs, numrad=numrad)
     
-    # For dry soil, albedo should be close to albdry + 0.11
+    # For dry soil (h2osoi_vol ~ 0), albedo should be min(albsat + 0.11, albdry)
     for i, col_idx in enumerate(data["filter_nourbanc"]):
         soil_color = data["isoicol"][col_idx]
         for ib in range(numrad):
+            albsat_val = standard_albedo_tables["albsat"][soil_color, ib]
             albdry_val = standard_albedo_tables["albdry"][soil_color, ib]
             alb_val = result.albsoib[col_idx, ib]
             
-            # Albedo should be greater than albdry (due to moisture correction)
-            assert alb_val >= albdry_val, \
-                f"Dry albedo should be >= albdry for col {col_idx}, band {ib}"
+            # Expected value: min(albsat + 0.11, albdry)
+            # Note: inc = max(0.11 - 0.40 * h2osoi_vol, 0.0)
+            # For very dry soil (h2osoi_vol close to 0), inc approaches 0.11
+            h2osoi_vol_val = data["h2osoi_vol"][col_idx, 0]
+            inc_val = max(0.11 - 0.40 * float(h2osoi_vol_val), 0.0)
+            expected = min(albsat_val + inc_val, albdry_val)
             
-            # Should not exceed albdry + 0.11 (max correction)
-            assert alb_val <= min(albdry_val + 0.11, 1.0), \
-                f"Dry albedo should not exceed albdry + 0.11 for col {col_idx}, band {ib}"
+            # Albedo should match expected value (with tolerance for numerical precision)
+            assert jnp.abs(alb_val - expected) < 1e-6, \
+                f"Dry albedo should be min(albsat + inc, albdry) for col {col_idx}, band {ib}: " \
+                f"got {alb_val}, expected {expected}, inc={inc_val}"
+            
+            # Should not exceed albdry
+            assert alb_val <= albdry_val, \
+                f"Dry albedo should not exceed albdry for col {col_idx}, band {ib}"
 
 
 def test_soil_albedo_physical_constraints(test_data, standard_albedo_tables):

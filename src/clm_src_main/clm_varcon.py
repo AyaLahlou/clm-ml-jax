@@ -114,31 +114,31 @@ def get_jax_constants() -> dict:
     """
     return {
         # Mathematical constants
-        'rpi': jnp.array(rpi, dtype=r8),
+        'rpi': jnp.array(rpi, dtype=jnp.float32),
         
         # Physical constants
-        'tfrz': jnp.array(tfrz, dtype=r8),
-        'sb': jnp.array(sb, dtype=r8),
-        'grav': jnp.array(grav, dtype=r8),
-        'vkc': jnp.array(vkc, dtype=r8),
-        'denh2o': jnp.array(denh2o, dtype=r8),
-        'denice': jnp.array(denice, dtype=r8),
-        'tkwat': jnp.array(tkwat, dtype=r8),
-        'tkice': jnp.array(tkice, dtype=r8),
-        'tkair': jnp.array(tkair, dtype=r8),
-        'hfus': jnp.array(hfus, dtype=r8),
-        'hvap': jnp.array(hvap, dtype=r8),
-        'hsub': jnp.array(hsub, dtype=r8),
-        'cpice': jnp.array(cpice, dtype=r8),
-        'cpliq': jnp.array(cpliq, dtype=r8),
+        'tfrz': jnp.array(tfrz, dtype=jnp.float32),
+        'sb': jnp.array(sb, dtype=jnp.float32),
+        'grav': jnp.array(grav, dtype=jnp.float32),
+        'vkc': jnp.array(vkc, dtype=jnp.float32),
+        'denh2o': jnp.array(denh2o, dtype=jnp.float32),
+        'denice': jnp.array(denice, dtype=jnp.float32),
+        'tkwat': jnp.array(tkwat, dtype=jnp.float32),
+        'tkice': jnp.array(tkice, dtype=jnp.float32),
+        'tkair': jnp.array(tkair, dtype=jnp.float32),
+        'hfus': jnp.array(hfus, dtype=jnp.float32),
+        'hvap': jnp.array(hvap, dtype=jnp.float32),
+        'hsub': jnp.array(hsub, dtype=jnp.float32),
+        'cpice': jnp.array(cpice, dtype=jnp.float32),
+        'cpliq': jnp.array(cpliq, dtype=jnp.float32),
         
         # Bedrock constants
-        'thk_bedrock': jnp.array(thk_bedrock, dtype=r8),
-        'csol_bedrock': jnp.array(csol_bedrock, dtype=r8),
-        'zmin_bedrock': jnp.array(zmin_bedrock, dtype=r8),
+        'thk_bedrock': jnp.array(thk_bedrock, dtype=jnp.float32),
+        'csol_bedrock': jnp.array(csol_bedrock, dtype=jnp.float32),
+        'zmin_bedrock': jnp.array(zmin_bedrock, dtype=jnp.float32),
         
         # Special values
-        'spval': jnp.array(spval, dtype=r8),
+        'spval': jnp.array(spval, dtype=jnp.float32),
         'ispval': jnp.array(ispval, dtype=jnp.int32),
     }
 
@@ -157,11 +157,18 @@ def get_constant(name: str, as_jax: bool = False):
         
     Returns:
         The requested constant value
+        
+    Raises:
+        KeyError: If the constant name does not exist
     """
     if as_jax:
-        return _jax_constants.get(name)
+        if name not in _jax_constants:
+            raise KeyError(f"Constant '{name}' not found in JAX constants")
+        return _jax_constants[name]
     else:
-        return globals().get(name)
+        if name not in globals():
+            raise KeyError(f"Constant '{name}' not found")
+        return globals()[name]
 
 
 def is_special_value(value: float, tolerance: float = 1e-10) -> bool:
@@ -170,12 +177,13 @@ def is_special_value(value: float, tolerance: float = 1e-10) -> bool:
     
     Args:
         value: Value to check
-        tolerance: Tolerance for comparison
+        tolerance: Relative tolerance for comparison (default 1e-10)
         
     Returns:
         True if value is considered a special value
     """
-    return abs(value - spval) < tolerance
+    # Use relative tolerance: |value - spval| <= tolerance * |spval|
+    return abs(value - spval) <= tolerance * abs(spval)
 
 
 def is_special_int_value(value: int) -> bool:

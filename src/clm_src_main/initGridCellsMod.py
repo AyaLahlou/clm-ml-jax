@@ -58,7 +58,7 @@ class GridCellInitialization:
     def is_valid(self) -> bool:
         """Check if initialization state is valid."""
         if not self.initialized:
-            return True  # Uninitialized state is valid
+            return False  # Uninitialized state is invalid
         
         # Check that arrays have consistent sizes
         if len(self.patch_indices) != self.num_patches:
@@ -98,10 +98,13 @@ def initGridcells() -> None:
     try:
         logger.info("Starting grid cell initialization")
         
+        # Reset state before initialization
+        reset_grid_initialization()
+        
         # Determine naturally vegetated landunit
         set_landunit_veg_compete()
         
-        # Mark as initialized
+        # Mark as initialized (set_landunit_veg_compete already updated num_patches)
         _grid_init_state.initialized = True
         
         logger.info("Grid cell initialization completed successfully")
@@ -196,7 +199,12 @@ def get_grid_initialization_state() -> GridCellInitialization:
         Copy of current grid initialization state
     """
     global _grid_init_state
-    return _grid_init_state
+    from dataclasses import replace
+    # Return a copy to prevent external modifications
+    return replace(_grid_init_state,
+                   patch_indices=_grid_init_state.patch_indices.copy() if len(_grid_init_state.patch_indices) > 0 else jnp.array([]),
+                   landunit_types=_grid_init_state.landunit_types.copy() if len(_grid_init_state.landunit_types) > 0 else jnp.array([]),
+                   metadata=dict(_grid_init_state.metadata))
 
 
 def reset_grid_initialization() -> None:
@@ -223,6 +231,9 @@ def create_simple_grid(num_patches: int = 1,
     Returns:
         GridCellInitialization object with simple grid structure
     """
+    if num_patches < 1:
+        raise ValueError(f"num_patches must be >= 1, got {num_patches}")
+    
     if pft_types is None:
         pft_types = jnp.ones(num_patches, dtype=int)
     
@@ -249,7 +260,7 @@ def calculate_grid_statistics(patch_indices: jnp.ndarray) -> Dict[str, float]:
         patch_indices: Array of patch indices
         
     Returns:
-        Dictionary with grid statistics
+        Dictionary with grid statistics (values are JAX scalars)
     """
     if len(patch_indices) == 0:
         return {
@@ -259,11 +270,13 @@ def calculate_grid_statistics(patch_indices: jnp.ndarray) -> Dict[str, float]:
             'num_patches': 0.0
         }
     
+    # Don't use float() on JAX arrays in JIT functions
+    # Return JAX scalars directly
     return {
-        'mean_index': float(jnp.mean(patch_indices)),
-        'max_index': float(jnp.max(patch_indices)),
-        'min_index': float(jnp.min(patch_indices)),
-        'num_patches': float(len(patch_indices))
+        'mean_index': jnp.mean(patch_indices),
+        'max_index': jnp.max(patch_indices),
+        'min_index': jnp.min(patch_indices),
+        'num_patches': jnp.float64(len(patch_indices))
     }
 
 
@@ -334,6 +347,9 @@ def validate_initialization() -> Tuple[bool, str]:
         Tuple of (is_valid, error_message)
     """
     global _grid_init_state
+    
+    if not _grid_init_state.initialized:
+        return False, "Grid has not been initialized"
     
     if not _grid_init_state.is_valid():
         return False, "Grid initialization state is invalid"

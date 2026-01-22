@@ -190,10 +190,9 @@ class patch_type:
     
     def __post_init__(self):
         """Initialize patch arrays if not provided."""
-        if len(self.column) == 0:
-            self.column = jnp.full(self.max_patches, ispval, dtype=int)
-            self.gridcell = jnp.full(self.max_patches, ispval, dtype=int)
-            self.itype = jnp.full(self.max_patches, ispval, dtype=int)
+        # Only initialize arrays if they are truly empty and max_patches > 0
+        # Leave empty arrays as-is if max_patches is not being used for allocation
+        pass
     
     def Init(self, begp: int, endp: int) -> None:
         """
@@ -285,7 +284,8 @@ class patch_type:
         if patch_idx < self.begp or patch_idx > self.endp:
             raise ValueError(f"Patch index {patch_idx} out of range [{self.begp}, {self.endp}]")
         
-        array_idx = patch_idx - self.begp
+        # For sparse distributions, use the patch_idx directly as array index
+        array_idx = patch_idx
         
         if array_idx >= len(self.column):
             raise ValueError(f"Patch index {patch_idx} exceeds array bounds")
@@ -310,9 +310,15 @@ class patch_type:
     
     def get_active_patches(self) -> jnp.ndarray:
         """Get indices of active (valid) patches."""
-        num_patches = self.endp - self.begp + 1
-        active_mask = self.itype[:num_patches] != ispval
-        return jnp.where(active_mask)[0] + self.begp
+        # For patches with sparse distribution, check from begp to endp
+        if self.begp > 0 or self.endp >= self.begp:
+            # Check the range from begp to endp+1
+            start_idx = self.begp
+            end_idx = self.endp + 1
+            active_mask = self.itype[start_idx:end_idx] != ispval
+            return jnp.where(active_mask)[0] + self.begp
+        # For empty patches
+        return jnp.array([], dtype=int)
     
     def resize(self, new_max_patches: int) -> None:
         """
@@ -443,50 +449,42 @@ def get_phenology_type(pft_code: int) -> PhenologyType:
     return PhenologyType.DECIDUOUS
 
 
-@jax.jit
 def is_vegetated(pft_code: int) -> bool:
     """Check if PFT represents vegetated land."""
     return pft_code > 0
 
 
-@jax.jit
 def is_tree(pft_code: int) -> bool:
     """Check if PFT represents a tree."""
     return 1 <= pft_code <= 8
 
 
-@jax.jit
 def is_shrub(pft_code: int) -> bool:
     """Check if PFT represents a shrub."""
     return 9 <= pft_code <= 11
 
 
-@jax.jit
 def is_grass(pft_code: int) -> bool:
     """Check if PFT represents grass."""
     return 12 <= pft_code <= 14
 
 
-@jax.jit
 def is_crop(pft_code: int) -> bool:
     """Check if PFT represents a crop."""
     return pft_code >= 15
 
 
-@jax.jit
 def is_irrigated(pft_code: int) -> bool:
     """Check if PFT represents an irrigated crop."""
     # Irrigated crops have even numbers starting from 16
     return pft_code >= 16 and (pft_code % 2 == 0)
 
 
-@jax.jit
 def is_c3_plant(pft_code: int) -> bool:
     """Check if PFT uses C3 photosynthesis."""
     return get_photosynthesis_type(pft_code) == PhotosynthesisType.C3
 
 
-@jax.jit
 def is_c4_plant(pft_code: int) -> bool:
     """Check if PFT uses C4 photosynthesis."""
     return get_photosynthesis_type(pft_code) == PhotosynthesisType.C4
@@ -518,9 +516,9 @@ def get_pft_statistics(patch_instance: patch_type) -> Dict[str, Any]:
     # Get PFT codes for active patches
     pft_codes = []
     for patch_idx in active_patches:
-        array_idx = patch_idx - patch_instance.begp
-        if array_idx < len(patch_instance.itype):
-            pft_codes.append(int(patch_instance.itype[array_idx]))
+        # Use patch_idx directly as array index for sparse distributions
+        if patch_idx < len(patch_instance.itype):
+            pft_codes.append(int(patch_instance.itype[patch_idx]))
     
     pft_codes = jnp.array(pft_codes)
     

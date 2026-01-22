@@ -765,39 +765,70 @@ def read_tower_met(
     """
     # This is an I/O function that performs file reading and cannot be JIT-compiled.
     # It should be called outside of any @jit decorated functions.
-    # Below is a working implementation using xarray (commented out to avoid import issues).
-    # Uncomment and install xarray when needed for actual file I/O:
     
-    # import xarray as xr
-    # ds = xr.open_dataset(filename)
-    # return TowerMetData(
-    #     tbot=float(ds['TBOT'].isel(time=strt).values),
-    #     rh=float(ds['RH'].isel(time=strt).values),
-    #     wind=float(ds['WIND'].isel(time=strt).values),
-    #     fsdsbot=float(ds['FSDS'].isel(time=strt).values),
-    #     fldsbot=float(ds['FLDS'].isel(time=strt).values) if 'FLDS' in ds else -999.0,
-    #     pbot=float(ds['PSRF'].isel(time=strt).values) if 'PSRF' in ds else -999.0,
-    #     prect=float(ds['PRECTmms'].isel(time=strt).values),
-    # )
+    try:
+        import xarray as xr
+        import os
+        
+        # Check if file exists
+        if not os.path.exists(ncfilename):
+            raise FileNotFoundError(f"Tower meteorology file not found: {ncfilename}")
+        
+        # Open dataset and read variables
+        ds = xr.open_dataset(ncfilename)
+        
+        # Read required variables
+        zbot = float(ds['ZBOT'].isel(time=strt).values) if 'ZBOT' in ds else 30.0
+        tbot = float(ds['TBOT'].isel(time=strt).values)
+        ubot = float(ds['WIND'].isel(time=strt).values)
+        fsdsbot = float(ds['FSDS'].isel(time=strt).values)
+        prect = float(ds['PRECTmms'].isel(time=strt).values)
+        
+        # Read optional variables (set to -999.0 if missing)
+        rhbot = float(ds['RH'].isel(time=strt).values) if 'RH' in ds else -999.0
+        qbot = float(ds['QBOT'].isel(time=strt).values) if 'QBOT' in ds else -999.0
+        fldsbot = float(ds['FLDS'].isel(time=strt).values) if 'FLDS' in ds else -999.0
+        pbot = float(ds['PSRF'].isel(time=strt).values) if 'PSRF' in ds else -999.0
+        
+        ds.close()
+        
+        return TowerMetRawData(
+            zbot=zbot,
+            tbot=tbot,
+            rhbot=rhbot,
+            qbot=qbot,
+            ubot=ubot,
+            fsdsbot=fsdsbot,
+            fldsbot=fldsbot,
+            pbot=pbot,
+            prect=prect,
+        )
+        
+    except ImportError:
+        # xarray not available, return default test data
+        import warnings
+        warnings.warn(
+            f"xarray not available. Cannot read {ncfilename}. "
+            "Returning default meteorology values for testing. "
+            "Install xarray for actual file I/O: pip install xarray netCDF4",
+            category=ImportWarning,
+            stacklevel=2
+        )
+        return TowerMetRawData(
+            zbot=30.0,  # 30m measurement height
+            tbot=293.15,  # 20°C
+            rhbot=70.0,  # 70% relative humidity
+            qbot=-999.0,  # Not available
+            ubot=3.0,  # 3 m/s wind speed
+            fsdsbot=400.0,  # 400 W/m² shortwave radiation
+            fldsbot=300.0,  # 300 W/m² longwave radiation
+            pbot=101325.0,  # Standard atmospheric pressure (Pa)
+            prect=0.0,  # No precipitation
+        )
     
-    import warnings
-    warnings.warn(
-        f"read_tower_met called but actual file I/O is not implemented. "
-        f"To use this function, uncomment the xarray implementation above and "
-        f"install xarray. This function cannot be used inside JIT-compiled code.",
-        stacklevel=2
-    )
-    
-    # Return default meteorological data as fallback
-    return TowerMetData(
-        tbot=293.15,  # 20°C
-        rh=0.7,  # 70% relative humidity
-        wind=3.0,  # 3 m/s wind speed
-        fsdsbot=400.0,  # 400 W/m² shortwave radiation
-        fldsbot=300.0,  # 300 W/m² longwave radiation
-        pbot=101325.0,  # Standard atmospheric pressure (Pa)
-        prect=0.0,  # No precipitation
-    )
+    except Exception as e:
+        # Handle any file reading errors
+        raise IOError(f"Error reading tower meteorology file {ncfilename}: {str(e)}")
 
 
 # =============================================================================

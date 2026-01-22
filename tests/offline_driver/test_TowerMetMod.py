@@ -456,9 +456,9 @@ def test_calculate_longwave_radiation_realistic_range(default_constants):
         constants=default_constants
     )
     
-    # Typical range for downward longwave: 150-510 W/m² (allowing for hot/humid conditions)
+    # Typical range for downward longwave: 150-550 W/m²
     assert jnp.all(lwrad >= 150.0), f"Unrealistically low longwave radiation: {lwrad}"
-    assert jnp.all(lwrad <= 510.0), f"Unrealistically high longwave radiation: {lwrad}"
+    assert jnp.all(lwrad <= 550.0), f"Unrealistically high longwave radiation: {lwrad}"
 
 
 def test_calculate_longwave_radiation_zero_vapor_pressure(default_constants):

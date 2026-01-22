@@ -426,7 +426,8 @@ class pftcon_type:
             'c3psn': float(self.c3psn[pft_idx]),
             'xl': float(self.xl[pft_idx]),
             
-            # Optical properties
+            # Optical properties (both bands and individual)
+            'rhol': self.rhol[pft_idx, :],  # Array with both visible and NIR
             'rhol_vis': float(self.rhol[pft_idx, ivis]),
             'rhol_nir': float(self.rhol[pft_idx, inir]),
             'rhos_vis': float(self.rhos[pft_idx, ivis]),
@@ -475,6 +476,9 @@ class pftcon_type:
 
 # Global pftcon instance (for Fortran compatibility)
 pftcon = pftcon_type()
+# Initialize the global instance with default values
+pftcon.Init()
+logger.info("Global pftcon instance initialized")
 
 
 # Utility functions
@@ -598,17 +602,20 @@ def create_pftcon_subset(pft_indices: List[int]) -> Dict[str, jnp.ndarray]:
     if not pftcon.is_initialized:
         raise ValueError("PFT constants must be initialized first")
     
+    # Convert list to JAX array for indexing
+    idx_array = jnp.array(pft_indices)
+    
     subset = {}
     
     # 1D parameters
     for param_name in ['dleaf', 'c3psn', 'xl', 'slatop', 'vcmaxpft', 'gsmin_SPA']:
         param_array = getattr(pftcon, param_name)
-        subset[param_name] = param_array[pft_indices]
+        subset[param_name] = param_array[idx_array]
     
     # 2D parameters
     for param_name in ['rhol', 'rhos', 'taul', 'taus']:
         param_array = getattr(pftcon, param_name)
-        subset[param_name] = param_array[pft_indices, :]
+        subset[param_name] = param_array[idx_array, :]
     
     return subset
 

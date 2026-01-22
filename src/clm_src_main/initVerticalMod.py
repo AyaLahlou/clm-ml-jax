@@ -100,15 +100,30 @@ class VerticalStructure:
     
     def is_valid(self) -> bool:
         """Check if vertical structure is valid."""
-        # Check that arrays have consistent dimensions
-        expected_shape = (1, self.num_ground_layers)  # Assuming single column for now
+        # If arrays are not yet initialized (empty), structure is still valid
+        # (will be initialized by initVertical)
+        if len(self.layer_depths) == 0:
+            return True
         
+        # Check that arrays have consistent dimensions
+        # Shape should be (num_columns, num_ground_layers) for any number of columns
         if len(self.layer_depths.shape) == 2:
-            if self.layer_depths.shape != expected_shape:
+            num_cols, num_layers = self.layer_depths.shape
+            
+            # Check that number of layers matches expected
+            if num_layers != self.num_ground_layers:
                 return False
-            if self.layer_thicknesses.shape != expected_shape:
+            
+            # Check that all arrays have consistent column count
+            if self.layer_thicknesses.shape[0] != num_cols:
                 return False
-            if self.interface_depths.shape != (expected_shape[0], expected_shape[1] + 1):
+            if self.interface_depths.shape[0] != num_cols:
+                return False
+            
+            # Check interface depths has correct layer count
+            if self.layer_thicknesses.shape[1] != self.num_ground_layers:
+                return False
+            if self.interface_depths.shape[1] != self.num_ground_layers + 1:
                 return False
         
         # Check physics version
@@ -179,12 +194,14 @@ def initVertical(bounds: bounds_type) -> None:
         num_columns = endc - begc + 1
         
         # Initialize arrays if needed
-        if hasattr(col, 'dz') and col.dz.shape[0] < num_columns:
-            # Resize column arrays
-            col.dz = jnp.zeros((num_columns, nlevgrnd))
-            col.z = jnp.zeros((num_columns, nlevgrnd))
-            col.zi = jnp.zeros((num_columns, nlevgrnd + 1))
-            col.nbedrock = jnp.zeros(num_columns, dtype=int)
+        if col.dz is None or col.dz.shape[0] < num_columns:
+            # Initialize or resize column arrays - use float64 for consistency
+            col.dz = jnp.zeros((num_columns, nlevgrnd), dtype=jnp.float64)
+            col.z = jnp.zeros((num_columns, nlevgrnd), dtype=jnp.float64)
+            col.zi = jnp.zeros((num_columns, nlevgrnd + 1), dtype=jnp.float64)
+            col.nbedrock = jnp.zeros(num_columns, dtype=jnp.int32)
+            col.begc = begc
+            col.endc = endc
         
         # Define CLM layer structure for soil
         for c in range(begc, endc + 1):
@@ -221,10 +238,11 @@ def initVertical(bounds: bounds_type) -> None:
         raise CLMError(f"Failed to initialize vertical structure: {e}") from e
 
 
-@jax.jit
 def _calculate_clm45_depths(scalez: float, nlevgrnd: int) -> jnp.ndarray:
     """
     Calculate layer depths for CLM4.5 physics.
+    
+    Note: Not JIT-compiled because nlevgrnd is a dynamic value used in jnp.arange.
     
     Args:
         scalez: Scaling parameter for layer thickness
@@ -238,10 +256,11 @@ def _calculate_clm45_depths(scalez: float, nlevgrnd: int) -> jnp.ndarray:
     return depths
 
 
-@jax.jit
 def _calculate_clm45_thicknesses(depths: jnp.ndarray) -> jnp.ndarray:
     """
     Calculate layer thicknesses for CLM4.5 physics.
+    
+    Note: Not JIT-compiled for consistency with shape-dependent operations.
     
     Args:
         depths: Array of layer depths
@@ -250,7 +269,12 @@ def _calculate_clm45_thicknesses(depths: jnp.ndarray) -> jnp.ndarray:
         Array of layer thicknesses
     """
     nlevgrnd = len(depths)
-    thicknesses = jnp.zeros(nlevgrnd)
+    thicknesses = jnp.zeros(nlevgrnd, dtype=jnp.float64)
+    
+    # Handle single-layer case
+    if nlevgrnd == 1:
+        thicknesses = thicknesses.at[0].set(depths[0])
+        return thicknesses
     
     # First layer
     thicknesses = thicknesses.at[0].set(0.5 * (depths[0] + depths[1]))
@@ -315,10 +339,11 @@ def _init_clm45_layers(col_idx: int) -> None:
     col.zi = col.zi.at[col_idx, :].set(interfaces)
 
 
-@jax.jit
 def _calculate_clm50_thicknesses(nlevsoi: int, nlevgrnd: int) -> jnp.ndarray:
     """
     Calculate layer thicknesses for CLM5.0 physics.
+    
+    Note: Not JIT-compiled because it uses runtime-dependent array shapes.
     
     Args:
         nlevsoi: Number of soil layers
@@ -327,7 +352,7 @@ def _calculate_clm50_thicknesses(nlevsoi: int, nlevgrnd: int) -> jnp.ndarray:
     Returns:
         Array of layer thicknesses
     """
-    thicknesses = jnp.zeros(nlevgrnd)
+    thicknesses = jnp.zeros(nlevgrnd, dtype=jnp.float64)
     
     # Layers 1-4: increasing by 0.02 m
     for j in range(4):
@@ -530,11 +555,12 @@ def reset_vertical_structure(physics_version: str = "CLM5_0") -> None:
         raise ValueError(f"Invalid physics version: {physics_version}") from e
 
 
-@jax.jit
 def calculate_layer_statistics(depths: jnp.ndarray, 
                              thicknesses: jnp.ndarray) -> Dict[str, float]:
     """
     Calculate statistics for layer structure.
+    
+    Note: Not JIT-compiled because it returns Python floats in a dictionary.
     
     Args:
         depths: Array of layer depths
@@ -610,9 +636,15 @@ def validate_vertical_structure() -> Tuple[bool, str]:
     if not _vertical_structure.is_valid():
         return False, "Vertical structure basic validation failed"
     
-    # Check column arrays if available
+    # Check column arrays if available and initialized
     if hasattr(col, 'z') and len(col.z.shape) == 2:
         num_cols, num_layers = col.z.shape
+        
+        # Check if columns have been initialized (non-zero values)
+        # If all values are zero, skip column validation
+        if jnp.all(col.z == 0) and jnp.all(col.dz == 0):
+            # Columns not yet initialized, skip detailed validation
+            return True, ""
         
         # Check that depths are increasing
         for c in range(num_cols):
@@ -630,7 +662,7 @@ def validate_vertical_structure() -> Tuple[bool, str]:
             if bedrock_idx < 1 or bedrock_idx > _vertical_structure.num_soil_layers:
                 return False, f"Invalid bedrock index {bedrock_idx} in column {c}"
     
-    return True, "Vertical structure is valid and consistent"
+    return True, ""
 
 
 # Factory functions for common configurations

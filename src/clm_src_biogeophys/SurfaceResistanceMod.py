@@ -137,9 +137,9 @@ def _calc_soil_resistance_sl14(
     """
     ncols = soilstate.watsat.shape[0]
     
-    # Initialize output arrays
-    dsl = jnp.zeros(ncols)
-    soilresis = jnp.zeros(ncols)
+    # Initialize output arrays with input values (preserve unfiltered columns)
+    dsl = soilstate.dsl_col
+    soilresis = soilstate.soilresis_col
     
     # Extract first soil layer (index 0 in Python, index 1 in Fortran)
     # Fortran lines 95-100

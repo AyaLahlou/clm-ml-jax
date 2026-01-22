@@ -44,8 +44,8 @@ class CLMParameters:
     
     # Radiation parameters (constants)
     numrad: Final[int] = 2     # Number of radiation wavebands
-    ivis: Final[int] = 1       # Visible waveband index
-    inir: Final[int] = 2       # Near-infrared waveband index
+    ivis: Final[int] = 0       # Visible waveband index (0-indexed)
+    inir: Final[int] = 1       # Near-infrared waveband index (0-indexed)
     
     # Plant functional type parameters
     mxpft: Final[int] = 78     # Maximum number of plant functional types
@@ -268,20 +268,17 @@ def load_preset(preset_name: str) -> None:
     set_custom_parameters(preset['nlevsno'], preset['nlevsoi'], preset['nlevgrnd'])
 
 
-# JIT-compiled utility functions
-@jax.jit
+# Utility functions for generating layer indices
 def snow_layer_indices(nlevsno_val: int) -> jnp.ndarray:
     """Get snow layer indices as JAX array"""
     return jnp.arange(-nlevsno_val + 1, 1, dtype=jnp.int32)
 
 
-@jax.jit  
 def soil_layer_indices(nlevsoi_val: int) -> jnp.ndarray:
     """Get soil layer indices as JAX array"""
     return jnp.arange(1, nlevsoi_val + 1, dtype=jnp.int32)
 
 
-@jax.jit
 def ground_layer_indices(nlevgrnd_val: int) -> jnp.ndarray:
     """Get ground layer indices as JAX array"""
     return jnp.arange(1, nlevgrnd_val + 1, dtype=jnp.int32)

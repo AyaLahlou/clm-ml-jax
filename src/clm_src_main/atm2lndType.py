@@ -116,11 +116,14 @@ def create_atm2lnd_instance(bounds: bounds_type) -> atm2lnd_type:
     return instance
 
 
-# JIT-compiled version of the initialization for performance
-@jax.jit
+# Initialization function for creating atm2lnd arrays
 def init_atm2lnd_arrays(bounds_dict: dict) -> dict:
     """
-    JIT-compiled function to initialize atm2lnd arrays
+    Function to initialize atm2lnd arrays
+    
+    Note: This function is not JIT-compiled because it needs to compute
+    array shapes from the bounds_dict values, which must be concrete values.
+    The resulting arrays can be used in JIT-compiled functions.
     
     Args:
         bounds_dict: Dictionary containing bounds information

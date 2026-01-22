@@ -65,7 +65,7 @@ def test_data():
                 soil_arrays=SoilStateArrays(
                     watsat=jnp.array([[0.45, 0.43, 0.41, 0.39, 0.38]]),
                     hksat=jnp.array([[0.0176, 0.0156, 0.0136, 0.0116, 0.0096]]),
-                    sucsat=jnp.array([[121.0, 131.0, 141.0, 151.0, 161.0]]),
+                    sucsat=jnp.array([[-121.0, -131.0, -141.0, -151.0, -161.0]]),
                     bsw=jnp.array([[4.05, 4.15, 4.25, 4.35, 4.45]]),
                     nbedrock=jnp.array([5]),
                     dz=jnp.array([[0.1, 0.15, 0.25, 0.35, 0.45]])
@@ -95,9 +95,9 @@ def test_data():
                         [0.0256, 0.0236, 0.0216, 0.0196]
                     ]),
                     sucsat=jnp.array([
-                        [121.0, 131.0, 141.0, 151.0],
-                        [258.0, 268.0, 278.0, 288.0],
-                        [78.0, 88.0, 98.0, 108.0]
+                        [-121.0, -131.0, -141.0, -151.0],
+                        [-258.0, -268.0, -278.0, -288.0],
+                        [-78.0, -88.0, -98.0, -108.0]
                     ]),
                     bsw=jnp.array([
                         [4.05, 4.15, 4.25, 4.35],
@@ -138,8 +138,8 @@ def test_data():
                         [0.008, 0.007, 0.006]
                     ]),
                     sucsat=jnp.array([
-                        [121.0, 131.0, 141.0],
-                        [200.0, 210.0, 220.0]
+                        [-121.0, -131.0, -141.0],
+                        [-200.0, -210.0, -220.0]
                     ]),
                     bsw=jnp.array([
                         [4.05, 4.15, 4.25],
@@ -170,7 +170,7 @@ def test_data():
                 soil_arrays=SoilStateArrays(
                     watsat=jnp.array([[0.42, 0.4, 0.38, 0.36]]),
                     hksat=jnp.array([[0.015, 0.013, 0.011, 0.009]]),
-                    sucsat=jnp.array([[180.0, 190.0, 200.0, 210.0]]),
+                    sucsat=jnp.array([[-180.0, -190.0, -200.0, -210.0]]),
                     bsw=jnp.array([[5.5, 5.6, 5.7, 5.8]]),
                     nbedrock=jnp.array([4]),
                     dz=jnp.array([[0.1, 0.2, 0.3, 0.4]])
@@ -191,7 +191,7 @@ def test_data():
                 soil_arrays=SoilStateArrays(
                     watsat=jnp.array([[0.58, 0.56, 0.54, 0.52, 0.5]]),
                     hksat=jnp.array([[0.0012, 0.001, 0.0008, 0.0006, 0.0004]]),
-                    sucsat=jnp.array([[478.0, 488.0, 498.0, 508.0, 518.0]]),
+                    sucsat=jnp.array([[-478.0, -488.0, -498.0, -508.0, -518.0]]),
                     bsw=jnp.array([[11.4, 11.5, 11.6, 11.7, 11.8]]),
                     nbedrock=jnp.array([5]),
                     dz=jnp.array([[0.08, 0.12, 0.18, 0.28, 0.38]])
@@ -219,8 +219,8 @@ def test_data():
                         [0.02, 0.018, 0.016, 0.014, 0.012, 0.01]
                     ]),
                     sucsat=jnp.array([
-                        [100.0, 110.0, 120.0, 130.0, 140.0, 150.0],
-                        [95.0, 105.0, 115.0, 125.0, 135.0, 145.0]
+                        [-100.0, -110.0, -120.0, -130.0, -140.0, -150.0],
+                        [-95.0, -105.0, -115.0, -125.0, -135.0, -145.0]
                     ]),
                     bsw=jnp.array([
                         [3.5, 3.6, 3.7, 3.8, 3.9, 4.0],
@@ -251,7 +251,7 @@ def test_data():
                 soil_arrays=SoilStateArrays(
                     watsat=jnp.array([[0.44]]),
                     hksat=jnp.array([[0.0165]]),
-                    sucsat=jnp.array([[155.0]]),
+                    sucsat=jnp.array([[-155.0]]),
                     bsw=jnp.array([[4.8]]),
                     nbedrock=jnp.array([1]),
                     dz=jnp.array([[0.5]])
@@ -285,11 +285,11 @@ def test_data():
                         [0.009, 0.007, 0.005]
                     ]),
                     sucsat=jnp.array([
-                        [90.0, 100.0, 110.0],
-                        [130.0, 140.0, 150.0],
-                        [180.0, 190.0, 200.0],
-                        [110.0, 120.0, 130.0],
-                        [220.0, 230.0, 240.0]
+                        [-90.0, -100.0, -110.0],
+                        [-130.0, -140.0, -150.0],
+                        [-180.0, -190.0, -200.0],
+                        [-110.0, -120.0, -130.0],
+                        [-220.0, -230.0, -240.0]
                     ]),
                     bsw=jnp.array([
                         [3.2, 3.3, 3.4],
@@ -329,7 +329,7 @@ def test_data():
                 soil_arrays=SoilStateArrays(
                     watsat=jnp.array([[0.35, 0.33, 0.31]]),
                     hksat=jnp.array([[0.025, 0.023, 0.021]]),
-                    sucsat=jnp.array([[600.0, 650.0, 700.0]]),
+                    sucsat=jnp.array([[-600.0, -650.0, -700.0]]),
                     bsw=jnp.array([[12.0, 12.5, 13.0]]),
                     nbedrock=jnp.array([3]),
                     dz=jnp.array([[0.15, 0.25, 0.35]])
@@ -527,7 +527,7 @@ def test_soil_water_near_saturation(test_data):
     Test behavior near saturation conditions.
     
     When water content approaches saturation, hydraulic conductivity
-    should approach hksat and matric potential should approach -sucsat.
+    should approach hksat and matric potential should approach sucsat (already negative).
     """
     data = test_data["test_edge_near_saturation"]
     
@@ -616,7 +616,8 @@ def test_soil_water_clapp_hornberger_smp(test_data):
     """
     Test Clapp-Hornberger matric potential equation.
     
-    Verifies ψ(θ) = -ψ_sat * (θ/θ_sat)^(-b), clamped to >= -1e8
+    Verifies ψ(θ) = ψ_sat * (θ/θ_sat)^(-b), clamped to >= -1e8
+    Note: sucsat is stored as negative matric potential value
     """
     data = test_data["test_nominal_single_column_sandy_soil"]
     
@@ -629,13 +630,15 @@ def test_soil_water_clapp_hornberger_smp(test_data):
     )
     
     # Calculate expected smp using Clapp-Hornberger
+    # sucsat is already negative in test data
     vwc_liq = result.vwc_liq[0, :]
     watsat = data["soilstate_inst"].soil_arrays.watsat[0, :]
     sucsat = data["soilstate_inst"].soil_arrays.sucsat[0, :]
     bsw = data["soilstate_inst"].soil_arrays.bsw[0, :]
     
     s = jnp.minimum(1.0, vwc_liq / watsat)
-    expected_smp = -sucsat * jnp.power(s, -bsw)
+    # sucsat is already negative, apply Clapp-Hornberger equation directly
+    expected_smp = sucsat * jnp.power(s, -bsw)
     expected_smp = jnp.maximum(expected_smp, -1.0e8)
     
     np.testing.assert_allclose(

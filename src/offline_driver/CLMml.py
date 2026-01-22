@@ -95,6 +95,10 @@ def get_clump_bounds(clump_id: int) -> BoundsType:
         
     Reference: decompMod.F90 get_clump_bounds, CLMml.F90 lines 18-19
     """
+    # Validate input
+    if clump_id < 1:
+        raise ValueError(f"clump_id must be >= 1, got {clump_id}")
+    
     # Single grid cell configuration
     # All indices are 1-based to match Fortran convention
     bounds = BoundsType(
@@ -123,6 +127,10 @@ def initialize_clump_config(n_clumps: int = 1) -> ClumpConfig:
         
     Reference: CLMml.F90 line 17
     """
+    # Validate input
+    if n_clumps < 1:
+        raise ValueError(f"n_clumps must be >= 1, got {n_clumps}")
+    
     return ClumpConfig(
         n_clumps=n_clumps,
         clump_id=1,  # Process first (and only) clump
@@ -154,6 +162,10 @@ def clm_ml_main(
         
     Reference: CLMml.F90 lines 1-24
     """
+    # Validate input
+    if n_clumps < 1:
+        raise ValueError(f"n_clumps must be >= 1, got {n_clumps}")
+    
     # Initialize clump configuration (line 17)
     clump_config = initialize_clump_config(n_clumps)
     

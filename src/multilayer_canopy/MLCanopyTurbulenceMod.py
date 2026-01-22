@@ -991,13 +991,8 @@ def canopy_turbulence(
         # In the full model, this would call the WellMixed subroutine
         # For now, return the state unchanged as these schemes are
         # less commonly used than the HF2008 (turb_type=1) scheme
-        import warnings
-        warnings.warn(
-            "Using simplified well-mixed turbulence scheme. "
-            "For production use, implement full WellMixed subroutine from "
-            "MLCanopyTurbulenceMod.F90 lines ~100-500.",
-            stacklevel=2
-        )
+        # TODO: Implement full WellMixed subroutine from MLCanopyTurbulenceMod.F90 lines ~100-500
+        # for production use if well-mixed turbulence is required
         return mlcanopy_inst
     
     # Line 64-68: Use Harman & Finnigan (2008) roughness sublayer theory
@@ -1006,13 +1001,8 @@ def canopy_turbulence(
         # In the full model, this would call the HF2008 subroutine
         # The main turbulence calculations are performed by the existing
         # functions in this module (psim, psih, obukhov_length, etc.)
-        import warnings
-        warnings.warn(
-            "Using simplified HF2008 turbulence scheme. "
-            "For production use, implement full HF2008 subroutine from "
-            "MLCanopyTurbulenceMod.F90 lines ~500-1000.",
-            stacklevel=2
-        )
+        # TODO: Implement full HF2008 subroutine from MLCanopyTurbulenceMod.F90 lines ~500-1000
+        # for production use if full RSL theory is required
         return mlcanopy_inst
     
     return mlcanopy_inst
@@ -1036,31 +1026,94 @@ def initialize_rsl_tables(rsl_file_path: str) -> RSLPsihatTable:
         Initialized RSLPsihatTable with lookup table data
         
     Note:
-        This is a simplified implementation of the LookupPsihatINI subroutine.
-        For production use with actual RSL lookup tables, implement NetCDF reading
-        using netCDF4 or xarray (these cannot be used inside JIT-compiled functions).
-        
-        Example full implementation:
-            import netCDF4 as nc
-            ds = nc.Dataset(rsl_file_path)
-            return RSLPsihatTable(
-                psihat_m=jnp.array(ds.variables['psihat_m'][:]),
-                psihat_h=jnp.array(ds.variables['psihat_h'][:]),
-                # ... other lookup table variables
-            )
+        This is an I/O function that should be called OUTSIDE of JIT-compiled code.
+        It reads lookup tables from NetCDF files which cannot be done inside @jit.
     """
-    import warnings
-    warnings.warn(
-        f"RSL table initialization from {rsl_file_path} not fully implemented. "
-        "Returning empty lookup tables. For production use with RSL turbulence, "
-        "implement NetCDF reading of psihat lookup tables.",
-        stacklevel=2
-    )
+    try:
+        import os
+        
+        # Check if file exists
+        if not os.path.exists(rsl_file_path):
+            import warnings
+            warnings.warn(
+                f"RSL lookup table file not found: {rsl_file_path}. "
+                "Returning empty lookup tables. RSL turbulence scheme may not work correctly.",
+                category=UserWarning,
+                stacklevel=2
+            )
+            # Return empty structure
+            return RSLPsihatTable(
+                initialized=False,
+                nZ=0,
+                nL=0,
+                zdtgrid_m=jnp.array([]),
+                dtLgrid_m=jnp.array([]),
+                psigrid_m=jnp.array([]),
+                zdtgrid_h=jnp.array([]),
+                dtLgrid_h=jnp.array([]),
+                psigrid_h=jnp.array([]),
+            )
+        
+        # Try to read the NetCDF file
+        try:
+            import netCDF4 as nc
+        except ImportError:
+            import xarray as xr
+            # Use xarray as fallback
+            ds = xr.open_dataset(rsl_file_path)
+            
+            return RSLPsihatTable(
+                initialized=True,
+                nZ=int(ds.dims.get('nZ', 0)),
+                nL=int(ds.dims.get('nL', 0)),
+                zdtgrid_m=jnp.array(ds['zdtgrid_m'].values) if 'zdtgrid_m' in ds else jnp.array([]),
+                dtLgrid_m=jnp.array(ds['dtLgrid_m'].values) if 'dtLgrid_m' in ds else jnp.array([]),
+                psigrid_m=jnp.array(ds['psigrid_m'].values) if 'psigrid_m' in ds else jnp.array([]),
+                zdtgrid_h=jnp.array(ds['zdtgrid_h'].values) if 'zdtgrid_h' in ds else jnp.array([]),
+                dtLgrid_h=jnp.array(ds['dtLgrid_h'].values) if 'dtLgrid_h' in ds else jnp.array([]),
+                psigrid_h=jnp.array(ds['psigrid_h'].values) if 'psigrid_h' in ds else jnp.array([]),
+            )
+        
+        # Use netCDF4 (preferred for lookup tables)
+        with nc.Dataset(rsl_file_path, 'r') as ds:
+            return RSLPsihatTable(
+                initialized=True,
+                nZ=len(ds.dimensions.get('nZ', [])),
+                nL=len(ds.dimensions.get('nL', [])),
+                zdtgrid_m=jnp.array(ds.variables['zdtgrid_m'][:]) if 'zdtgrid_m' in ds.variables else jnp.array([]),
+                dtLgrid_m=jnp.array(ds.variables['dtLgrid_m'][:]) if 'dtLgrid_m' in ds.variables else jnp.array([]),
+                psigrid_m=jnp.array(ds.variables['psigrid_m'][:]) if 'psigrid_m' in ds.variables else jnp.array([]),
+                zdtgrid_h=jnp.array(ds.variables['zdtgrid_h'][:]) if 'zdtgrid_h' in ds.variables else jnp.array([]),
+                dtLgrid_h=jnp.array(ds.variables['dtLgrid_h'][:]) if 'dtLgrid_h' in ds.variables else jnp.array([]),
+                psigrid_h=jnp.array(ds.variables['psigrid_h'][:]) if 'psigrid_h' in ds.variables else jnp.array([]),
+            )
+            
+    except ImportError:
+        # Neither netCDF4 nor xarray available
+        import warnings
+        warnings.warn(
+            f"Cannot read RSL lookup tables: netCDF4 and xarray not available. "
+            "Install with: pip install netCDF4 xarray. "
+            "Returning empty lookup tables.",
+            category=ImportWarning,
+            stacklevel=2
+        )
+        return RSLPsihatTable(
+            initialized=False,
+            nZ=0,
+            nL=0,
+            zdtgrid_m=jnp.array([]),
+            dtLgrid_m=jnp.array([]),
+            psigrid_m=jnp.array([]),
+            zdtgrid_h=jnp.array([]),
+            dtLgrid_h=jnp.array([]),
+            psigrid_h=jnp.array([]),
+        )
     
-    # Return empty/default lookup table structure
-    # In production, this would contain actual lookup table data from the file
-    return RSLPsihatTable(
-        npts=0,  # Number of lookup table points
-        data=jnp.array([]),  # Placeholder for lookup table data
-    )# Backward compatibility alias (capitalize)
+    except Exception as e:
+        # Handle any other errors
+        raise IOError(f"Error reading RSL lookup table file {rsl_file_path}: {str(e)}")
+
+
+# Backward compatibility alias (capitalize)
 LookupPsihatINI = initialize_rsl_tables

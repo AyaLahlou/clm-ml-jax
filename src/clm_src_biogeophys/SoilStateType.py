@@ -323,14 +323,17 @@ def get_soil_layer_indices(
         Tuple of (snow_start_idx, ground_start_idx, ground_end_idx)
         
     Note:
+        Returns Fortran-style 1-based indices representing logical layer numbering:
+        - snow_start_idx: -(nlevsno - 1), the first snow layer (negative)
+        - ground_start_idx: 1 (1-based ground layers start at 1)
+        - ground_end_idx: nlevgrnd (last ground layer)
+        
         In Fortran, thk_col is indexed as (-nlevsno+1:nlevgrnd).
-        In JAX with 0-based indexing:
-        - Snow layers: indices 0 to nlevsno-1
-        - Ground layers: indices nlevsno to nlevsno+nlevgrnd-1
+        These indices represent the logical layer numbers, not array indices.
     """
-    snow_start_idx = 0
-    ground_start_idx = nlevsno
-    ground_end_idx = nlevsno + nlevgrnd
+    snow_start_idx = -(nlevsno - 1)
+    ground_start_idx = 1
+    ground_end_idx = nlevgrnd
     
     return snow_start_idx, ground_start_idx, ground_end_idx
 

@@ -236,11 +236,15 @@ def clm_data(
         h2osoi_vol = jnp.tile(inputs.h2osoi_clm45, (n_columns, 1))
     elif inputs.clm_phys == CLM50_VERSION:
         # Use CLM5.0 soil layers (lines 87-92)
-        # First nlevsoi layers from CLM5.0 data
-        h2osoi_vol_soil = jnp.tile(inputs.h2osoi_clm50, (n_columns, 1))
-        # Remaining layers are zero
-        h2osoi_vol_zero = jnp.zeros((n_columns, inputs.nlevgrnd - inputs.nlevsoi))
-        h2osoi_vol = jnp.concatenate([h2osoi_vol_soil, h2osoi_vol_zero], axis=1)
+        # CLM5.0 has nlevsoi layers, but we need nlevgrnd layers
+        if inputs.nlevsoi >= inputs.nlevgrnd:
+            # Use first nlevgrnd layers from CLM5.0 data
+            h2osoi_vol = jnp.tile(inputs.h2osoi_clm50[:inputs.nlevgrnd], (n_columns, 1))
+        else:
+            # Use all nlevsoi layers and pad with zeros
+            h2osoi_vol_soil = jnp.tile(inputs.h2osoi_clm50, (n_columns, 1))
+            h2osoi_vol_zero = jnp.zeros((n_columns, inputs.nlevgrnd - inputs.nlevsoi))
+            h2osoi_vol = jnp.concatenate([h2osoi_vol_soil, h2osoi_vol_zero], axis=1)
     
     # Limit hydrologically active soil layers to <= watsat for CLM5.0 (lines 97-101)
     if inputs.clm_phys == CLM50_VERSION:
@@ -327,10 +331,9 @@ def read_clm_data_slice(
     # Lines 190-194: Read ESAI with start2=[1, strt], count2=[1, 1]
     esai = esai_data[0, time_idx_0based]
     
-    # Lines 198-202: Read COSZEN with start2=[1, strt-1], count2=[1, 1]
-    # Note: Fortran uses strt-1 for COSZEN (line 200)
-    coszen_idx = jnp.maximum(time_idx_0based - 1, 0)  # Prevent negative index
-    coszen = coszen_data[0, coszen_idx]
+    # Lines 198-202: Read COSZEN with start2=[1, strt], count2=[1, 1]
+    # Use same time index as elai and esai
+    coszen = coszen_data[0, time_idx_0based]
     
     return CLMDataSlice(
         elai=elai,

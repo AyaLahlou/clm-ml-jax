@@ -266,12 +266,13 @@ def test_get_texture_class_index_constants_consistency(module_constants):
         "silt",  # Not a valid class (only part of other classes)
         "sandy_loam",  # Underscore instead of space
         "sandyloam",  # No space
-        # Note: "Sand", "LOAM", "SaNdY cLaY" are NOT invalid because the
-        # implementation uses .lower() to normalize input (case-insensitive)
     ],
 )
 def test_get_texture_class_index_invalid_names(invalid_name):
-    """Test that invalid texture names raise appropriate errors."""
+    """Test that invalid texture names raise appropriate errors.
+    
+    Note: The function is case-insensitive, so 'Sand', 'LOAM', etc. are valid.
+    """
     with pytest.raises((ValueError, KeyError, IndexError)):
         get_texture_class_index(invalid_name)
 

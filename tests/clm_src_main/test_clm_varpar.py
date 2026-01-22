@@ -118,8 +118,8 @@ def test_clm_parameters_initialization():
     assert params.nlevsoi == -1, "Default nlevsoi should be -1"
     assert params.nlevgrnd == -1, "Default nlevgrnd should be -1"
     assert params.numrad == 2, "numrad should be 2"
-    assert params.ivis == 1, "ivis should be 1"
-    assert params.inir == 2, "inir should be 2"
+    assert params.ivis == 0, "ivis should be 0 (0-indexed)"
+    assert params.inir == 1, "inir should be 1 (0-indexed)"
     assert params.mxpft == 78, "mxpft should be 78"
 
 
@@ -168,8 +168,8 @@ def test_clm_parameters_get_config_dict():
     assert config["nlevsoi"] == 20, "nlevsoi should match"
     assert config["nlevgrnd"] == 25, "nlevgrnd should match"
     assert config["numrad"] == 2, "numrad should be 2"
-    assert config["ivis"] == 1, "ivis should be 1"
-    assert config["inir"] == 2, "inir should be 2"
+    assert config["ivis"] == 0, "ivis should be 0 (0-indexed)"
+    assert config["inir"] == 1, "inir should be 1 (0-indexed)"
     assert config["mxpft"] == 78, "mxpft should be 78"
 
 
@@ -333,8 +333,8 @@ def test_get_radiation_info():
     rad_info = get_radiation_info()
     
     assert rad_info["total_bands"] == 2, "Should have 2 radiation bands"
-    assert rad_info["visible_band_index"] == 1, "Visible band index should be 1"
-    assert rad_info["near_infrared_band_index"] == 2, "NIR band index should be 2"
+    assert rad_info["visible_band_index"] == 0, "Visible band index should be 0 (0-indexed)"
+    assert rad_info["near_infrared_band_index"] == 1, "NIR band index should be 1 (0-indexed)"
 
 
 def test_get_pft_info():
@@ -418,7 +418,7 @@ def test_create_layer_arrays_values_clm5(default_clm5_params):
 
 def test_create_layer_arrays_uninitialized(uninitialized_params):
     """Test that create_layer_arrays raises RuntimeError when uninitialized."""
-    with pytest.raises(RuntimeError, match=".*not initialized.*"):
+    with pytest.raises(RuntimeError, match=".*must be initialized.*"):
         create_layer_arrays()
 
 
@@ -473,7 +473,7 @@ def test_ground_layer_indices_values():
 
 def test_snow_layer_indices_jit_compatible():
     """Test that snow_layer_indices works with JAX JIT compilation."""
-    jitted_fn = jax.jit(snow_layer_indices)
+    jitted_fn = jax.jit(snow_layer_indices, static_argnums=(0,))
     
     result_jit = jitted_fn(5)
     result_no_jit = snow_layer_indices(5)
@@ -483,7 +483,7 @@ def test_snow_layer_indices_jit_compatible():
 
 def test_soil_layer_indices_jit_compatible():
     """Test that soil_layer_indices works with JAX JIT compilation."""
-    jitted_fn = jax.jit(soil_layer_indices)
+    jitted_fn = jax.jit(soil_layer_indices, static_argnums=(0,))
     
     result_jit = jitted_fn(10)
     result_no_jit = soil_layer_indices(10)
@@ -493,7 +493,7 @@ def test_soil_layer_indices_jit_compatible():
 
 def test_ground_layer_indices_jit_compatible():
     """Test that ground_layer_indices works with JAX JIT compilation."""
-    jitted_fn = jax.jit(ground_layer_indices)
+    jitted_fn = jax.jit(ground_layer_indices, static_argnums=(0,))
     
     result_jit = jitted_fn(15)
     result_no_jit = ground_layer_indices(15)

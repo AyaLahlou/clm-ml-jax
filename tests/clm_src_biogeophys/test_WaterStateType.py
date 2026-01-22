@@ -886,11 +886,11 @@ def test_update_with_invalid_field():
     """
     Test that update_waterstate handles invalid field names gracefully.
     
-    Should raise TypeError when trying to update non-existent field.
+    Should raise ValueError when trying to update non-existent field.
     """
     state = init_waterstate(ncols=5, npatches=10, nlevgrnd=15, nlevsno=5)
-    
-    with pytest.raises(TypeError):
+
+    with pytest.raises(ValueError):
         update_waterstate(state, invalid_field=jnp.array([1.0, 2.0, 3.0]))
 
 

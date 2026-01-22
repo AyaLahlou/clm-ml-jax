@@ -154,13 +154,8 @@ def lnd_init_mct(bounds: BoundsType) -> None:
     #
     # For standalone CLM operation, this initialization is not needed.
     # For coupled operation, implement based on your coupling framework.
-    import warnings
-    warnings.warn(
-        "lnd_init_mct called but coupling interface not implemented. "
-        "This is expected for standalone CLM runs. For coupled simulations, "
-        "implement MCT/NUOPC coupling infrastructure.",
-        stacklevel=2
-    )
+    # Note: This is intentionally a no-op for standalone mode
+    pass
 
 
 def lnd_run_mct(
@@ -224,13 +219,9 @@ def lnd_run_mct(
     #
     # For a pure JAX implementation, this would accept and return model state explicitly
     # rather than modifying global state through side effects.
-    import warnings
-    warnings.warn(
-        "lnd_run_mct called but coupling interface not implemented. "
-        "For standalone runs, call clm_driver.clm_drv directly. "
-        "For coupled runs, implement coupling field exchanges.",
-        stacklevel=2
-    )
+    # Note: For standalone runs, use clm_driver.clm_drv directly.
+    # For coupled runs, implement coupling field exchanges.
+    pass
 
 
 # =============================================================================

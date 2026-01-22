@@ -47,7 +47,7 @@ class SoilStateArrays(NamedTuple):
     Attributes:
         watsat: Soil layer volumetric water content at saturation (porosity) [m3/m3]
         hksat: Soil layer hydraulic conductivity at saturation [mm H2O/s]
-        sucsat: Soil layer suction (negative matric potential) at saturation [mm]
+        sucsat: Soil layer matric potential at saturation (negative value) [mm]
         bsw: Soil layer Clapp and Hornberger "b" parameter [-]
         nbedrock: Depth to bedrock index for each column
         dz: Soil layer thickness [m]
@@ -108,10 +108,10 @@ DENH2O = 1000.0
 # Private Helper Functions
 # ============================================================================
 
-@partial(jit, static_argnums=(1,))
+@jit
 def _compute_vwc_liq_single_column(
     h2osoi_liq: Array,
-    nlayers: int,
+    nlayers: Array,
     dz: Array
 ) -> Array:
     """Compute liquid volumetric water content for a single column.
@@ -128,16 +128,10 @@ def _compute_vwc_liq_single_column(
         
     Note:
         Formula: vwc_liq = max(h2osoi_liq, 1.0e-6) / (dz * denh2o)
-        Applied only to active layers (above bedrock)
+        Computed for all layers regardless of bedrock depth.
     """
     # Fortran line 94-95: vwc_liq(c,j) = max(h2osoi_liq(c,j),1.0e-6_r8)/(dz(c,j)*denh2o)
-    layer_mask = jnp.arange(h2osoi_liq.shape[0]) < nlayers
-    
-    vwc_liq = jnp.where(
-        layer_mask,
-        jnp.maximum(h2osoi_liq, 1.0e-6) / (dz * DENH2O),
-        0.0  # Inactive layers set to zero
-    )
+    vwc_liq = jnp.maximum(h2osoi_liq, 1.0e-6) / (dz * DENH2O)
     
     return vwc_liq
 
@@ -158,7 +152,7 @@ def _compute_hydraulic_properties_layer(
     Physics equations (Fortran lines 147-151):
     - s = vwc_liq / watsat (relative saturation, clamped to [0.01, 1.0])
     - hk = hksat * s^(2*bsw + 3)
-    - smp = -sucsat * s^(-bsw) (clamped to >= -1e8)
+    - smp = sucsat * s^(-bsw) (clamped to >= -1e8, sucsat is negative matric potential)
     
     Fortran reference: lines 112-164
     
@@ -166,7 +160,7 @@ def _compute_hydraulic_properties_layer(
         vwc_liq: Soil layer liquid volumetric water content [m3 H2O/m3]
         watsat: Volumetric water content at saturation (porosity) [m3/m3]
         hksat: Hydraulic conductivity at saturation [mm H2O/s]
-        sucsat: Suction (negative matric potential) at saturation [mm]
+        sucsat: Matric potential at saturation (negative value) [mm]
         bsw: Clapp and Hornberger "b" parameter [-]
         
     Returns:
@@ -187,9 +181,10 @@ def _compute_hydraulic_properties_layer(
     hk = hksat * jnp.power(s, 2.0 * bsw + 3.0)
     
     # Fortran lines 151-152: Compute soil matric potential
-    # smp(j) = -sucsat(c,j) * s**(-bsw(c,j))
+    # sucsat is already stored as negative matric potential
+    # smp(j) = sucsat(c,j) * s**(-bsw(c,j))
     # smp(j) = max(smp(j), -1.e08_r8)
-    smp = -sucsat * jnp.power(s, -bsw)
+    smp = sucsat * jnp.power(s, -bsw)
     smp = jnp.maximum(smp, -1.0e8)
     
     return HydraulicProperties(hk=hk, smp=smp)
@@ -336,6 +331,7 @@ def soil_water(
         - Hydraulic conductivity: K(θ) = K_sat * (θ/θ_sat)^(2b+3)
         - Matric potential: ψ(θ) = ψ_sat * (θ/θ_sat)^(-b)
         where θ is volumetric water content, b is the pore size distribution index
+        Note: ψ_sat (sucsat) is stored as negative matric potential value
     """
     # Call the moisture form calculation (Fortran lines 45-46)
     updated_soilstate = _soilwater_moisture_form(
