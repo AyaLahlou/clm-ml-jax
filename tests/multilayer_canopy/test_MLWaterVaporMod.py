@@ -77,7 +77,8 @@ def test_data():
             "edge_bounds": {
                 "t": jnp.array([198.15, 373.15]),
                 "tfrz": 273.15,
-                "expected_es_min": 1.0,
+                # At -75°C (198.15K), saturation vapor pressure is very small (<1 Pa)
+                "expected_es_min": 0.01,  # Just check it's positive and small
                 "expected_es_max": 101325.0,
             },
             "multidim": {

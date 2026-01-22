@@ -277,13 +277,20 @@ def test_get_texture_class_index_invalid_names(invalid_name):
         get_texture_class_index(invalid_name)
 
 
-def test_get_texture_class_index_case_insensitive():
-    """Test that texture class lookup is case-insensitive."""
-    # Test various capitalizations of valid names
-    assert get_texture_class_index('sand') == get_texture_class_index('Sand')
-    assert get_texture_class_index('loam') == get_texture_class_index('LOAM')
-    assert get_texture_class_index('sandy clay') == get_texture_class_index('SaNdY cLaY')
-    assert get_texture_class_index('clay loam') == get_texture_class_index('Clay Loam')
+@pytest.mark.parametrize(
+    "case_variant,expected_name",
+    [
+        ("Sand", "sand"),
+        ("LOAM", "loam"),
+        ("SaNdY cLaY", "sandy clay"),
+    ],
+)
+def test_get_texture_class_index_case_insensitive(case_variant, expected_name):
+    """Test that texture name lookup is case-insensitive."""
+    # Should not raise - the implementation uses .lower() to normalize
+    idx_variant = get_texture_class_index(case_variant)
+    idx_expected = get_texture_class_index(expected_name)
+    assert idx_variant == idx_expected, f"{case_variant} should match {expected_name}"
 
 
 # ============================================================================

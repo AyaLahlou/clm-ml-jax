@@ -263,13 +263,15 @@ def get_curr_date(
     # Using lax.while_loop for JIT compatibility (replaces goto 10)
     def cond_fn(carry):
         mcyear, mcmnth, mcday = carry
-        is_leap = isleap(mcyear, state.calkindflag)
+        # Use isleap_jax for JAX compatibility inside lax.while_loop
+        is_leap = isleap_jax(mcyear, state.calkindflag)
         days_per_month = jnp.where(is_leap, MDAYLEAP[mcmnth - 1], MDAY[mcmnth - 1])
         return mcday > days_per_month
     
     def body_fn(carry):
         mcyear, mcmnth, mcday = carry
-        is_leap = isleap(mcyear, state.calkindflag)
+        # Use isleap_jax for JAX compatibility inside lax.while_loop
+        is_leap = isleap_jax(mcyear, state.calkindflag)
         days_per_month = jnp.where(is_leap, MDAYLEAP[mcmnth - 1], MDAY[mcmnth - 1])
         
         # Subtract days in current month
@@ -370,7 +372,8 @@ def get_prev_date(
     # Convert to while loop using lax.while_loop for JIT compatibility
     def cond_fun(carry):
         mcyear, mcmnth, mcday = carry
-        is_leap = isleap(mcyear, state.calkindflag)
+        # Use isleap_jax for JAX compatibility inside lax.while_loop
+        is_leap = isleap_jax(mcyear, state.calkindflag)
         days_per_month = jnp.where(
             is_leap,
             MDAYLEAP[mcmnth - 1],  # 0-indexed array, 1-indexed month
@@ -380,7 +383,8 @@ def get_prev_date(
     
     def body_fun(carry):
         mcyear, mcmnth, mcday = carry
-        is_leap = isleap(mcyear, state.calkindflag)
+        # Use isleap_jax for JAX compatibility inside lax.while_loop
+        is_leap = isleap_jax(mcyear, state.calkindflag)
         days_per_month = jnp.where(
             is_leap,
             MDAYLEAP[mcmnth - 1],

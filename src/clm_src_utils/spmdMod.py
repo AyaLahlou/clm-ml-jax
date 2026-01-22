@@ -74,3 +74,4 @@ def is_master_proc() -> bool:
         >>> # Multi-device version:
         >>> # return jax.process_index() == 0
     """
+    return MASTERPROC

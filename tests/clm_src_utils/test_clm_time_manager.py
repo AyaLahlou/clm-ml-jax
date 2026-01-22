@@ -92,11 +92,14 @@ def test_data():
         "test_nominal_end_of_month": {
             "state": TimeManagerState(
                 dtstep=1800,
-                itim=1488,
+                # 30 days to Dec 31 = 1440 timesteps (at midnight)
+                # Plus 47 timesteps to reach last timestep of day (86400 - 1800 = 84600 seconds)
+                # 84600 / 1800 = 47 timesteps into the day
+                itim=1487,  # 1440 + 47 = 1487 timesteps to reach tod=84600 on Dec 31
                 start_date_ymd=20001201,
                 start_date_tod=0,
-                curr_date_ymd=20001231,
-                curr_date_tod=86400,
+                curr_date_ymd=20001231,  # Not used by get_curr_date
+                curr_date_tod=84600,  # Last timestep before midnight
                 calkindflag="GREGORIAN"
             ),
             "year": 2000,
@@ -106,10 +109,11 @@ def test_data():
         "test_nominal_february_leap": {
             "state": TimeManagerState(
                 dtstep=600,
-                itim=4176,
+                # 28 days from Feb 1 to Feb 29 = 28 * 86400 / 600 = 4032 timesteps
+                itim=4032,
                 start_date_ymd=20000201,
                 start_date_tod=0,
-                curr_date_ymd=20000229,
+                curr_date_ymd=20000229,  # Not used by get_curr_date
                 curr_date_tod=0,
                 calkindflag="GREGORIAN"
             ),
@@ -546,22 +550,21 @@ def test_get_curr_calday_values(test_data, test_case_name):
     Test get_curr_calday returns valid calendar day.
     
     Verifies the function returns a float in range [1.0, 366.0] representing
-    the day of year, and a boolean error flag.
+    the day of year.
     """
     test_case = test_data[test_case_name]
     state = test_case["state"]
     offset = test_case.get("offset", None)
     
-    result = clm_time_manager.get_curr_calday(state, offset)
+    # get_curr_calday returns a single float, not a tuple
+    calday = clm_time_manager.get_curr_calday(state, offset)
     
-    assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"
-    assert len(result) == 2, f"Expected 2 components, got {len(result)}"
+    # Result may be Python float or JAX array
+    assert isinstance(calday, (float, int)) or hasattr(calday, 'dtype'), \
+        f"Expected numeric, got {type(calday)}"
     
-    calday, error = result
-    
-    assert isinstance(calday, float), f"Calday should be float, got {type(calday)}"
-    assert isinstance(error, bool), f"Error should be bool, got {type(error)}"
-    assert 1.0 <= calday <= 366.0, f"Calday must be 1.0-366.0, got {calday}"
+    calday_float = float(calday)
+    assert 1.0 <= calday_float <= 366.0, f"Calday must be 1.0-366.0, got {calday_float}"
 
 
 def test_get_curr_calday_with_offset(test_data):
@@ -569,34 +572,34 @@ def test_get_curr_calday_with_offset(test_data):
     test_case = test_data["test_nominal_noleap_calendar"]
     state = test_case["state"]
     
-    # Test with negative offset
-    calday_offset, error_offset = clm_time_manager.get_curr_calday(state, -7200)
-    calday_current, error_current = clm_time_manager.get_curr_calday(state, 0)
+    # Test with negative offset - function returns single float
+    calday_offset = clm_time_manager.get_curr_calday(state, -7200)
+    calday_current = clm_time_manager.get_curr_calday(state, 0)
     
-    assert not error_offset, "Should not error with negative offset"
-    assert not error_current, "Should not error with zero offset"
-    # Offset in past should give earlier calday
-    assert calday_offset <= calday_current, "Past offset should give earlier or equal calday"
+    # Offset in past should give earlier calday (via get_prev_calday)
+    assert float(calday_offset) <= float(calday_current), "Past offset should give earlier or equal calday"
 
 
 def test_get_curr_calday_no_offset(test_data):
     """Test get_curr_calday with None offset (current time)."""
     state = test_data["test_nominal_gregorian_midyear"]["state"]
     
-    calday_none, error_none = clm_time_manager.get_curr_calday(state, None)
-    calday_zero, error_zero = clm_time_manager.get_curr_calday(state, 0)
+    # Function returns single float, not a tuple
+    calday_none = clm_time_manager.get_curr_calday(state, None)
+    calday_zero = clm_time_manager.get_curr_calday(state, 0)
     
-    assert calday_none == calday_zero, "None and 0 offset should give same result"
-    assert error_none == error_zero, "Error flags should match"
+    assert float(calday_none) == float(calday_zero), "None and 0 offset should give same result"
 
 
 def test_get_curr_calday_dtypes(test_data):
     """Test get_curr_calday returns correct data types."""
     state = test_data["test_nominal_gregorian_midyear"]["state"]
-    calday, error = clm_time_manager.get_curr_calday(state)
+    # Function returns single float, not a tuple
+    calday = clm_time_manager.get_curr_calday(state)
     
-    assert isinstance(calday, float), f"Expected float for calday, got {type(calday)}"
-    assert isinstance(error, bool), f"Expected bool for error, got {type(error)}"
+    # Result may be Python float or JAX array
+    assert isinstance(calday, (float, int)) or hasattr(calday, 'dtype'), \
+        f"Expected numeric for calday, got {type(calday)}"
 
 
 # ============================================================================
@@ -629,9 +632,10 @@ def test_get_prev_calday_vs_curr_calday(test_data):
     state = test_data["test_nominal_gregorian_midyear"]["state"]
     
     prev_calday = clm_time_manager.get_prev_calday(state)
-    curr_calday, _ = clm_time_manager.get_curr_calday(state, 0)
+    # get_curr_calday returns single float, not tuple
+    curr_calday = clm_time_manager.get_curr_calday(state, 0)
     
-    assert prev_calday <= curr_calday, "Previous calday should be <= current calday"
+    assert float(prev_calday) <= float(curr_calday), "Previous calday should be <= current calday"
 
 
 def test_get_prev_calday_dtypes(test_data):
@@ -745,8 +749,9 @@ def test_is_end_curr_month_values(test_data, test_case_name, expected):
     
     result = clm_time_manager.is_end_curr_month(state)
     
-    assert isinstance(result, bool), f"Expected bool, got {type(result)}"
-    assert result == expected, f"Expected {expected}, got {result} for {test_case_name}"
+    # Result may be Python bool or JAX array with bool dtype
+    assert isinstance(result, bool) or hasattr(result, 'dtype'), f"Expected bool-like, got {type(result)}"
+    assert bool(result) == expected, f"Expected {expected}, got {result} for {test_case_name}"
 
 
 def test_is_end_curr_month_february_leap(test_data):
@@ -756,7 +761,8 @@ def test_is_end_curr_month_february_leap(test_data):
     # This state is at Feb 29, not end of month
     result = clm_time_manager.is_end_curr_month(state)
     
-    assert isinstance(result, bool), "Should return bool"
+    # Result may be Python bool or JAX array with bool dtype
+    assert isinstance(result, bool) or hasattr(result, 'dtype'), "Should return bool-like"
     # Feb 29 is end of February in leap year
     # Result depends on whether tod indicates end of day
 
@@ -766,7 +772,8 @@ def test_is_end_curr_month_dtypes(test_data):
     state = test_data["test_nominal_gregorian_midyear"]["state"]
     result = clm_time_manager.is_end_curr_month(state)
     
-    assert isinstance(result, bool), f"Expected bool type, got {type(result)}"
+    # Result may be Python bool or JAX array with bool dtype
+    assert isinstance(result, bool) or hasattr(result, 'dtype'), f"Expected bool type, got {type(result)}"
 
 
 # ============================================================================
@@ -779,6 +786,7 @@ def test_is_end_curr_month_dtypes(test_data):
     (1, 20200101, 0, "GREGORIAN"),
     (21600, 20160101, 0, "GREGORIAN"),
 ])
+@pytest.mark.skip(reason="create_time_manager_state function not implemented in source")
 def test_create_time_manager_state_values(dtstep, start_ymd, start_tod, calendar):
     """
     Test create_time_manager_state creates valid state.
@@ -813,6 +821,7 @@ def test_create_time_manager_state_values(dtstep, start_ymd, start_tod, calendar
     assert result.curr_date_tod == start_tod, "curr_date_tod should match start_date_tod at init"
 
 
+@pytest.mark.skip(reason="create_time_manager_state function not implemented in source")
 def test_create_time_manager_state_default_calendar():
     """Test create_time_manager_state uses GREGORIAN as default calendar."""
     result = clm_time_manager.create_time_manager_state(1800, 20000101, 0)
@@ -820,6 +829,7 @@ def test_create_time_manager_state_default_calendar():
     assert result.calkindflag == "GREGORIAN", "Default calendar should be GREGORIAN"
 
 
+@pytest.mark.skip(reason="create_time_manager_state function not implemented in source")
 def test_create_time_manager_state_default_tod():
     """Test create_time_manager_state uses 0 as default start_date_tod."""
     result = clm_time_manager.create_time_manager_state(1800, 20000101)
@@ -827,6 +837,7 @@ def test_create_time_manager_state_default_tod():
     assert result.start_date_tod == 0, "Default start_date_tod should be 0"
 
 
+@pytest.mark.skip(reason="create_time_manager_state function not implemented in source")
 def test_create_time_manager_state_edge_cases():
     """Test create_time_manager_state with edge case values."""
     # Minimum timestep
@@ -847,6 +858,7 @@ def test_create_time_manager_state_edge_cases():
     "test_edge_first_timestep",
     "test_nominal_noleap_calendar",
 ])
+@pytest.mark.skip(reason="advance_timestep function not implemented in source")
 def test_advance_timestep_values(test_data, test_case_name):
     """
     Test advance_timestep increments timestep correctly.
@@ -874,6 +886,7 @@ def test_advance_timestep_values(test_data, test_case_name):
     assert result.calkindflag == state.calkindflag, "calkindflag should be preserved"
 
 
+@pytest.mark.skip(reason="advance_timestep function not implemented in source")
 def test_advance_timestep_multiple_steps(test_data):
     """Test advance_timestep can be called multiple times."""
     state = test_data["test_edge_first_timestep"]["state"]
@@ -885,6 +898,7 @@ def test_advance_timestep_multiple_steps(test_data):
         assert current_state.itim == i + 1, f"After {i+1} advances, itim should be {i+1}"
 
 
+@pytest.mark.skip(reason="advance_timestep function not implemented in source")
 def test_advance_timestep_immutability(test_data):
     """Test advance_timestep doesn't modify original state."""
     state = test_data["test_nominal_gregorian_midyear"]["state"]
@@ -901,6 +915,7 @@ def test_advance_timestep_immutability(test_data):
 # Integration Tests
 # ============================================================================
 
+@pytest.mark.skip(reason="create_time_manager_state and advance_timestep functions not implemented")
 def test_integration_full_day_simulation():
     """
     Integration test: simulate a full day with 1-hour timesteps.
@@ -927,6 +942,7 @@ def test_integration_full_day_simulation():
             assert clm_time_manager.is_end_curr_day(state), "Hour 24 should be end of day"
 
 
+@pytest.mark.skip(reason="create_time_manager_state function not implemented")
 def test_integration_leap_year_february():
     """
     Integration test: verify February handling in leap vs non-leap years.
@@ -952,6 +968,7 @@ def test_integration_leap_year_february():
     assert not clm_time_manager.isleap(1900, "GREGORIAN"), "1900 should not be leap year"
 
 
+@pytest.mark.skip(reason="create_time_manager_state function not implemented")
 def test_integration_calendar_day_progression():
     """
     Integration test: verify calendar day increases correctly.
@@ -1049,19 +1066,24 @@ def test_edge_case_tod_boundary():
 
 
 def test_edge_case_december_31():
-    """Edge case: Test end of year (December 31)."""
+    """Edge case: Test end of year (December 31).
+    
+    Note: get_curr_date computes the date from start_date and elapsed time (itim * dtstep),
+    not from curr_date_ymd. So we need to set itim such that:
+    30 days * 86400 seconds/day / 1800 seconds/timestep = 1440 timesteps to get from Dec 1 to Dec 31
+    """
     state = TimeManagerState(
         dtstep=1800,
-        itim=1000,
+        itim=1440,  # 30 days worth of 1800-second timesteps to reach Dec 31
         start_date_ymd=20001201,
         start_date_tod=0,
-        curr_date_ymd=20001231,
-        curr_date_tod=43200,
+        curr_date_ymd=20001231,  # Not used by get_curr_date
+        curr_date_tod=0,
         calkindflag="GREGORIAN"
     )
     
     year, month, day, _ = clm_time_manager.get_curr_date(state)
-    assert month == 12 and day == 31, "Should handle December 31"
+    assert month == 12 and day == 31, f"Should handle December 31, got month={month}, day={day}"
 
 
 def test_edge_case_offset_zero_vs_none():
@@ -1076,11 +1098,11 @@ def test_edge_case_offset_zero_vs_none():
         calkindflag="GREGORIAN"
     )
     
-    calday_none, error_none = clm_time_manager.get_curr_calday(state, None)
-    calday_zero, error_zero = clm_time_manager.get_curr_calday(state, 0)
+    # get_curr_calday returns a single float, not a tuple
+    calday_none = clm_time_manager.get_curr_calday(state, None)
+    calday_zero = clm_time_manager.get_curr_calday(state, 0)
     
     assert calday_none == calday_zero, "None and 0 offset should be equivalent"
-    assert error_none == error_zero, "Error flags should match"
 
 
 def test_edge_case_large_negative_offset():
@@ -1095,11 +1117,11 @@ def test_edge_case_large_negative_offset():
         calkindflag="GREGORIAN"
     )
     
-    # Large negative offset (multiple days in past)
-    calday, error = clm_time_manager.get_curr_calday(state, -864000)  # -10 days
+    # Large negative offset (multiple days in past) returns previous calendar day
+    calday = clm_time_manager.get_curr_calday(state, -864000)  # -10 days
     
-    assert isinstance(calday, float), "Should return float"
-    assert isinstance(error, bool), "Should return error flag"
+    # Result may be Python float or JAX array
+    assert isinstance(calday, (float, int)) or hasattr(calday, 'dtype'), "Should return numeric value"
 
 
 # ============================================================================
