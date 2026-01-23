@@ -79,7 +79,9 @@ def get_filename(fulpath: str) -> str:
     #    if (fulpath(i:i) == '/') go to 10
     # end do
     # i = 0
-    i = 0
+    # In Fortran, i=0 means fulpath(1:klen) = whole string (1-based indexing)
+    # In Python, we need i=-1 so that [i+1:] = [0:] = whole string
+    i = -1
     for idx in range(klen - 1, -1, -1):
         if fulpath_trimmed[idx] == '/':
             i = idx
@@ -158,10 +160,11 @@ def getfil(
         logger.error(f'(GETFIL): failed getting file from full path: {fulpath}')
         if iflag == 0:
             # In original Fortran, this calls endrun()
-            # We return failure status instead for better composability
-            return "", False
+            # We raise an exception to match expected abort behavior
+            raise FileNotFoundError(f'(GETFIL): file not found: {fulpath}')
         else:
-            return "", False
+            # iflag=1: do not abort, return the path with failure status
+            return fulpath, False
 
 
 def opnfil(

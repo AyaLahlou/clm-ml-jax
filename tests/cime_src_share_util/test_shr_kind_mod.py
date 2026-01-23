@@ -24,6 +24,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 # Import the actual constants from the translated module
 from cime_src_share_util.shr_kind_mod import SHR_KIND_R8, SHR_KIND_IN, r8
 
+# Apply jax_config fixture to all tests in this module to enable float64
+pytestmark = pytest.mark.usefixtures("jax_config")
+
 
 # ============================================================================
 # Fixtures
@@ -140,27 +143,30 @@ def test_shr_kind_r8_dtype_properties(test_data):
     """
     expected = test_data["r8_dtype_properties"]["expected"]
     
-    # Check dtype name
-    assert SHR_KIND_R8.name == expected["dtype"], (
+    # Check dtype name - need to use jnp.dtype() to get dtype properties
+    dtype_obj = jnp.dtype(SHR_KIND_R8)
+    assert dtype_obj.name == expected["dtype"], (
         f"SHR_KIND_R8 dtype should be {expected['dtype']}, "
-        f"got {SHR_KIND_R8.name}"
+        f"got {dtype_obj.name}"
     )
     
     # Check item size (bytes)
-    assert SHR_KIND_R8.itemsize == expected["itemsize"], (
+    assert dtype_obj.itemsize == expected["itemsize"], (
         f"SHR_KIND_R8 itemsize should be {expected['itemsize']} bytes, "
-        f"got {SHR_KIND_R8.itemsize}"
+        f"got {dtype_obj.itemsize}"
     )
     
     # Check kind (floating point)
-    assert SHR_KIND_R8.kind == expected["kind"], (
+    assert dtype_obj.kind == expected["kind"], (
         f"SHR_KIND_R8 kind should be '{expected['kind']}', "
-        f"got '{SHR_KIND_R8.kind}'"
+        f"got '{dtype_obj.kind}'"
     )
     
-    # Verify it's a JAX dtype
-    assert isinstance(SHR_KIND_R8, jnp.dtype), (
-        "SHR_KIND_R8 should be a JAX dtype instance"
+    # Verify it's a valid JAX/numpy dtype type
+    # SHR_KIND_R8 is a dtype class (like jnp.float64), not an instance
+    test_array = jnp.array([1.0], dtype=SHR_KIND_R8)
+    assert test_array.dtype == dtype_obj, (
+        "SHR_KIND_R8 should be usable as a JAX dtype"
     )
 
 
@@ -175,11 +181,12 @@ def test_r8_alias_matches_shr_kind_r8(test_data):
         "r8 alias should be identical to SHR_KIND_R8"
     )
     
-    assert r8.name == SHR_KIND_R8.name, (
+    # Use jnp.dtype() to access dtype properties
+    assert jnp.dtype(r8).name == jnp.dtype(SHR_KIND_R8).name, (
         "r8 and SHR_KIND_R8 should have the same dtype name"
     )
     
-    assert r8.itemsize == SHR_KIND_R8.itemsize, (
+    assert jnp.dtype(r8).itemsize == jnp.dtype(SHR_KIND_R8).itemsize, (
         "r8 and SHR_KIND_R8 should have the same itemsize"
     )
 
@@ -196,27 +203,30 @@ def test_shr_kind_in_dtype_properties(test_data):
     """
     expected = test_data["in_dtype_properties"]["expected"]
     
-    # Check dtype name
-    assert SHR_KIND_IN.name == expected["dtype"], (
+    # Check dtype name - use jnp.dtype() to access dtype properties
+    dtype_obj = jnp.dtype(SHR_KIND_IN)
+    assert dtype_obj.name == expected["dtype"], (
         f"SHR_KIND_IN dtype should be {expected['dtype']}, "
-        f"got {SHR_KIND_IN.name}"
+        f"got {dtype_obj.name}"
     )
     
     # Check item size (bytes)
-    assert SHR_KIND_IN.itemsize == expected["itemsize"], (
+    assert dtype_obj.itemsize == expected["itemsize"], (
         f"SHR_KIND_IN itemsize should be {expected['itemsize']} bytes, "
-        f"got {SHR_KIND_IN.itemsize}"
+        f"got {dtype_obj.itemsize}"
     )
     
     # Check kind (integer)
-    assert SHR_KIND_IN.kind == expected["kind"], (
+    assert dtype_obj.kind == expected["kind"], (
         f"SHR_KIND_IN kind should be '{expected['kind']}', "
-        f"got '{SHR_KIND_IN.kind}'"
+        f"got '{dtype_obj.kind}'"
     )
     
-    # Verify it's a JAX dtype
-    assert isinstance(SHR_KIND_IN, jnp.dtype), (
-        "SHR_KIND_IN should be a JAX dtype instance"
+    # Verify it's a valid JAX/numpy dtype type
+    # SHR_KIND_IN is a dtype class (like jnp.int32), not an instance
+    test_array = jnp.array([1], dtype=SHR_KIND_IN)
+    assert test_array.dtype == dtype_obj, (
+        "SHR_KIND_IN should be usable as a JAX dtype"
     )
 
 
@@ -573,8 +583,9 @@ def test_in_numpy_compatibility():
     result_max = jnp.max(arr)
     
     # Verify operations work and return correct dtype
-    assert result_sum.dtype == SHR_KIND_IN, (
-        f"Sum result should have dtype {SHR_KIND_IN}, got {result_sum.dtype}"
+    # JAX sum may promote int32 to int64 for accumulation precision
+    assert result_sum.dtype in (SHR_KIND_IN, jnp.int64), (
+        f"Sum result should have dtype {SHR_KIND_IN} or int64, got {result_sum.dtype}"
     )
     
     assert int(result_max) == 9, (

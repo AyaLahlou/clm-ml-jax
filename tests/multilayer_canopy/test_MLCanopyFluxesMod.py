@@ -72,7 +72,7 @@ def test_data():
     return {
         "test_nominal_single_patch_moderate_conditions": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=1, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=0, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 1,
                 "filter_exposedvegp": jnp.array([0]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -111,7 +111,7 @@ def test_data():
         },
         "test_nominal_multiple_patches_varying_lai": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=4, begc=0, endc=2, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=3, begc=0, endc=1, begg=0, endg=0),
                 "num_exposedvegp": 4,
                 "filter_exposedvegp": jnp.array([0, 1, 2, 3]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -165,7 +165,7 @@ def test_data():
         },
         "test_edge_zero_lai_bare_ground": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=2, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=1, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 2,
                 "filter_exposedvegp": jnp.array([0, 1]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -213,7 +213,7 @@ def test_data():
         },
         "test_edge_nighttime_no_solar_radiation": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=3, begc=0, endc=2, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=2, begc=0, endc=1, begg=0, endg=0),
                 "num_exposedvegp": 3,
                 "filter_exposedvegp": jnp.array([0, 1, 2]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -264,7 +264,7 @@ def test_data():
         },
         "test_edge_extreme_cold_winter_conditions": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=2, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=1, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 2,
                 "filter_exposedvegp": jnp.array([0, 1]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -312,7 +312,7 @@ def test_data():
         },
         "test_edge_high_lai_dense_canopy": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=2, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=1, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 2,
                 "filter_exposedvegp": jnp.array([0, 1]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -360,7 +360,7 @@ def test_data():
         },
         "test_special_single_substep": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=1, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=0, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 1,
                 "filter_exposedvegp": jnp.array([0]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -399,7 +399,7 @@ def test_data():
         },
         "test_special_many_substeps": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=1, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=0, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 1,
                 "filter_exposedvegp": jnp.array([0]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -438,7 +438,7 @@ def test_data():
         },
         "test_special_high_wind_low_pressure": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=3, begc=0, endc=2, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=2, begc=0, endc=1, begg=0, endg=0),
                 "num_exposedvegp": 3,
                 "filter_exposedvegp": jnp.array([0, 1, 2]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -489,7 +489,7 @@ def test_data():
         },
         "test_special_hot_humid_tropical": {
             "inputs": {
-                "bounds": Bounds(begp=0, endp=2, begc=0, endc=1, begg=0, endg=1),
+                "bounds": Bounds(begp=0, endp=1, begc=0, endc=0, begg=0, endg=0),
                 "num_exposedvegp": 2,
                 "filter_exposedvegp": jnp.array([0, 1]),
                 "atmospheric_forcing": AtmosphericForcing(
@@ -831,14 +831,14 @@ def test_ml_canopy_fluxes_input_validation(test_data):
     test_case = test_data["test_nominal_single_patch_moderate_conditions"]
     inputs = test_case["inputs"]
     
-    # Verify bounds consistency
-    assert inputs["bounds"].begp < inputs["bounds"].endp, "begp should be less than endp"
-    assert inputs["bounds"].begc < inputs["bounds"].endc, "begc should be less than endc"
-    assert inputs["bounds"].begg < inputs["bounds"].endg, "begg should be less than endg"
+    # Verify bounds consistency (endp is inclusive, so begp <= endp is valid)
+    assert inputs["bounds"].begp <= inputs["bounds"].endp, "begp should be less than or equal to endp"
+    assert inputs["bounds"].begc <= inputs["bounds"].endc, "begc should be less than or equal to endc"
+    assert inputs["bounds"].begg <= inputs["bounds"].endg, "begg should be less than or equal to endg"
     
-    # Verify filter indices are within bounds
+    # Verify filter indices are within bounds (endp is inclusive)
     assert jnp.all(inputs["filter_exposedvegp"] >= inputs["bounds"].begp), "Filter indices should be >= begp"
-    assert jnp.all(inputs["filter_exposedvegp"] < inputs["bounds"].endp), "Filter indices should be < endp"
+    assert jnp.all(inputs["filter_exposedvegp"] <= inputs["bounds"].endp), "Filter indices should be <= endp"
     
     # Verify time parameters are positive
     assert inputs["dtime"] > 0, "dtime should be positive"

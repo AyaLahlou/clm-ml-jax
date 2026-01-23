@@ -91,20 +91,15 @@ def mock_qsat_function():
     Uses simplified Clausius-Clapeyron relation:
     e_sat = 611.2 * exp(17.67 * (T - 273.15) / (T - 29.65))
     
-    Mimics the signature of sat_vap from MLWaterVaporMod.
+    Returns (esat, desat_dT) to match the expected signature.
     """
     def qsat(temperature):
-        """Calculate saturation vapor pressure [Pa] from temperature [K].
-        
-        Returns:
-            Tuple of (esat, degdT) where:
-                esat: Saturation vapor pressure [Pa]
-                degdT: Temperature derivative [Pa/K] (returned as zero for simplicity)
-        """
+        """Calculate saturation vapor pressure [Pa] from temperature [K]."""
         t_celsius = temperature - 273.15
         esat = 611.2 * jnp.exp(17.67 * t_celsius / (temperature - 29.65))
-        degdT = jnp.zeros_like(esat)  # Derivative not used in tests
-        return esat, degdT
+        # Also return derivative for compatibility
+        desat_dT = esat * 17.67 * 243.5 / (temperature - 29.65)**2
+        return esat, desat_dT
     return qsat
 
 

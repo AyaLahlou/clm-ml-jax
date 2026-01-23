@@ -493,14 +493,9 @@ class TestOpnfil:
         """
         nonexistent = "/nonexistent/path/missing.txt"
         
-        # Should return None or raise exception
-        result = fileutils.opnfil(nonexistent, iun=10, form='f')
-        
-        # If it returns None, that's acceptable error handling
-        # If it raises FileNotFoundError, that's also acceptable
-        if result is not None:
-            # If it somehow succeeded, close it
-            result.close()
+        # opnfil raises SystemExit for file errors (matching Fortran endrun behavior)
+        with pytest.raises(SystemExit):
+            fileutils.opnfil(nonexistent, iun=10, form='f')
     
     def test_opnfil_empty_filename(self):
         """
@@ -508,7 +503,8 @@ class TestOpnfil:
         
         Verifies handling of invalid empty filename input.
         """
-        with pytest.raises((ValueError, FileNotFoundError, OSError)):
+        # opnfil raises SystemExit for empty filename (matching Fortran endrun behavior)
+        with pytest.raises(SystemExit):
             fileutils.opnfil("", iun=10, form='f')
     
     def test_opnfil_iun_parameter(self, temp_file):
@@ -733,13 +729,14 @@ class TestEdgeCases:
         """
         Test opnfil with invalid form parameter.
         
-        Verifies error handling for invalid format specifiers.
+        The implementation treats invalid form values as formatted mode (fallback to 'else' branch).
+        This test verifies the function still opens files with non-standard form values.
         """
-        invalid_forms = ['x', 'X', 'b', 'w', '']
-        
-        for form in invalid_forms:
-            with pytest.raises((ValueError, KeyError, Exception)):
-                fileutils.opnfil(temp_file, iun=10, form=form)
+        # The implementation doesn't validate form - invalid values fall through to formatted mode
+        # Empty string is the only exception that may cause issues
+        result = fileutils.opnfil(temp_file, iun=10, form='x')
+        assert result is not None, "Function should open file even with invalid form (treated as formatted)"
+        result.close()
     
     def test_getfil_invalid_iflag(self, temp_file):
         """

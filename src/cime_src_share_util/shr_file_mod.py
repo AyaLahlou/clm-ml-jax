@@ -137,7 +137,8 @@ def shr_file_get_unit(
         allocated_unit = jnp.where(is_available, unit, -1)
         success = is_available
         
-        return FileUnitState(unit_tag=new_unit_tag), int(allocated_unit), bool(success)
+        # Don't convert to Python types - return JAX arrays for JIT compatibility
+        return FileUnitState(unit_tag=new_unit_tag), allocated_unit, success
     
     else:
         # Choose first available unit (Fortran lines 62-74)
@@ -170,7 +171,8 @@ def shr_file_get_unit(
             state.unit_tag
         )
         
-        return FileUnitState(unit_tag=new_unit_tag), int(allocated_unit), bool(has_available)
+        # Don't convert to Python types - return JAX arrays for JIT compatibility
+        return FileUnitState(unit_tag=new_unit_tag), allocated_unit, has_available
 
 
 # =============================================================================
@@ -240,20 +242,17 @@ def shr_file_free_unit(
         )
     )
     
-    # Generate error message
-    error_msg = jnp.where(
-        error_code == 1,
-        f"invalid unit number request: {unit}",
-        jnp.where(
-            error_code == 2,
-            "Error: units 0, 5, and 6 must not be freed",
-            jnp.where(
-                error_code == 3,
-                f"unit {unit} was not in use",
-                ""
-            )
-        )
-    )
+    # Generate error message based on error code (not using jnp.where on strings)
+    # This must be done with Python logic, not JAX
+    error_code_val = int(error_code)
+    if error_code_val == 1:
+        error_msg = f"invalid unit number request: {unit}"
+    elif error_code_val == 2:
+        error_msg = "Error: units 0, 5, and 6 must not be freed"
+    elif error_code_val == 3:
+        error_msg = f"unit {unit} was not in use"
+    else:
+        error_msg = ""
     
     # Update unit_tag array - only if no error and unit was in use (line 107)
     new_unit_tag = jnp.where(
@@ -266,8 +265,8 @@ def shr_file_free_unit(
     
     return FreeUnitResult(
         state=new_state,
-        error_code=int(error_code),
-        error_msg=str(error_msg)
+        error_code=error_code_val,
+        error_msg=error_msg
     )
 
 
@@ -276,4 +275,5 @@ def shr_file_free_unit(
 # =============================================================================
 
 shr_file_get_unit_jit = jax.jit(shr_file_get_unit, static_argnames=['unit'])
-shr_file_free_unit_jit = jax.jit(shr_file_free_unit)
+# Note: shr_file_free_unit requires unit to be static since it generates error messages
+shr_file_free_unit_jit = jax.jit(shr_file_free_unit, static_argnames=['unit'])

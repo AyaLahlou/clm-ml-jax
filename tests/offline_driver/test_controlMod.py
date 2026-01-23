@@ -541,8 +541,8 @@ def test_control_tower_not_found():
         tower_time=(30, 30)
     )
     
-    # Should raise ValueError or similar
-    with pytest.raises((ValueError, KeyError, IndexError, ControlError)):
+    # Should raise ControlError when tower not found
+    with pytest.raises(ControlError):
         control(namelist, tower_data)
 
 
