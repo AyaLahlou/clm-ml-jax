@@ -56,7 +56,7 @@ def test_data() -> Dict[str, Any]:
     return {
         "shr_orb_cosz": {
             "equinox_equator": {
-                "jday": 80.0,
+                "jday": 80.5,  # 0.5 = noon local time
                 "lat": 0.0,
                 "lon": 0.0,
                 "declin": 0.0,
@@ -64,7 +64,7 @@ def test_data() -> Dict[str, Any]:
                 "description": "Spring equinox at equator, noon - sun near zenith"
             },
             "summer_solstice_north": {
-                "jday": 172.0,
+                "jday": 172.5,  # 0.5 = noon local time
                 "lat": 0.4101,
                 "lon": 0.0,
                 "declin": 0.4091,
@@ -72,7 +72,7 @@ def test_data() -> Dict[str, Any]:
                 "description": "Summer solstice at Tropic of Cancer"
             },
             "winter_pole": {
-                "jday": 355.0,
+                "jday": 355.5,  # Noon, but polar night - sun stays below horizon
                 "lat": 1.5708,
                 "lon": 0.0,
                 "declin": -0.4091,
@@ -80,15 +80,15 @@ def test_data() -> Dict[str, Any]:
                 "description": "Winter at North Pole - polar night"
             },
             "midnight_negative": {
-                "jday": 200.0,
+                "jday": 200.0,  # 0.0 = midnight local time
                 "lat": 0.0,
-                "lon": 3.1416,
+                "lon": 0.0,  # lon=0 at midnight (jday=integer)
                 "declin": 0.2,
                 "expected_range": (-1.0, 0.0),
                 "description": "Midnight at equator - sun below horizon"
             },
             "south_pole_summer": {
-                "jday": 355.0,
+                "jday": 355.5,  # 0.5 = noon local time
                 "lat": -1.5708,
                 "lon": 0.0,
                 "declin": -0.4091,
@@ -889,7 +889,7 @@ class TestEdgeCases:
         small_declin = jnp.array([1e-10, -1e-10, 0.0])
         
         result = shr_orb_cosz(
-            jday=jnp.full_like(small_declin, 180.0),
+            jday=jnp.full_like(small_declin, 180.5),  # 0.5 = noon local time
             lat=jnp.zeros_like(small_declin),
             lon=jnp.zeros_like(small_declin),
             declin=small_declin

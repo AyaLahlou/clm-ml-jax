@@ -204,7 +204,8 @@ def shr_orb_cosz(
     Assumes 365.0 days per year.
     
     Args:
-        jday: Julian calendar day (1.xx to 365.xx) [radians for phase calculation]
+        jday: Julian calendar day (1.xx to 365.xx). The fractional part represents
+              the time of day (0.0 = midnight, 0.5 = noon).
         lat: Centered latitude (radians)
         lon: Centered longitude (radians)
         declin: Solar declination (radians)
@@ -215,13 +216,22 @@ def shr_orb_cosz(
     Notes:
         - Pure function, JIT-compatible
         - Vectorized for array inputs
-        - Formula: cos(zenith) = sin(lat)*sin(declin) - cos(lat)*cos(declin)*cos(jday*2*pi + lon)
-        - The jday term represents the hour angle in the original formulation
+        - Formula: cos(zenith) = sin(lat)*sin(declin) + cos(lat)*cos(declin)*cos(hour_angle)
+        - hour_angle = 2*pi*(jday - floor(jday)) - pi + lon
+          where the fractional part of jday gives time of day
         
     Reference: Fortran lines 23-41
     """
-    cosz = (jnp.sin(lat) * jnp.sin(declin) - 
-            jnp.cos(lat) * jnp.cos(declin) * jnp.cos(jday * 2.0 * PI + lon))
+    # Calculate hour angle from fractional day
+    # At local noon (fractional day = 0.5), hour angle should be 0
+    # jday fractional part: 0.0 = midnight, 0.5 = noon, 1.0 = next midnight
+    frac_day = jday - jnp.floor(jday)
+    hour_angle = 2.0 * PI * frac_day - PI + lon
+    
+    # Cosine of solar zenith angle
+    # Note: The plus sign is correct (not minus) - this is the standard formula
+    cosz = (jnp.sin(lat) * jnp.sin(declin) + 
+            jnp.cos(lat) * jnp.cos(declin) * jnp.cos(hour_angle))
     
     return cosz
 

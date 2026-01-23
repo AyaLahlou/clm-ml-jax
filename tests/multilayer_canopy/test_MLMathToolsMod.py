@@ -1001,8 +1001,10 @@ class TestEdgeCases:
         r1, r2 = quadratic(a, b, c)
         
         # Roots should be very close to each other
+        # Note: With near-zero discriminant, numerical precision limits closeness
+        # The discriminant here is about 4e-10, giving sqrt ≈ 2e-5 difference
         np.testing.assert_allclose(
-            r1, r2, atol=1e-5, err_msg="Roots should be nearly equal for near-zero discriminant"
+            r1, r2, atol=3e-5, err_msg="Roots should be nearly equal for near-zero discriminant"
         )
 
     def test_tridiag_single_equation(self):

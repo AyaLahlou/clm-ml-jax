@@ -273,7 +273,7 @@ class patch_type:
         Get information about a specific patch.
         
         Args:
-            patch_idx: Patch index
+            patch_idx: Patch index (direct array index into column/gridcell/itype arrays)
             
         Returns:
             Dictionary with patch information
@@ -284,8 +284,8 @@ class patch_type:
         if patch_idx < self.begp or patch_idx > self.endp:
             raise ValueError(f"Patch index {patch_idx} out of range [{self.begp}, {self.endp}]")
         
-        # Map patch index in [begp, endp] to local array index starting at 0
-        array_idx = patch_idx - self.begp
+        # Use direct array indexing - patch arrays are indexed directly by patch_idx
+        array_idx = patch_idx
         
         if array_idx < 0 or array_idx >= len(self.column):
             raise ValueError(f"Patch index {patch_idx} exceeds array bounds")
@@ -516,8 +516,8 @@ def get_pft_statistics(patch_instance: patch_type) -> Dict[str, Any]:
     # Get PFT codes for active patches
     pft_codes = []
     for patch_idx in active_patches:
-        # Map from patch index space to local array index space using begp
-        array_idx = patch_idx - patch_instance.begp
+        # Use direct array indexing - patch arrays are indexed directly by patch_idx
+        array_idx = patch_idx
         if 0 <= array_idx < len(patch_instance.itype):
             pft_codes.append(int(patch_instance.itype[array_idx]))
     

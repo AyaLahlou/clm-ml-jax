@@ -331,9 +331,13 @@ def read_clm_data_slice(
     # Lines 190-194: Read ESAI with start2=[1, strt], count2=[1, 1]
     esai = esai_data[0, time_idx_0based]
     
-    # Lines 198-202: Read COSZEN with start2=[1, strt], count2=[1, 1]
-    # Use same time index as elai and esai
-    coszen = coszen_data[0, time_idx_0based]
+    # Lines 198-202: Read COSZEN with start2=[1, strt-1], count2=[1, 1]
+    # NOTE: Fortran uses strt-1 for coszen (line 200), so we use time_idx_0based - 1
+    # This is because coszen represents values at the previous time step
+    coszen_idx = time_idx_0based - 1
+    # Ensure we don't go negative (handle edge case of first timestep)
+    coszen_idx = max(coszen_idx, 0)
+    coszen = coszen_data[0, coszen_idx]
     
     return CLMDataSlice(
         elai=elai,

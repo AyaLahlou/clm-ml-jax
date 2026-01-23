@@ -145,9 +145,14 @@ class column_type:
             
         Returns:
             Tuple of (fortran_col_idx, fortran_layer_idx)
+            
+        Note:
+            Fortran uses 1-based indexing. Python col_idx 0 corresponds to
+            Fortran index 1 (relative to the start of the array).
         """
-        # Convert Python 0-based col_idx to Fortran index starting at begc
-        fortran_col_idx = self.begc + col_idx
+        # Convert Python 0-based col_idx to Fortran 1-based index
+        # col_idx=0 -> fortran_col=1, col_idx=1 -> fortran_col=2, etc.
+        fortran_col_idx = col_idx + 1
         
         if array_type in ['dz', 'z']:
             # These arrays go from -nlevsno+1 to nlevgrnd

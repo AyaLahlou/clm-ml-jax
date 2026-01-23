@@ -160,9 +160,10 @@ def init_allocate_water_state(
     begc = bounds.begc
     endc = bounds.endc
     
-    # Calculate array sizes (Fortran-style: bounds are inclusive)
-    num_cols = endc - begc + 1
-    num_patches = endp - begp + 1
+    # Calculate array sizes (Python-style: end index is exclusive)
+    # In this codebase, bounds follow Python convention where end is exclusive
+    num_cols = endc - begc
+    num_patches = endp - begp
     
     # Set fill value
     fill_value = jnp.nan if use_nan else 0.0
