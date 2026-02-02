@@ -652,17 +652,27 @@ class TranslatorAgent(BaseAgent):
             
         # If we have a fortran_root override, try to remap relative to it
         if self.fortran_root:
-            # Extract relative path from CLM-ml_v1 onwards
+            # Extract relative path from CLM-ml_v1 or clubb_ML onwards
             parts = path_obj.parts
             for i, part in enumerate(parts):
-                if 'CLM' in part or 'clm' in part:
-                    relative_parts = parts[i+1:]  # Skip the CLM-ml_v1 part  
+                if 'CLM' in part or 'clm' in part or 'clubb' in part.lower():
+                    relative_parts = parts[i+1:]  # Skip the CLM-ml_v1 or clubb_ML part  
                     remapped = self.fortran_root / Path(*relative_parts)
                     try:
                         if remapped.exists():
                             return remapped
                     except (PermissionError, OSError):
                         pass
+            
+            # Try common CLUBB source locations
+            clubb_common_dirs = ['src', 'utilities', 'postprocessing']
+            for subdir in clubb_common_dirs:
+                candidate = self.fortran_root / subdir / path_obj.name
+                try:
+                    if candidate.exists():
+                        return candidate
+                except (PermissionError, OSError):
+                    pass
             
             # Try just the filename
             filename_path = self.fortran_root / path_obj.name

@@ -113,3 +113,11 @@ dmypy.json
 Thumbs.db
 *.err
 *.out
+CLUBB_TRANSLATION_SETUP.md
+.gitignore
+MIXING_LENGTH_PYTEST_RESULTS.md
+VECTORIZATION_REVIEW.md
+verify_clubb_setup.sh
+docs/test_documentation/test_documentation_mixing_length.md
+docs/translation_notes/mixing_length_translation_notes.md
+src/MIXING_LENGTH_TESTING_SUMMARY.md

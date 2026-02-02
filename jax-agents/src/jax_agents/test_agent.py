@@ -91,7 +91,7 @@ class TestGenerationResult:
         console.print(f"[green]✓ Saved test data to {test_data_path}[/green]")
         
         # Save test documentation to docs/
-        docs_dir = project_root / "CLM-ml_v1" / "docs" / "test_documentation"
+        docs_dir = project_root / "docs" / "test_documentation"
         docs_dir.mkdir(parents=True, exist_ok=True)
         docs_path = docs_dir / f"test_documentation_{self.module_name}.md"
         with open(docs_path, 'w') as f:

@@ -136,8 +136,8 @@ check_requirements() {
     fi
     
     # Check JSON files
-    if [ ! -f "./static_analysis_output/analysis_results.json" ]; then
-        print_error "analysis_results.json not found in static_analysis_output/"
+    if [ ! -f "../CLUBB_static_analysis/analysis_results.json" ]; then
+        print_error "analysis_results.json not found in CLUBB_static_analysis/"
         print_info "Please ensure JSON analysis files are available"
         exit 1
     fi
@@ -201,7 +201,7 @@ run_translation() {
     echo
     
     # Run translate_with_json.py with module arguments and structured output
-    if python examples/translate_with_json.py "${modules_needing_translation[@]}" --structured-output; then
+    if python3 examples/translate_with_json.py "${modules_needing_translation[@]}" --structured-output; then
         print_success "Translation completed successfully"
         
         # List newly translated modules (check both structured and legacy locations)
@@ -334,7 +334,7 @@ run_test_generation() {
         fi
         
         # Generate tests with structured output
-        if python examples/generate_tests.py --module "$module" --python "$python_file" --output /tmp/dummy --structured-output; then
+        if python3 examples/generate_tests.py --module "$module" --python "$python_file" --output /tmp/dummy --structured-output; then
             print_success "$module - test generation completed with structured output"
         else
             print_error "$module - test generation failed"
@@ -520,15 +520,13 @@ run_repair() {
         # Look for Fortran reference in multiple locations
         fortran_ref=""
         
-        # Check common Fortran source locations
+        # Check common Fortran source locations in CLUBB
         fortran_search_paths=(
-            "$SCRIPT_DIR/../CLM-ml_v1/clm_src_main/${module}.F90"
-            "$SCRIPT_DIR/../CLM-ml_v1/clm_src_biogeophys/${module}.F90"
-            "$SCRIPT_DIR/../CLM-ml_v1/clm_src_cpl/${module}.F90"
-            "$SCRIPT_DIR/../CLM-ml_v1/clm_src_utils/${module}.F90"
-            "$SCRIPT_DIR/../CLM-ml_v1/cime_src_share_util/${module}.F90"
-            "$SCRIPT_DIR/../CLM-ml_v1/multilayer_canopy/${module}.F90"
-            "$SCRIPT_DIR/../CLM-ml_v1/offline_driver/${module}.F90"
+            "$SCRIPT_DIR/../clubb_ML/src/${module}.F90"
+            "$SCRIPT_DIR/../clubb_ML/src/${module}.f90"
+            "$SCRIPT_DIR/../clubb_ML/src/*.F90"
+            "$SCRIPT_DIR/../clubb_ML/utilities/${module}.F90"
+            "$SCRIPT_DIR/../clubb_ML/postprocessing/${module}.F90"
         )
         
         for path in "${fortran_search_paths[@]}"; do
@@ -562,7 +560,7 @@ run_repair() {
         
         if [ -n "$fortran_ref" ] && [ -f "$fortran_ref" ]; then
             # With Fortran reference
-            python examples/repair_agent_example.py \
+            python3 examples/repair_agent_example.py \
                 --module "$module" \
                 --fortran "$fortran_file" \
                 --python "$python_file" \
@@ -577,7 +575,7 @@ run_repair() {
             for path in "${fortran_search_paths[@]}"; do
                 print_info "  - $path"
             done
-            python examples/repair_agent_example.py \
+            python3 examples/repair_agent_example.py \
                 --module "$module" \
                 --fortran "$python_file" \
                 --python "$python_file_to_repair" \

@@ -44,8 +44,8 @@ def main():
     script_dir = Path(__file__).parent.absolute()
     project_root = script_dir.parent.parent  # jax-agents/examples -> jax-agents -> clm-ml-jax
     
-    # JSON files are in jax-agents/static_analysis_output 
-    analysis_dir = project_root / "jax-agents/static_analysis_output"
+    # JSON files are in CLUBB_static_analysis
+    analysis_dir = project_root / "CLUBB_static_analysis"
     analysis_results_json = analysis_dir / "analysis_results.json"
     translation_units_json = analysis_dir / "translation_units.json"
     
@@ -58,7 +58,7 @@ def main():
         jax_ctsm_dir = None
     
     # Path to Fortran source files
-    fortran_root = project_root / "CLM-ml_v1"
+    fortran_root = project_root / "clubb_ML"
     
     # Output directory for translated code
     if args.output_dir:

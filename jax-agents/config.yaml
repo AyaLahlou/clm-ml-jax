@@ -9,9 +9,9 @@ llm:
 
 # Paths
 paths:
-  ctsm_root: "../CTSM"
-  jax_ctsm_root: "../jax-ctsm"
-  output_dir: "../jax-ctsm/src/jax_ctsm"
+  clubb_root: "../clubb_ML"
+  jax_clubb_root: "../jax-clubb"
+  output_dir: "../jax-clubb/src/jax_clubb"
 
 # Agent Configuration
 agents:
