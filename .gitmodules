@@ -4,3 +4,6 @@
 [submodule "CLM-ml_v1"]
 	path = CLM-ml_v1
 	url = https://github.com/gbonan/CLM-ml_v1.git
+[submodule "clubb_ML"]
+	path = clubb_ML
+	url = https://github.com/m2lines/clubb_ML
