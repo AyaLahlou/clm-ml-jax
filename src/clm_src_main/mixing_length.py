@@ -12,7 +12,8 @@ Lines: 4-2199
 
 JAX Compatibility Status:
 -------------------------
-FULLY JIT COMPATIBLE - All control flow converted to JAX primitives.
+✅ FULLY JIT COMPATIBLE - All control flow converted to JAX primitives
+✅ FULLY DIFFERENTIABLE - All loops support reverse-mode autodiff
 
 Optimizations Implemented:
 - All loops converted to lax.fori_loop (upward/downward parcel computation, smoothing)
@@ -21,7 +22,12 @@ Optimizations Implemented:
 - Nested column/level iteration flattened and vectorized
 - All array operations use jnp (JAX-native)
 - Immutable updates with .at[].set()
-- lax.while_loop for parcel tracking
+- lax.scan for parcel tracking with early stopping (differentiable)
+
+Differentiability Note:
+- Converted lax.while_loop → lax.scan for full gradient support
+- Parcel tracking uses fixed-iteration scan with early stopping via lax.cond
+- Enables gradient-based optimization, neural network training, sensitivity analysis
 
 
 Usage with JIT:
@@ -33,6 +39,15 @@ compute_mixing_length_jit = jax.jit(compute_mixing_length)
 
 # Use as normal
 outputs = compute_mixing_length_jit(gr, nz, nzm, ngrdcol, ...)
+```
+
+Usage with Gradients:
+```python
+import jax
+
+# Compute gradients with respect to temperature profile
+grad_fn = jax.grad(lambda thvm: compute_mixing_length(gr, nz, nzm, ngrdcol, thvm, ...)[0].sum())
+gradients = grad_fn(thvm)
 ```
 
 References:
@@ -612,62 +627,73 @@ def compute_mixing_length(
     
     # Calculate Lscale_up using FULL iterative parcel ascent
     # This implements the exact Fortran algorithm (lines 394-645)
-    # Uses jax.lax.while_loop for level-by-level TKE tracking
+    # Uses jax.lax.scan for level-by-level TKE tracking (differentiable)
     
     # Helper function for parcel ascent iteration
-    def parcel_ascent_body(carry):
-        """Body function for while loop - advances parcel one level."""
-        j, thl_par_j, rt_par_j, tke_curr, tke_prev, Lscale_curr, dCAPE_dz_prev, dCAPE_dz_two_back, i_col = carry
+    def parcel_ascent_step(carry, _):
+        """Scan step function - advances parcel one level with early stopping."""
+        j, thl_par_j, rt_par_j, tke_curr, tke_prev, Lscale_curr, dCAPE_dz_prev, dCAPE_dz_two_back, i_col, stopped = carry
         
-        # Get momentum level index
-        j_zm = jnp.minimum(j, nzm - 1)
+        # Check if should continue (TKE > 0 and j < nzt-1)
+        should_continue = (tke_curr > zero) & (j < nzt - 1) & (~stopped)
         
-        # Update parcel properties using recursive formula
-        # thl_par_j = thl_par_j_precalc[j] + thl_par_j * exp_mu_dzm[j_zm]
-        thl_par_new = thl_par_j_precalc[i_col, j] + thl_par_j * exp_mu_dzm[i_col, j_zm]
-        rt_par_new = rt_par_j_precalc[i_col, j] + rt_par_j * exp_mu_dzm[i_col, j_zm]
+        def continue_ascent(_):
+            """Continue parcel ascent."""
+            # Get momentum level index
+            j_zm = jnp.minimum(j, nzm - 1)
+            
+            # Update parcel properties using recursive formula
+            thl_par_new = thl_par_j_precalc[i_col, j] + thl_par_j * exp_mu_dzm[i_col, j_zm]
+            rt_par_new = rt_par_j_precalc[i_col, j] + rt_par_j * exp_mu_dzm[i_col, j_zm]
+            
+            # Calculate liquid water temperature
+            tl_par_j = thl_par_new * exner[i_col, j]
+            
+            # Calculate saturation mixing ratio (simplified Tetens formula)
+            T_celsius = tl_par_j - 273.15
+            esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_j - 29.65))
+            rsatl_par_j = 0.622 * esat / p_in_Pa[i_col, j]
+            
+            # Supersaturation parameter
+            tl_par_j_sqd = tl_par_j**2
+            s_par_j = ((rt_par_new - rsatl_par_j) * tl_par_j_sqd 
+                       / (tl_par_j_sqd + Lv2_coef * rsatl_par_j))
+            
+            # Cloud water mixing ratio
+            rc_par_j = jnp.maximum(s_par_j, zero_threshold)
+            
+            # Virtual potential temperature with moisture and latent heating
+            thv_par_j = (thl_par_new + ep1 * thv_ds[i_col, j] * rt_par_new 
+                         + Lv_coef[i_col, j] * rc_par_j)
+            
+            # Buoyancy derivative
+            dCAPE_dz_j = grav_on_thvm[i_col, j] * (thv_par_j - thvm[i_col, j])
+            
+            # CAPE increment using trapezoidal rule
+            CAPE_incr = one_half * (dCAPE_dz_j + dCAPE_dz_prev) * dzm[i_col, j_zm]
+            
+            # Update TKE (save previous value for potential sub-grid calculation)
+            tke_new = tke_curr + CAPE_incr
+            
+            # Update length scale traveled
+            Lscale_new = Lscale_curr + dzm[i_col, j_zm]
+            
+            # Advance to next level
+            j_new = j + 1
+            
+            # Mark as stopped if TKE depleted or reached top
+            new_stopped = (tke_new <= zero) | (j_new >= nzt - 1)
+            
+            return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, Lscale_new, dCAPE_dz_j, dCAPE_dz_prev, i_col, new_stopped)
         
-        # Calculate liquid water temperature
-        tl_par_j = thl_par_new * exner[i_col, j]
+        def stay_stopped(_):
+            """Keep current state (already stopped)."""
+            return carry
         
-        # Calculate saturation mixing ratio (simplified Tetens formula)
-        T_celsius = tl_par_j - 273.15
-        esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_j - 29.65))
-        rsatl_par_j = 0.622 * esat / p_in_Pa[i_col, j]
+        # Use lax.cond to handle early stopping
+        new_carry = lax.cond(should_continue, continue_ascent, stay_stopped, None)
         
-        # Supersaturation parameter
-        tl_par_j_sqd = tl_par_j**2
-        s_par_j = ((rt_par_new - rsatl_par_j) * tl_par_j_sqd 
-                   / (tl_par_j_sqd + Lv2_coef * rsatl_par_j))
-        
-        # Cloud water mixing ratio
-        rc_par_j = jnp.maximum(s_par_j, zero_threshold)
-        
-        # Virtual potential temperature with moisture and latent heating
-        thv_par_j = (thl_par_new + ep1 * thv_ds[i_col, j] * rt_par_new 
-                     + Lv_coef[i_col, j] * rc_par_j)
-        
-        # Buoyancy derivative
-        dCAPE_dz_j = grav_on_thvm[i_col, j] * (thv_par_j - thvm[i_col, j])
-        
-        # CAPE increment using trapezoidal rule
-        CAPE_incr = one_half * (dCAPE_dz_j + dCAPE_dz_prev) * dzm[i_col, j_zm]
-        
-        # Update TKE (save previous value for potential sub-grid calculation)
-        tke_new = tke_curr + CAPE_incr
-        
-        # Update length scale traveled
-        Lscale_new = Lscale_curr + dzm[i_col, j_zm]
-        
-        # Advance to next level
-        j_new = j + 1
-        
-        return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, Lscale_new, dCAPE_dz_j, dCAPE_dz_prev, i_col)
-    
-    def parcel_ascent_cond(carry):
-        """Condition function - continue while TKE > 0 and j < nzt."""
-        j, _, _, tke_curr, _, _, _, _, _ = carry
-        return (tke_curr > zero) & (j < nzt - 1)
+        return new_carry, None
     
     # Process each grid column and starting level using lax.fori_loop for JIT compatibility
     def process_column_level_up(ik, Lscale_carry):
@@ -677,7 +703,7 @@ def compute_mixing_length(
         
         def compute_Lscale(_):
             """Compute Lscale when TKE is positive."""
-            # Initialize parcel at level k
+            # Initialize parcel at level k (with stopped flag)
             init_carry = (
                 k + 1,  # j: start at next level
                 thl_par_1[i, k],  # thl_par initial
@@ -687,12 +713,13 @@ def compute_mixing_length(
                 dzm[i, k],  # Lscale_up so far
                 dCAPE_dz_1[i, k],  # dCAPE/dz at previous level (j=k+1)
                 zero,  # dCAPE_two_back (at j=k, set to zero)
-                i  # column index
+                i,  # column index
+                False  # stopped flag
             )
             
-            # Run while loop to track parcel ascent
-            final_carry = lax.while_loop(parcel_ascent_cond, parcel_ascent_body, init_carry)
-            j_final, thl_final, rt_final, tke_final, tke_prev_final, Lscale_final, dCAPE_final, dCAPE_two_back_final, _ = final_carry
+            # Run scan to track parcel ascent (max nzt iterations)
+            final_carry, _ = lax.scan(parcel_ascent_step, init_carry, jnp.arange(nzt))
+            j_final, thl_final, rt_final, tke_final, tke_prev_final, Lscale_final, dCAPE_final, dCAPE_two_back_final, _, _ = final_carry
             
             # Handle sub-grid TKE exhaustion using lax.cond instead of if-elif-else
             def case_first_level(_):
@@ -877,51 +904,63 @@ def compute_mixing_length(
         )
     
     # Helper function for parcel descent iteration
-    def parcel_descent_body(carry):
-        """Body function for while loop - descends parcel one level."""
-        j, thl_par_j, rt_par_j, tke_curr, tke_prev, Lscale_curr, dCAPE_dz_prev, dCAPE_dz_two_back, i_col = carry
+    def parcel_descent_step(carry, _):
+        """Scan step function - descends parcel one level with early stopping."""
+        j, thl_par_j, rt_par_j, tke_curr, tke_prev, Lscale_curr, dCAPE_dz_prev, dCAPE_dz_two_back, i_col, stopped = carry
         
-        # Get momentum level index (for descending, use j-1)
-        j_zm = jnp.maximum(j - 1, 0)
+        # Check if should continue (TKE > 0 and j > 0)
+        should_continue = (tke_curr > zero) & (j > 0) & (~stopped)
         
-        # Update parcel properties using recursive formula
-        thl_par_new = thl_par_j_precalc_down[i_col, j] + thl_par_j * exp_mu_dzm[i_col, j_zm]
-        rt_par_new = rt_par_j_precalc_down[i_col, j] + rt_par_j * exp_mu_dzm[i_col, j_zm]
+        def continue_descent(_):
+            """Continue parcel descent."""
+            # Get momentum level index (for descending, use j-1)
+            j_zm = jnp.maximum(j - 1, 0)
+            
+            # Update parcel properties using recursive formula
+            thl_par_new = thl_par_j_precalc_down[i_col, j] + thl_par_j * exp_mu_dzm[i_col, j_zm]
+            rt_par_new = rt_par_j_precalc_down[i_col, j] + rt_par_j * exp_mu_dzm[i_col, j_zm]
+            
+            # Calculate saturation and buoyancy (same as upward)
+            tl_par_j = thl_par_new * exner[i_col, j]
+            T_celsius = tl_par_j - 273.15
+            esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_j - 29.65))
+            rsatl_par_j = 0.622 * esat / p_in_Pa[i_col, j]
+            
+            tl_par_j_sqd = tl_par_j**2
+            s_par_j = ((rt_par_new - rsatl_par_j) * tl_par_j_sqd 
+                       / (tl_par_j_sqd + Lv2_coef * rsatl_par_j))
+            rc_par_j = jnp.maximum(s_par_j, zero_threshold)
+            
+            thv_par_j = (thl_par_new + ep1 * thv_ds[i_col, j] * rt_par_new 
+                         + Lv_coef[i_col, j] * rc_par_j)
+            
+            dCAPE_dz_j = grav_on_thvm[i_col, j] * (thv_par_j - thvm[i_col, j])
+            
+            # CAPE increment (trapezoidal)
+            CAPE_incr = one_half * (dCAPE_dz_j + dCAPE_dz_prev) * dzm[i_col, j_zm]
+            
+            # Update TKE (note: for downward motion, CAPE typically negative)
+            tke_new = tke_curr + CAPE_incr
+            
+            # Update length scale
+            Lscale_new = Lscale_curr + dzm[i_col, j_zm]
+            
+            # Descend to next level (j decreases)
+            j_new = j - 1
+            
+            # Mark as stopped if TKE depleted or reached bottom
+            new_stopped = (tke_new <= zero) | (j_new <= 0)
+            
+            return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, Lscale_new, dCAPE_dz_j, dCAPE_dz_prev, i_col, new_stopped)
         
-        # Calculate saturation and buoyancy (same as upward)
-        tl_par_j = thl_par_new * exner[i_col, j]
-        T_celsius = tl_par_j - 273.15
-        esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_j - 29.65))
-        rsatl_par_j = 0.622 * esat / p_in_Pa[i_col, j]
+        def stay_stopped(_):
+            """Keep current state (already stopped)."""
+            return carry
         
-        tl_par_j_sqd = tl_par_j**2
-        s_par_j = ((rt_par_new - rsatl_par_j) * tl_par_j_sqd 
-                   / (tl_par_j_sqd + Lv2_coef * rsatl_par_j))
-        rc_par_j = jnp.maximum(s_par_j, zero_threshold)
+        # Use lax.cond to handle early stopping
+        new_carry = lax.cond(should_continue, continue_descent, stay_stopped, None)
         
-        thv_par_j = (thl_par_new + ep1 * thv_ds[i_col, j] * rt_par_new 
-                     + Lv_coef[i_col, j] * rc_par_j)
-        
-        dCAPE_dz_j = grav_on_thvm[i_col, j] * (thv_par_j - thvm[i_col, j])
-        
-        # CAPE increment (trapezoidal)
-        CAPE_incr = one_half * (dCAPE_dz_j + dCAPE_dz_prev) * dzm[i_col, j_zm]
-        
-        # Update TKE (note: for downward motion, CAPE typically negative)
-        tke_new = tke_curr + CAPE_incr
-        
-        # Update length scale
-        Lscale_new = Lscale_curr + dzm[i_col, j_zm]
-        
-        # Descend to next level (j decreases)
-        j_new = j - 1
-        
-        return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, Lscale_new, dCAPE_dz_j, dCAPE_dz_prev, i_col)
-    
-    def parcel_descent_cond(carry):
-        """Condition function - continue while TKE > 0 and j > 0."""
-        j, _, _, tke_curr, _, _, _, _, _ = carry
-        return (tke_curr > zero) & (j > 0)
+        return new_carry, None
     
     # Process downward parcels using lax.fori_loop for JIT compatibility
     def process_column_level_down(ik, Lscale_carry):
@@ -931,7 +970,7 @@ def compute_mixing_length(
         
         def compute_Lscale_down(_):
             """Compute Lscale when TKE is positive."""
-            # Initialize parcel at level k (descending)
+            # Initialize parcel at level k (descending, with stopped flag)
             k_zm_init = jnp.maximum(k - 1, 0)
             init_carry_down = (
                 k - 1,  # j: start at level below
@@ -942,12 +981,13 @@ def compute_mixing_length(
                 lax.cond(k > 0, lambda _: dzm[i, k_zm_init], lambda _: ZLMIN, None),  # Lscale_down so far
                 dCAPE_dz_1_down[i, k],  # dCAPE/dz at previous level
                 zero,  # dCAPE_two_back
-                i  # column index
+                i,  # column index
+                False  # stopped flag
             )
             
-            # Run while loop to track parcel descent
-            final_carry_down = lax.while_loop(parcel_descent_cond, parcel_descent_body, init_carry_down)
-            j_final_d, _, _, tke_final_d, tke_prev_final_d, Lscale_final_d, dCAPE_final_d, dCAPE_two_back_final_d, _ = final_carry_down
+            # Run scan to track parcel descent (max nzt iterations)
+            final_carry_down, _ = lax.scan(parcel_descent_step, init_carry_down, jnp.arange(nzt))
+            j_final_d, _, _, tke_final_d, tke_prev_final_d, Lscale_final_d, dCAPE_final_d, dCAPE_two_back_final_d, _, _ = final_carry_down
             
             # Handle sub-grid TKE exhaustion using lax.cond
             def case_first_level_down(_):
