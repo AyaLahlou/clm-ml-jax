@@ -96,6 +96,28 @@ def check_single_case(sample_data):
     # The maximum error in the test set is about 800 ULPs (~ 1.e-13 relative)
     # but we allow for extra margin (e.g. for future samples)
     tol = 1e-10
+    
+    # Debug level 1
+    print(f"\nLevel 1 debug:")
+    print(f"  Lscale_up[1]:   JAX={Lscale_up[0,1]:.6f}, Fort={sample_data['Lscale_up'][0,1]:.6f}")
+    print(f"  Lscale_down[1]: JAX={Lscale_down[0,1]:.6f}, Fort={sample_data['Lscale_down'][0,1]:.6f}")
+    print(f"  Lscale[1]:      JAX={Lscale[0,1]:.6f}, Fort={sample_data['Lscale'][0,1]:.6f}")
+    print(f"  Geom mean JAX:  {np.sqrt(Lscale_up[0,1] * Lscale_down[0,1]):.6f}")
+    
+    # Print Fortran Lscale_down for first 10 levels
+    print(f"\nFortran Lscale_down pattern (levels 1-10):")
+    for k in range(1, 11):
+        fort_val = sample_data['Lscale_down'][0, k]
+        if k > 1:
+            prev_val = sample_data['Lscale_down'][0, k-1]
+            diff = fort_val - prev_val
+            print(f"  Level {k}: {fort_val:.2f}m  (diff from prev: {diff:+.2f}m)")
+        else:
+            print(f"  Level {k}: {fort_val:.2f}m")
+    
+    # Print lmin value
+    print(f"\nlmin = {sample_data['lmin'].values} m")
+    
     np.testing.assert_allclose(np.array(Lscale), sample_data["Lscale"], rtol=tol)
     np.testing.assert_allclose(np.array(Lscale_up), sample_data["Lscale_up"], rtol=tol)
     np.testing.assert_allclose(np.array(Lscale_down), sample_data["Lscale_down"], rtol=tol)
