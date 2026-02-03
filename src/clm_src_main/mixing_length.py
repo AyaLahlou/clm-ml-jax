@@ -10,10 +10,8 @@ in the CLUBB turbulence parameterization. It includes:
 Fortran source: /tmp/clubb_ML/src/CLUBB_core/mixing_length.F90
 Lines: 4-2199
 
-JAX Compatibility Status:
--------------------------
-✅ FULLY JIT COMPATIBLE - All control flow converted to JAX primitives
-✅ FULLY DIFFERENTIABLE - All loops support reverse-mode autodiff
+JIT COMPATIBLE - All control flow converted to JAX primitives
+DIFFERENTIABLE - All loops support reverse-mode autodiff
 
 Optimizations Implemented:
 - All loops converted to lax.fori_loop (upward/downward parcel computation, smoothing)
@@ -22,12 +20,8 @@ Optimizations Implemented:
 - Nested column/level iteration flattened and vectorized
 - All array operations use jnp (JAX-native)
 - Immutable updates with .at[].set()
-- lax.scan for parcel tracking with early stopping (differentiable)
-
-Differentiability Note:
 - Converted lax.while_loop → lax.scan for full gradient support
 - Parcel tracking uses fixed-iteration scan with early stopping via lax.cond
-- Enables gradient-based optimization, neural network training, sensitivity analysis
 
 
 Usage with JIT:
@@ -512,9 +506,14 @@ def compute_mixing_length(
     
     # Convert Lscale_max to array if scalar
     if isinstance(Lscale_max, (int, float)):
-        Lscale_max_arr = jnp.full(ngrdcol, Lscale_max, dtype=core_rknd)
+        Lscale_max_arr = jnp.full((ngrdcol, 1), Lscale_max, dtype=core_rknd)
     else:
         Lscale_max_arr = jnp.asarray(Lscale_max, dtype=core_rknd)
+        # Ensure it's 2D for broadcasting
+        if Lscale_max_arr.ndim == 1:
+            Lscale_max_arr = Lscale_max_arr[:, None]
+        elif Lscale_max_arr.ndim == 0:
+            Lscale_max_arr = jnp.full((ngrdcol, 1), Lscale_max_arr, dtype=core_rknd)
     
     # ===== UPWARD LENGTH SCALE CALCULATION =====
     # This implements the full parcel theory algorithm with entrainment
@@ -1144,9 +1143,10 @@ def compute_mixing_length(
     Lscale = jnp.maximum(Lscale, lminh)
     
     # Apply maximum constraint
-    Lscale = jnp.minimum(Lscale, Lscale_max_arr[:, None])
-    Lscale_up = jnp.minimum(Lscale_up, Lscale_max_arr[:, None])
-    Lscale_down = jnp.minimum(Lscale_down, Lscale_max_arr[:, None])
+    # Lscale_max_arr is already 2D (ngrdcol, 1) from initialization
+    Lscale = jnp.minimum(Lscale, Lscale_max_arr)
+    Lscale_up = jnp.minimum(Lscale_up, Lscale_max_arr)
+    Lscale_down = jnp.minimum(Lscale_down, Lscale_max_arr)
     
     return Lscale, Lscale_up, Lscale_down, err_info
 
