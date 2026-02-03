@@ -56,6 +56,7 @@ from typing import NamedTuple, Tuple, Callable, Optional
 import jax.numpy as jnp
 from jax import lax, Array
 import jax
+import jax
 
 try:
     from clubb_precision import core_rknd
@@ -72,9 +73,9 @@ except ImportError:
     core_rknd = jnp.float64
     grav = 9.81
     Lv = 2.5e6
-    Rd = 287.0
-    cp = 1005.0
-    ep = 0.622
+    Rd = 0.28704e03
+    cp = 0.10046700000000000e04
+    ep = 0.62197183098591557e00
     one = 1.0
     zero = 0.0
     one_fourth = 0.25
@@ -86,6 +87,68 @@ except ImportError:
     def clubb_at_least_debug_level(level): return False
     def clubb_fatal_error(msg): return -1
     def sat_mixrat_liq_api(*args, **kwargs): return jnp.zeros_like(args[3])
+
+# ============================================================================
+# Saturation Functions (from non-JAX version)
+# ============================================================================
+
+from enum import Enum
+
+class SaturationFormula(Enum):
+    """Mirrors available saturation formula options in CLUBB."""
+    BOLTON = 1
+    GFDL = 2
+    FLATAU = 3
+    LOOKUP = 4
+
+def _sat_flatau(T):
+    """Flatau saturation formula."""
+    T_FREEZE_K = 273.15
+    MIN_T_IN_C = -85.0
+    
+    T_in_C = T - T_FREEZE_K
+    T_in_C = jnp.maximum(T_in_C, MIN_T_IN_C)
+    
+    T_in_C_sqd = T_in_C**2
+    
+    return (
+        -3.21582393e-14
+        * (T_in_C - 646.5835252598777)
+        * (T_in_C + 90.72381630364440)
+        * (T_in_C_sqd + 111.0976961559954 * T_in_C + 6459.629194243118)
+        * (T_in_C_sqd + 152.3131930092453 * T_in_C + 6499.774954705265)
+        * (T_in_C_sqd + 174.4279584934021 * T_in_C + 7721.679732114084)
+    )
+
+def sat_mixrat_liq(T, p, saturation_formula=1):
+    """Compute saturation mixing ratio over liquid water.
+    
+    Based on CLUBB saturation module implementation.
+    Uses correct Bolton formula: epsilon * es / (p - es)
+    
+    Args:
+        T: Temperature [K]
+        p: Pressure [Pa]
+        saturation_formula: Formula to use (1=Bolton, 3=Flatau)
+    
+    Returns:
+        Saturation mixing ratio over liquid water
+    """
+    # Convert to enum if integer
+    if isinstance(saturation_formula, int):
+        saturation_formula = SaturationFormula(saturation_formula)
+    
+    # Ratio of molecular weights (water vapor/dry air)
+    epsilon = ep
+    
+    if saturation_formula == SaturationFormula.BOLTON:
+        es = 6.112 * jnp.exp((17.67 * (T - 273.15)) / (T - 29.65)) * 100  # Convert hPa to Pa
+    elif saturation_formula == SaturationFormula.FLATAU:
+        es = _sat_flatau(T)
+    else:
+        raise NotImplementedError(f"Saturation formula {saturation_formula} not implemented yet.")
+    
+    return epsilon * es / (p - es)
 
 # ============================================================================
 # Module Constants
@@ -468,7 +531,7 @@ def compute_mixing_length(
     one = 1.0
     two = 2.0
     zero = 0.0
-    ep1 = (1.0 - ep) / ep  # (1-ep)/ep for moisture effects
+    ep1 = (1.0 / ep) - 1.0  # (1/ep - 1) for virtual temperature moisture effect
     
     # Initialize output arrays with minimum value
     Lscale_up = jnp.full((ngrdcol, nzt), ZLMIN, dtype=core_rknd)
@@ -578,20 +641,8 @@ def compute_mixing_length(
             rtm[:, j] - (rtm[:, j] - rtm[:, j-1]) * entrain_coef[:, j_zm]
         )
     
-    # Calculate saturation mixing ratio for initial parcels
-    # This requires calling sat_mixrat_liq_api for each level
-    rsatl_par_1 = jnp.zeros((ngrdcol, nzt), dtype=core_rknd)
-    try:
-        rsatl_par_1 = sat_mixrat_liq_api(nzt, ngrdcol, gr, p_in_Pa, tl_par_1, 
-                                         saturation_formula, start_index=0)
-    except:
-        # Fallback: simple approximation rsatl ≈ 0.622 * esat / p
-        # where esat = 611.2 * exp(17.67 * (T-273.15) / (T-29.65))
-        # Compute for ALL levels (0 to nzt-1) to avoid missing boundary values
-        for j in range(0, nzt):
-            T_celsius = tl_par_1[:, j] - 273.15
-            esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_1[:, j] - 29.65))
-            rsatl_par_1 = rsatl_par_1.at[:, j].set(0.622 * esat / p_in_Pa[:, j])
+    # Calculate saturation mixing ratio for initial parcels using Bolton formula
+    rsatl_par_1 = sat_mixrat_liq(tl_par_1, p_in_Pa, saturation_formula)
     
     # Calculate initial dCAPE/dz and CAPE increment
     dCAPE_dz_1 = jnp.zeros((ngrdcol, nzt), dtype=core_rknd)
@@ -641,10 +692,14 @@ def compute_mixing_length(
     # This implements the exact Fortran algorithm (lines 394-645)
     # Uses jax.lax.scan for level-by-level TKE tracking (differentiable)
     
+    # Debug flag - set to True to enable detailed logging
+    DEBUG_PARCEL = False  # Disabled
+    DEBUG_LEVEL_K = 0  # Which starting level to debug
+    
     # Helper function for parcel ascent iteration
-    def parcel_ascent_step(carry, _):
+    def parcel_ascent_step(carry, scan_iter):
         """Scan step function - advances parcel one level with early stopping."""
-        j, thl_par_j, rt_par_j, tke_curr, tke_prev, dCAPE_dz_prev, dCAPE_dz_two_back, i_col, stopped = carry
+        j, thl_par_j, rt_par_j, tke_curr, tke_prev, dCAPE_dz_prev, dCAPE_dz_two_back, i_col, stopped, k_start = carry
         
         # Check if should continue (TKE > 0 and j < nzt-1)
         should_continue = (tke_curr > zero) & (j < nzt - 1) & (~stopped)
@@ -661,10 +716,8 @@ def compute_mixing_length(
             # Calculate liquid water temperature
             tl_par_j = thl_par_new * exner[i_col, j]
             
-            # Calculate saturation mixing ratio (simplified Tetens formula)
-            T_celsius = tl_par_j - 273.15
-            esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_j - 29.65))
-            rsatl_par_j = 0.622 * esat / p_in_Pa[i_col, j]
+            # Calculate saturation mixing ratio using Bolton formula
+            rsatl_par_j = sat_mixrat_liq(tl_par_j, p_in_Pa[i_col, j], saturation_formula)
             
             # Supersaturation parameter
             tl_par_j_sqd = tl_par_j**2
@@ -698,7 +751,20 @@ def compute_mixing_length(
             # Mark as stopped if TKE depleted or reached top
             new_stopped = tke_exhausted | (j_new >= nzt - 1)
             
-            return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, dCAPE_dz_j, dCAPE_dz_prev, i_col, new_stopped)
+            # Debug output using jax.debug.print (works with traced values)
+            # Only print when should_continue is True to reduce output
+            lax.cond(
+                should_continue & (k_start == DEBUG_LEVEL_K),
+                lambda _: jax.debug.print(
+                    "  iter={si:2} j={j:2} tke_curr={tc:.6f} CAPE={cape:.6f} tke_new={tn:.6f} exh={exh} j_new={jn:2}",
+                    si=scan_iter, j=j, tc=tke_curr, cape=CAPE_incr, 
+                    tn=tke_new, exh=tke_exhausted, jn=j_new
+                ),
+                lambda _: None,
+                None
+            )
+            
+            return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, dCAPE_dz_j, dCAPE_dz_prev, i_col, new_stopped, k_start)
         
         def stay_stopped(_):
             """Keep current state (already stopped)."""
@@ -707,7 +773,9 @@ def compute_mixing_length(
         # Use lax.cond to handle early stopping
         new_carry = lax.cond(should_continue, continue_ascent, stay_stopped, None)
         
-        return new_carry, None
+        # Return debug info as output
+        debug_info = (scan_iter, j, tke_curr, should_continue, stopped)
+        return new_carry, debug_info
     
     # Process each grid column and starting level using lax.fori_loop for JIT compatibility
     def process_column_level_up(ik, Lscale_carry):
@@ -722,19 +790,43 @@ def compute_mixing_length(
             # Fortran line 447: j = k + 2 (start 2 levels above since we know it can rise 1 level)
             init_carry = (
                 k + 2,  # j: start 2 levels above k (Fortran line 447)
-                thl_par_1[i, k],  # thl_par initial
-                rt_par_1[i, k],   # rt_par initial
+                thl_par_1[i, k+1],  # thl_par initial (from level k+1, not k!)
+                rt_par_1[i, k+1],   # rt_par initial (from level k+1, not k!)
                 tke_i[i, k] + CAPE_incr_1[i, k+1],  # tke after first step (use k+1!)
                 tke_i[i, k],  # tke_prev (before first step)
                 dCAPE_dz_1[i, k+1],  # dCAPE/dz at previous level (j=k+1)
                 zero,  # dCAPE_two_back (at j=k, set to zero)
                 i,  # column index
-                False  # stopped flag
+                False,  # stopped flag
+                k  # starting level k (for debug)
+            )
+            
+            # Debug output for initialization
+            lax.cond(
+                k == DEBUG_LEVEL_K,
+                lambda _: jax.debug.print(
+                    "\n=== Upward parcel k={k}: j_init={ji}, tke_init={ti:.6f}, zt[k]={zk:.2f}m ===",
+                    k=k, ji=k+2, ti=tke_i[i,k] + CAPE_incr_1[i,k+1], zk=zt[i,k]
+                ),
+                lambda _: None,
+                None
             )
             
             # Run scan to track parcel ascent (max nzt iterations)
-            final_carry, _ = lax.scan(parcel_ascent_step, init_carry, jnp.arange(nzt))
-            j_final, thl_final, rt_final, tke_final, tke_prev_final, dCAPE_final, dCAPE_two_back_final, _, _ = final_carry
+            final_carry, debug_outputs = lax.scan(parcel_ascent_step, init_carry, jnp.arange(nzt))
+            j_final, thl_final, rt_final, tke_final, tke_prev_final, dCAPE_final, dCAPE_two_back_final, _, _, _ = final_carry
+            
+            # Debug output for final state
+            lax.cond(
+                k == DEBUG_LEVEL_K,
+                lambda _: jax.debug.print(
+                    "=== Final: j_final={jf}, tke_final={tf:.6f}, j_reached={jr}, zt[jr]={zj:.2f}m ===\n",
+                    jf=j_final, tf=tke_final, jr=jnp.maximum(j_final-1, k),
+                    zj=zt[i, jnp.maximum(j_final-1, k)]
+                ),
+                lambda _: None,
+                None
+            )
             
             # Compute Lscale as height difference (Fortran line 562: Lscale_up = zt(j-1) - zt(k))
             # j_final is the level that COULDN'T be reached, so use j_final-1
@@ -814,12 +906,38 @@ def compute_mixing_length(
             
             return jnp.maximum(result, ZLMIN)
         
+        # Compute Lscale when TKE + CAPE is non-positive (Fortran else clause, line 622-624)
+        # Uses local TKE only, no CAPE boost (parcel can't sustain rise)
+        def compute_Lscale_no_CAPE(_):
+            """Compute Lscale when insufficient energy to rise (else clause)."""
+            k_zm = jnp.minimum(k, nzm - 1)
+            
+            # Check if we can compute a valid discriminant
+            # Formula: Lscale = -sqrt(-2 * tke * dzm * dCAPE) / dCAPE
+            # For this to be real: tke < 0 AND dCAPE < 0 (both negative)
+            # OR tke > 0 AND dCAPE > 0 (both positive)
+            # Product -2*tke*dzm*dCAPE must be >= 0
+            discriminant = -two * tke_i[i, k] * dzm[i, k_zm] * dCAPE_dz_1[i, k+1]
+            
+            def has_valid_discriminant(_):
+                return ZLMIN + (-jnp.sqrt(jnp.maximum(discriminant, zero)) / dCAPE_dz_1[i, k+1])
+            
+            def invalid_discriminant(_):
+                return ZLMIN
+            
+            return lax.cond(
+                (discriminant >= zero) & (jnp.abs(dCAPE_dz_1[i, k+1]) > eps),
+                has_valid_discriminant,
+                invalid_discriminant,
+                None
+            )
+        
         # Use lax.cond to handle zero TKE case instead of continue
         # Fortran line 439: if ( tke_i(i,k) + CAPE_incr_1(i,k+1) > zero )
         Lscale_value = lax.cond(
             tke_i[i, k] + CAPE_incr_1[i, k+1] > zero,
             compute_Lscale,
-            lambda _: ZLMIN,
+            compute_Lscale_no_CAPE,
             None
         )
         
@@ -830,32 +948,39 @@ def compute_mixing_length(
     total_pairs_up = ngrdcol * (nzt - 1)
     Lscale_up = lax.fori_loop(0, total_pairs_up, process_column_level_up, Lscale_up)
     
-    # Apply non-local smoothing (Lscale_up_max_alt constraint) using lax.fori_loop for JIT compatibility
+    # Apply non-local smoothing (Lscale_up_max_alt constraint) using lax.scan for JIT compatibility
     # Fortran lines 625-640: ensure lower parcels that rise high affect upper levels
-    def smooth_level_upward(k, Lscale_carry):
+    # CRITICAL FIX: Don't update max_alt when constraint is applied (prevents ZLMIN contamination)
+    def smooth_level_upward(carry, k):
         """Apply non-local smoothing for one level (upward parcels)."""
-        # Compute max altitude reached by all parcels below level k
-        levels_below = jnp.arange(nzt)  # All levels
-        mask_below = levels_below < k  # Mask for levels below k
-        alt_reached_all = zt + Lscale_carry  # All altitudes reached
-        # Mask out levels >= k by setting to -inf
-        masked_alt = jnp.where(mask_below[None, :], alt_reached_all, -jnp.inf)
-        max_alt_below = jnp.max(masked_alt, axis=1)  # Max over levels dimension
+        Lscale_carry, max_alt_so_far = carry
         
         # Current altitude reached by parcels at level k
         current_alt = zt[:, k] + Lscale_carry[:, k]
         
-        # If lower parcel can reach higher than current, extend Lscale_up
+        # If lower parcels reached higher than current, extend Lscale_up
         new_Lscale = jnp.where(
-            current_alt < max_alt_below,
-            max_alt_below - zt[:, k],
-            Lscale_carry[:, k]
+            current_alt < max_alt_so_far,
+            max_alt_so_far - zt[:, k],  # Extend to reach max_alt
+            Lscale_carry[:, k]  # Keep original
         )
         
-        return Lscale_carry.at[:, k].set(new_Lscale)
+        # Update max_alt ONLY when constraint is NOT applied
+        # When current_alt < max_alt_so_far: constraint applied, keep max (don't contaminate with ZLMIN)
+        # When current_alt >= max_alt_so_far: use new valid altitude to update max
+        new_max_alt = jnp.where(
+            current_alt < max_alt_so_far,
+            max_alt_so_far,  # Keep previous max (constraint was applied)
+            zt[:, k] + new_Lscale  # Update with new altitude (original was valid)
+        )
+        
+        updated_Lscale = Lscale_carry.at[:, k].set(new_Lscale)
+        return (updated_Lscale, new_max_alt), None
     
-    # Apply scan over levels 1 to nzt-2
-    Lscale_up = lax.fori_loop(1, nzt - 1, smooth_level_upward, Lscale_up)
+    # Initialize: max altitude at level 0
+    init_max_alt = zt[:, 0] + Lscale_up[:, 0]
+    # Apply scan over levels 1 to nzt-1 (Fortran processes k=0 to nzt-2, but level 0 is init)
+    (Lscale_up, _), _ = lax.scan(smooth_level_upward, (Lscale_up, init_max_alt), jnp.arange(1, nzt))
     
     # ===== DOWNWARD LENGTH SCALE CALCULATION =====
     # Full iterative algorithm for descending parcels
@@ -908,9 +1033,7 @@ def compute_mixing_length(
         
         # Calculate dCAPE/dz for initial downward step (similar to upward)
         tl_down = thl_par_1_down[:, j] * exner[:, j]
-        T_c_down = tl_down - 273.15
-        esat_down = 611.2 * jnp.exp(17.67 * T_c_down / (tl_down - 29.65))
-        rsatl_down = 0.622 * esat_down / p_in_Pa[:, j]
+        rsatl_down = sat_mixrat_liq(tl_down, p_in_Pa[:, j], saturation_formula)
         
         tl_sqd = tl_down**2
         s_par_down = ((rt_par_1_down[:, j] - rsatl_down) * tl_sqd 
@@ -948,9 +1071,7 @@ def compute_mixing_length(
             
             # Calculate saturation and buoyancy (same as upward)
             tl_par_j = thl_par_new * exner[i_col, j]
-            T_celsius = tl_par_j - 273.15
-            esat = 611.2 * jnp.exp(17.67 * T_celsius / (tl_par_j - 29.65))
-            rsatl_par_j = 0.622 * esat / p_in_Pa[i_col, j]
+            rsatl_par_j = sat_mixrat_liq(tl_par_j, p_in_Pa[i_col, j], saturation_formula)
             
             tl_par_j_sqd = tl_par_j**2
             s_par_j = ((rt_par_new - rsatl_par_j) * tl_par_j_sqd 
@@ -1099,21 +1220,229 @@ def compute_mixing_length(
             
             return jnp.maximum(result, ZLMIN)
         
+        # Compute Lscale_down when TKE - CAPE is non-positive (Fortran else clause for downward)
+        # Uses local TKE only, no CAPE boost (parcel can't sustain descent)
+        # Fortran lines 953-957
+        def compute_Lscale_down_no_CAPE(_):
+            """Compute Lscale_down when insufficient energy to descend (else clause)."""
+            k_minus_1 = jnp.maximum(k - 1, 0)
+            k_zm_d = jnp.maximum(k, 0)
+            
+            # CRITICAL: Fortran uses dCAPE_dz_1 (upward gradient), NOT dCAPE_dz_1_down!
+            # Formula from Fortran line 956:
+            # Lscale_down = Lscale_down + sqrt(2 * tke * dzm * dCAPE_dz_1) / dCAPE_dz_1
+            #
+            # For downward motion in ascending grid (grid_dir=+1):
+            # sqrt(2 * tke * (+1) * dzm * dCAPE_dz_1) / dCAPE_dz_1
+            #
+            # This simplifies to: sqrt(2 * tke * dzm * dCAPE_dz_1) / dCAPE_dz_1
+            discriminant = two * tke_i[i, k] * dzm[i, k_zm_d] * dCAPE_dz_1[i, k_minus_1]
+            
+            def has_valid_discriminant_down(_):
+                return ZLMIN + (jnp.sqrt(jnp.maximum(discriminant, zero)) / dCAPE_dz_1[i, k_minus_1])
+            
+            def invalid_discriminant_down(_):
+                return ZLMIN
+            
+            return lax.cond(
+                (discriminant >= zero) & (jnp.abs(dCAPE_dz_1[i, k_minus_1]) > eps),
+                has_valid_discriminant_down,
+                invalid_discriminant_down,
+                None
+            )
+        
         # Use lax.cond to handle zero TKE case
         # Fortran line 772: if ( tke_i(i,k) - CAPE_incr_1(i,k-1) > zero )
+        # NOTE: Fortran uses CAPE_incr_1 (upward), not a separate downward version!
         k_minus_1 = jnp.maximum(k - 1, 0)
+        
         Lscale_value = lax.cond(
-            tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1] > zero,
+            tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
             compute_Lscale_down,
-            lambda _: ZLMIN,
+            compute_Lscale_down_no_CAPE,
             None
         )
         
         return Lscale_carry.at[i, k].set(Lscale_value)
     
-    # Apply fori_loop over all column-level pairs
-    total_pairs_down = ngrdcol * (nzt - 1)
-    Lscale_down = lax.fori_loop(0, total_pairs_down, process_column_level_down, Lscale_down)
+    # Process downward parcels with integrated smoothing
+    # Fortran structure: smoothing (lines 964-967) is INSIDE main loop (line 770)
+    # Each level benefits from already-smoothed values of levels above
+    def process_downward_with_smoothing(ik, carry):
+        """Process one level with integrated smoothing."""
+        Lscale_carry, Lscale_down_min_alt = carry
+        i = ik // (nzt - 2)  # Column index
+        k_offset = ik % (nzt - 2)
+        k = nzt - 1 - k_offset  # Start from nzt-1 (87), go down to 2
+        
+        # Define nested functions for computing Lscale_down
+        def compute_Lscale_down(_):
+            """Compute Lscale when TKE is positive."""
+            # Initialize parcel at level k (descending, with stopped flag)
+            # Fortran line 772: tke = tke_i(i,k) - CAPE_incr_1(i,k-1)
+            # Fortran line 779: j = k - 2 (start 2 levels below since we know it can descend 1 level)
+            k_minus_1 = jnp.maximum(k - 1, 0)
+            init_carry_down = (
+                k - 2,  # j: start 2 levels below k (Fortran line 779)
+                thl_par_1_down[i, k],  # thl_par initial
+                rt_par_1_down[i, k],   # rt_par initial
+                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step (SUBTRACT!)
+                tke_i[i, k],  # tke_prev (before first step)
+                dCAPE_dz_1_down[i, k_minus_1],  # dCAPE/dz at previous level
+                zero,  # dCAPE_two_back
+                i,  # column index
+                False  # stopped flag
+            )
+            
+            # Run scan to track parcel descent (max nzt iterations)
+            final_carry_down, _ = lax.scan(parcel_descent_step, init_carry_down, jnp.arange(nzt))
+            j_final_d, _, _, tke_final_d, tke_prev_final_d, dCAPE_final_d, dCAPE_two_back_final_d, _, _ = final_carry_down
+            
+            # Compute Lscale as height difference (Fortran line 803: Lscale_down = zt(k) - zt(j+1))
+            # j_final_d is the level that COULDN'T be reached, so use j_final_d+1 for last level reached
+            j_reached_d = jnp.clip(j_final_d + 1, 0, k)
+            Lscale_base_d = zt[i, k] - zt[i, j_reached_d]
+            
+            # Handle sub-grid TKE exhaustion using lax.cond
+            def case_first_level_down(_):
+                """Case: TKE exhausted before completing first level."""
+                def has_valid_dCAPE_down(_):
+                    k_zm_d = jnp.maximum(k - 1, 0)
+                    discriminant = -two * tke_i[i, k] * dzm[i, k_zm_d] / dCAPE_dz_1_down[i, k_minus_1]
+                    return lax.cond(
+                        discriminant >= zero,
+                        lambda _: jnp.maximum(jnp.sqrt(discriminant), ZLMIN),
+                        lambda _: ZLMIN,
+                        None
+                    )
+                
+                return lax.cond(
+                    (jnp.abs(dCAPE_dz_1_down[i, k_minus_1]) > eps) & (tke_i[i, k] > zero),
+                    has_valid_dCAPE_down,
+                    lambda _: ZLMIN,
+                    None
+                )
+            
+            def case_normal_down(_):
+                """Case: TKE exhausted after multiple levels."""
+                j_zm_d = jnp.maximum(j_final_d, 0)
+                dCAPE_dz_j_minus_1 = dCAPE_two_back_final_d
+                dCAPE_dz_j = dCAPE_final_d
+                dCAPE_diff = dCAPE_dz_j - dCAPE_dz_j_minus_1
+                
+                def linear_case_down(_):
+                    """Linear case: dCAPE/dz is constant."""
+                    return lax.cond(
+                        jnp.abs(dCAPE_dz_j) > eps,
+                        lambda _: Lscale_base_d + (-tke_prev_final_d / dCAPE_dz_j),
+                        lambda _: Lscale_base_d,
+                        None
+                    )
+                
+                def quadratic_case_down(_):
+                    """Quadratic case: use full formula."""
+                    invrs_dCAPE_diff = one / dCAPE_diff
+                    invrs_dzm_d = one / dzm[i, j_zm_d]
+                    discriminant = (dCAPE_dz_j_minus_1**2 - two * tke_prev_final_d * invrs_dzm_d * dCAPE_diff)
+                    discriminant = jnp.maximum(discriminant, zero)
+                    partial_L = (-dCAPE_dz_j_minus_1 * invrs_dCAPE_diff * dzm[i, j_zm_d]
+                                - jnp.sqrt(discriminant) * invrs_dCAPE_diff * dzm[i, j_zm_d])
+                    return Lscale_base_d + partial_L
+                
+                return lax.cond(
+                    jnp.abs(dCAPE_diff) * two <= jnp.abs(dCAPE_dz_j + dCAPE_dz_j_minus_1) * eps,
+                    linear_case_down,
+                    quadratic_case_down,
+                    None
+                )
+            
+            def case_no_exhaustion_down(_):
+                """Case: TKE never exhausted."""
+                return Lscale_base_d
+            
+            # Determine which case applies using nested lax.cond
+            # j starts at k-2, so if TKE exhausted immediately, j_final == k-2
+            result = lax.cond(
+                j_final_d == k - 2,
+                case_first_level_down,
+                lambda _: lax.cond(
+                    (tke_final_d <= zero) & (j_final_d < k - 2),
+                    case_normal_down,
+                    case_no_exhaustion_down,
+                    None
+                ),
+                None
+            )
+            
+            return jnp.maximum(result, ZLMIN)
+        
+        def compute_Lscale_down_no_CAPE(_):
+            """Compute Lscale_down when insufficient energy to descend (else clause)."""
+            k_minus_1 = jnp.maximum(k - 1, 0)
+            k_zm_d = jnp.maximum(k, 0)
+            
+            # CRITICAL: Fortran uses dCAPE_dz_1 (upward gradient), NOT dCAPE_dz_1_down!
+            # Formula from Fortran line 956:
+            # Lscale_down = Lscale_down + sqrt(2 * tke * dzm * dCAPE_dz_1) / dCAPE_dz_1
+            discriminant = two * tke_i[i, k] * dzm[i, k_zm_d] * dCAPE_dz_1[i, k_minus_1]
+            
+            def has_valid_discriminant_down(_):
+                return ZLMIN + (jnp.sqrt(jnp.maximum(discriminant, zero)) / dCAPE_dz_1[i, k_minus_1])
+            
+            def invalid_discriminant_down(_):
+                return ZLMIN
+            
+            return lax.cond(
+                (discriminant >= zero) & (jnp.abs(dCAPE_dz_1[i, k_minus_1]) > eps),
+                has_valid_discriminant_down,
+                invalid_discriminant_down,
+                None
+            )
+        
+        # Compute Lscale_down for this level (same logic as before)
+        k_minus_1 = jnp.maximum(k - 1, 0)
+        Lscale_value = lax.cond(
+            tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
+            lambda _: compute_Lscale_down(_),
+            lambda _: compute_Lscale_down_no_CAPE(_),
+            None
+        )
+        
+        # Set the computed value
+        Lscale_updated = Lscale_carry.at[i, k].set(Lscale_value)
+        
+        # Apply smoothing (Fortran lines 964-967)
+        # If current parcel descends past running min altitude, extend Lscale_down
+        current_alt_reached = zt[i, k] - Lscale_updated[i, k]
+        extend_needed = current_alt_reached > Lscale_down_min_alt[i]
+        
+        new_Lscale = jnp.where(
+            extend_needed,
+            zt[i, k] - Lscale_down_min_alt[i],  # Extend to match running min
+            Lscale_updated[i, k]  # Keep computed value
+        )
+        
+        Lscale_final = Lscale_updated.at[i, k].set(new_Lscale)
+        
+        # Update running minimum for next level (going down)
+        # Only update if current parcel reaches lower (smaller altitude) than previous min
+        new_min_alt = jnp.minimum(current_alt_reached, Lscale_down_min_alt[i])
+        min_alt_updated = Lscale_down_min_alt.at[i].set(new_min_alt)
+        
+        return (Lscale_final, min_alt_updated)
+    
+    # Initialize running minimum altitude (altitude at top of domain)
+    # Fortran: Lscale_down_min_alt = gr%zt(i,gr%k_ub_zt)
+    Lscale_down_min_alt_init = zt[:, nzt - 1]  # Altitude at top level (k=87 with nzt=88)
+    
+    # Process all column-level pairs with integrated smoothing
+    # Fortran processes k=87 down to k=2 (not k=1!)
+    total_pairs_down = ngrdcol * (nzt - 2)  # Process levels 87 down to 2
+    (Lscale_down, _) = lax.fori_loop(
+        0, total_pairs_down,
+        process_downward_with_smoothing,
+        (Lscale_down, Lscale_down_min_alt_init)
+    )
     
     # Apply non-local smoothing (upward) using lax.fori_loop for JIT compatibility
     # If a lower parcel can reach higher than current, extend current Lscale_up
@@ -1147,34 +1476,46 @@ def compute_mixing_length(
     # Apply non-local smoothing (downward) using lax.fori_loop for JIT compatibility
     # If a higher parcel can descend lower than current, extend current Lscale_down
     # Fortran lines 971-978
-    def smooth_level_down(k, Lscale_carry):
+    # Apply non-local smoothing (downward) using lax.scan for JIT compatibility
+    # Fortran lines 964-967: Maintains running minimum altitude reached
+    # Loop goes top-down (k = nzt-1 down to 1), so levels descend at least as far as the level above
+    def smooth_level_down(carry, k):
         """Apply non-local smoothing for one level (downward)."""
-        # Compute min altitude reached by all parcels above level k
-        levels_all = jnp.arange(nzt)
-        mask_above = levels_all > k  # Mask for levels above k
-        alt_reached_all = zt - Lscale_carry  # All altitudes reached (descending)
-        # Mask out levels <= k by setting to +inf
-        masked_alt = jnp.where(mask_above[None, :], alt_reached_all, jnp.inf)
-        min_alt_above = jnp.min(masked_alt, axis=1)  # Min over levels dimension
+        Lscale_carry, Lscale_down_min_alt = carry
         
-        # Current altitude reached by descending parcels at level k
-        current_alt = zt[:, k] - Lscale_carry[:, k]
+        # Current altitude reached by parcel starting at level k
+        current_alt_reached = zt[:, k] - Lscale_carry[:, k]
         
-        # If higher parcel can descend lower than current, extend Lscale_down
+        # If current parcel descends past the running minimum altitude, extend Lscale_down
+        # Otherwise, update the running minimum
+        extend_needed = current_alt_reached > Lscale_down_min_alt
         new_Lscale = jnp.where(
-            current_alt > min_alt_above,
-            zt[:, k] - min_alt_above,
-            Lscale_carry[:, k]
+            extend_needed,
+            zt[:, k] - Lscale_down_min_alt,  # Extend to match running min
+            Lscale_carry[:, k]  # Keep original value
+        )
+        Lscale_carry = Lscale_carry.at[:, k].set(new_Lscale)
+        
+        # Update running minimum for next level (going down)
+        Lscale_down_min_alt = jnp.where(
+            extend_needed,
+            Lscale_down_min_alt,  # Keep old min if extended
+            current_alt_reached  # Update min to current if not extended
         )
         
-        return Lscale_carry.at[:, k].set(new_Lscale)
+        return (Lscale_carry, Lscale_down_min_alt), None
     
-    # Apply scan over levels in reverse (nzt-2 down to 1)
-    def reverse_smooth_wrapper(idx, carry):
-        k = nzt - 2 - idx  # Reverse: start from nzt-2, go to 1
-        return smooth_level_down(k, carry)
+    # Initial running minimum: top of domain (highest altitude)
+    Lscale_down_min_alt_init = zt[:, nzt - 1]  # Top level altitude
     
-    Lscale_down = lax.fori_loop(0, nzt - 2, reverse_smooth_wrapper, Lscale_down)
+    # Apply scan over levels from top to bottom (nzt-1 down to 1)
+    # scan goes in forward direction, but we want reverse, so use reversed indices
+    k_indices = jnp.arange(nzt - 1, 0, -1)  # [86, 85, ..., 2, 1] for nzt=87
+    (Lscale_down, _), _ = lax.scan(
+        smooth_level_down,
+        (Lscale_down, Lscale_down_min_alt_init),
+        k_indices
+    )
     
     # Apply height-dependent minimum to Lscale_up and Lscale_down (Fortran lines 995-996)
     # lminh decreases linearly from lmin at surface to 0 at 500m altitude
@@ -1182,6 +1523,7 @@ def compute_mixing_length(
     lminh = jnp.maximum(zero_threshold, LSCALE_SFCLYR_DEPTH - zt) * lmin * invrs_Lscale_sfclyr_depth
     Lscale_up = jnp.maximum(Lscale_up, lminh)
     Lscale_down = jnp.maximum(Lscale_down, lminh)
+
     
     # Calculate total mixing length as geometric mean (after applying minimum)
     Lscale = jnp.sqrt(Lscale_up * Lscale_down)
