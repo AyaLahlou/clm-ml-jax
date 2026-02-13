@@ -1408,11 +1408,9 @@ def compute_mixing_length(
         
         # Compute Lscale_down for this level (same logic as before)
         k_minus_1 = jnp.maximum(k - 1, 0)
-        # DEBUG_TMP
-        if k == 1 and i == 0:
-            print(f"  DEBUG k={k}: tke_i={float(tke_i[i,k]):.6f}, CAPE_incr_1[{k_minus_1}]={float(CAPE_incr_1[i,k_minus_1]):.6f}, diff={float(tke_i[i,k] - CAPE_incr_1[i,k_minus_1]):.6f}")
+
         Lscale_value = lax.cond(
-            tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
+            tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1] > zero,
             lambda _: compute_Lscale_down(_),
             lambda _: compute_Lscale_down_no_CAPE(_),
             None
