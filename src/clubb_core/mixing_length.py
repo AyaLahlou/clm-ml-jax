@@ -1058,8 +1058,9 @@ def compute_mixing_length(
         """Scan step function - descends parcel one level with early stopping."""
         j, thl_par_j, rt_par_j, tke_curr, tke_prev, dCAPE_dz_prev, dCAPE_dz_two_back, i_col, stopped = carry
         
-        # Check if should continue (TKE > 0 and j > 0)
-        should_continue = (tke_curr > zero) & (j > 0) & (~stopped)
+        # Check if should continue (TKE > 0 and j >= 0)
+        # CRITICAL: Use j >= 0 (not j > 0) to allow descent to level 0
+        should_continue = (tke_curr > zero) & (j >= 0) & (~stopped)
         
         def continue_descent(_):
             """Continue parcel descent."""
@@ -1101,8 +1102,9 @@ def compute_mixing_length(
             # Fortran decrements j AFTER checking TKE (line 781)
             j_new = jnp.where(tke_exhausted, j, j - 1)
             
-            # Mark as stopped if TKE depleted or reached bottom
-            new_stopped = tke_exhausted | (j_new <= 0)
+            # Mark as stopped if TKE depleted or went below level 0
+            # CRITICAL: Use j_new < 0 (not <=) to allow processing level 0
+            new_stopped = tke_exhausted | (j_new < 0)
             
             # Return 9-element tuple (removed Lscale - computed from zt after scan)
             return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, dCAPE_dz_j, dCAPE_dz_prev, i_col, new_stopped)
