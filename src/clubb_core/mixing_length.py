@@ -830,8 +830,10 @@ def compute_mixing_length(
             
             # Compute Lscale as height difference (Fortran line 562: Lscale_up = zt(j-1) - zt(k))
             # j_final is the level that COULDN'T be reached, so use j_final-1
+            # CRITICAL: Fortran initializes Lscale_up to zlmin, then ADDS distances (line 562)
+            # So we must include ZLMIN in the base calculation
             j_reached = jnp.maximum(j_final - 1, k)
-            Lscale_base = zt[i, j_reached] - zt[i, k]
+            Lscale_base = ZLMIN + zt[i, j_reached] - zt[i, k]
             
             # Handle sub-grid TKE exhaustion using lax.cond instead of if-elif-else
             def case_first_level(_):
@@ -1130,7 +1132,7 @@ def compute_mixing_length(
                 k - 2,  # j: start 2 levels below k (Fortran line 779)
                 thl_par_1_down[i, k],  # thl_par initial
                 rt_par_1_down[i, k],   # rt_par initial
-                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step (SUBTRACT!)
+                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step
                 tke_i[i, k],  # tke_prev (before first step)
                 dCAPE_dz_1_down[i, k_minus_1],  # dCAPE/dz at previous level
                 zero,  # dCAPE_two_back
@@ -1144,8 +1146,10 @@ def compute_mixing_length(
             
             # Compute Lscale as height difference (Fortran line 803: Lscale_down = zt(k) - zt(j+1))
             # j_final_d is the level that COULDN'T be reached, so use j_final_d+1 for last level reached
+            # CRITICAL: Fortran initializes Lscale_down to zlmin, then ADDS distances (line 891)
+            # So we must include ZLMIN in the base calculation
             j_reached_d = jnp.clip(j_final_d + 1, 0, k)
-            Lscale_base_d = zt[i, k] - zt[i, j_reached_d]
+            Lscale_base_d = ZLMIN + zt[i, k] - zt[i, j_reached_d]
             
             # Handle sub-grid TKE exhaustion using lax.cond
             def case_first_level_down(_):
@@ -1253,11 +1257,12 @@ def compute_mixing_length(
         
         # Use lax.cond to handle zero TKE case
         # Fortran line 772: if ( tke_i(i,k) - CAPE_incr_1(i,k-1) > zero )
-        # NOTE: Fortran uses CAPE_incr_1 (upward), not a separate downward version!
+        # Fortran recalculates CAPE_incr_1 for downward at lines 700-760 with dzm[j+1] instead of dzm[j].
+        # Python keeps this in CAPE_incr_1_down, so use that!
         k_minus_1 = jnp.maximum(k - 1, 0)
-        
+
         Lscale_value = lax.cond(
-            tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
+            tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1] > zero,
             compute_Lscale_down,
             compute_Lscale_down_no_CAPE,
             None
@@ -1286,7 +1291,7 @@ def compute_mixing_length(
                 k - 2,  # j: start 2 levels below k (Fortran line 779)
                 thl_par_1_down[i, k],  # thl_par initial
                 rt_par_1_down[i, k],   # rt_par initial
-                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step (SUBTRACT!)
+                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step
                 tke_i[i, k],  # tke_prev (before first step)
                 dCAPE_dz_1_down[i, k_minus_1],  # dCAPE/dz at previous level
                 zero,  # dCAPE_two_back
@@ -1300,8 +1305,10 @@ def compute_mixing_length(
             
             # Compute Lscale as height difference (Fortran line 803: Lscale_down = zt(k) - zt(j+1))
             # j_final_d is the level that COULDN'T be reached, so use j_final_d+1 for last level reached
+            # CRITICAL: Fortran initializes Lscale_down to zlmin, then ADDS distances (line 891)
+            # So we must include ZLMIN in the base calculation
             j_reached_d = jnp.clip(j_final_d + 1, 0, k)
-            Lscale_base_d = zt[i, k] - zt[i, j_reached_d]
+            Lscale_base_d = ZLMIN + zt[i, k] - zt[i, j_reached_d]
             
             # Handle sub-grid TKE exhaustion using lax.cond
             def case_first_level_down(_):
@@ -1401,6 +1408,9 @@ def compute_mixing_length(
         
         # Compute Lscale_down for this level (same logic as before)
         k_minus_1 = jnp.maximum(k - 1, 0)
+        # DEBUG_TMP
+        if k == 1 and i == 0:
+            print(f"  DEBUG k={k}: tke_i={float(tke_i[i,k]):.6f}, CAPE_incr_1[{k_minus_1}]={float(CAPE_incr_1[i,k_minus_1]):.6f}, diff={float(tke_i[i,k] - CAPE_incr_1[i,k_minus_1]):.6f}")
         Lscale_value = lax.cond(
             tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
             lambda _: compute_Lscale_down(_),
