@@ -830,8 +830,10 @@ def compute_mixing_length(
             
             # Compute Lscale as height difference (Fortran line 562: Lscale_up = zt(j-1) - zt(k))
             # j_final is the level that COULDN'T be reached, so use j_final-1
+            # CRITICAL: Fortran initializes Lscale_up to zlmin, then ADDS distances (line 562)
+            # So we must include ZLMIN in the base calculation
             j_reached = jnp.maximum(j_final - 1, k)
-            Lscale_base = zt[i, j_reached] - zt[i, k]
+            Lscale_base = ZLMIN + zt[i, j_reached] - zt[i, k]
             
             # Handle sub-grid TKE exhaustion using lax.cond instead of if-elif-else
             def case_first_level(_):
@@ -1056,8 +1058,9 @@ def compute_mixing_length(
         """Scan step function - descends parcel one level with early stopping."""
         j, thl_par_j, rt_par_j, tke_curr, tke_prev, dCAPE_dz_prev, dCAPE_dz_two_back, i_col, stopped = carry
         
-        # Check if should continue (TKE > 0 and j > 0)
-        should_continue = (tke_curr > zero) & (j > 0) & (~stopped)
+        # Check if should continue (TKE > 0 and j >= 0)
+        # CRITICAL: Use j >= 0 (not j > 0) to allow descent to level 0
+        should_continue = (tke_curr > zero) & (j >= 0) & (~stopped)
         
         def continue_descent(_):
             """Continue parcel descent."""
@@ -1099,8 +1102,9 @@ def compute_mixing_length(
             # Fortran decrements j AFTER checking TKE (line 781)
             j_new = jnp.where(tke_exhausted, j, j - 1)
             
-            # Mark as stopped if TKE depleted or reached bottom
-            new_stopped = tke_exhausted | (j_new <= 0)
+            # Mark as stopped if TKE depleted or went below level 0
+            # CRITICAL: Use j_new < 0 (not <=) to allow processing level 0
+            new_stopped = tke_exhausted | (j_new < 0)
             
             # Return 9-element tuple (removed Lscale - computed from zt after scan)
             return (j_new, thl_par_new, rt_par_new, tke_new, tke_curr, dCAPE_dz_j, dCAPE_dz_prev, i_col, new_stopped)
@@ -1130,7 +1134,7 @@ def compute_mixing_length(
                 k - 2,  # j: start 2 levels below k (Fortran line 779)
                 thl_par_1_down[i, k],  # thl_par initial
                 rt_par_1_down[i, k],   # rt_par initial
-                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step (SUBTRACT!)
+                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step
                 tke_i[i, k],  # tke_prev (before first step)
                 dCAPE_dz_1_down[i, k_minus_1],  # dCAPE/dz at previous level
                 zero,  # dCAPE_two_back
@@ -1144,8 +1148,10 @@ def compute_mixing_length(
             
             # Compute Lscale as height difference (Fortran line 803: Lscale_down = zt(k) - zt(j+1))
             # j_final_d is the level that COULDN'T be reached, so use j_final_d+1 for last level reached
+            # CRITICAL: Fortran initializes Lscale_down to zlmin, then ADDS distances (line 891)
+            # So we must include ZLMIN in the base calculation
             j_reached_d = jnp.clip(j_final_d + 1, 0, k)
-            Lscale_base_d = zt[i, k] - zt[i, j_reached_d]
+            Lscale_base_d = ZLMIN + zt[i, k] - zt[i, j_reached_d]
             
             # Handle sub-grid TKE exhaustion using lax.cond
             def case_first_level_down(_):
@@ -1253,11 +1259,12 @@ def compute_mixing_length(
         
         # Use lax.cond to handle zero TKE case
         # Fortran line 772: if ( tke_i(i,k) - CAPE_incr_1(i,k-1) > zero )
-        # NOTE: Fortran uses CAPE_incr_1 (upward), not a separate downward version!
+        # Fortran recalculates CAPE_incr_1 for downward at lines 700-760 with dzm[j+1] instead of dzm[j].
+        # Python keeps this in CAPE_incr_1_down, so use that!
         k_minus_1 = jnp.maximum(k - 1, 0)
-        
+
         Lscale_value = lax.cond(
-            tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
+            tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1] > zero,
             compute_Lscale_down,
             compute_Lscale_down_no_CAPE,
             None
@@ -1286,7 +1293,7 @@ def compute_mixing_length(
                 k - 2,  # j: start 2 levels below k (Fortran line 779)
                 thl_par_1_down[i, k],  # thl_par initial
                 rt_par_1_down[i, k],   # rt_par initial
-                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step (SUBTRACT!)
+                tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1],  # tke after first step
                 tke_i[i, k],  # tke_prev (before first step)
                 dCAPE_dz_1_down[i, k_minus_1],  # dCAPE/dz at previous level
                 zero,  # dCAPE_two_back
@@ -1300,8 +1307,10 @@ def compute_mixing_length(
             
             # Compute Lscale as height difference (Fortran line 803: Lscale_down = zt(k) - zt(j+1))
             # j_final_d is the level that COULDN'T be reached, so use j_final_d+1 for last level reached
+            # CRITICAL: Fortran initializes Lscale_down to zlmin, then ADDS distances (line 891)
+            # So we must include ZLMIN in the base calculation
             j_reached_d = jnp.clip(j_final_d + 1, 0, k)
-            Lscale_base_d = zt[i, k] - zt[i, j_reached_d]
+            Lscale_base_d = ZLMIN + zt[i, k] - zt[i, j_reached_d]
             
             # Handle sub-grid TKE exhaustion using lax.cond
             def case_first_level_down(_):
@@ -1401,8 +1410,9 @@ def compute_mixing_length(
         
         # Compute Lscale_down for this level (same logic as before)
         k_minus_1 = jnp.maximum(k - 1, 0)
+
         Lscale_value = lax.cond(
-            tke_i[i, k] - CAPE_incr_1[i, k_minus_1] > zero,
+            tke_i[i, k] - CAPE_incr_1_down[i, k_minus_1] > zero,
             lambda _: compute_Lscale_down(_),
             lambda _: compute_Lscale_down_no_CAPE(_),
             None
