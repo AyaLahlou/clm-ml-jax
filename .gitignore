@@ -17,7 +17,8 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-diags/
+diags/figures/
+diags/output/
 downloads/
 eggs/
 .eggs/
