@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-05-26 — Session 47: Documentation and organization cleanup
+
+### Completed
+
+- **`diags/README.md`** — Created comprehensive documentation for all 70+ diagnostic scripts,
+  organized into six categories: Gradient Validation, Calibration, Benchmarking, Sensitivity
+  Analysis, Visualization, and Shared Infrastructure. Includes setup instructions, usage
+  examples, expected outputs, and contributor notes. Intended for sharing with scientists who
+  want to build on the codebase.
+
+- **`tests/README.md`** — Rewrote to accurately reflect the current test suite (removed
+  references to non-existent files `test_CanopyStateType.py`, `test_SoilTemperatureMod.py`,
+  `test_decompMod.py`). Added fixture documentation, test type descriptions, coverage gap
+  table, and contributor instructions.
+
+- **`diags/__init__.py`** — Updated docstring to include package purpose and pointer to README.
+
+- **`.gitignore`** — Fixed: `diags/` was blocking new files from being tracked. Changed to
+  `diags/figures/` and `diags/output/` (ignore only generated outputs, not source scripts).
+  Note: Python scripts were already tracked; this fix ensures future scripts are trackable.
+
+---
+
 ## 2026-05-08 — Session 46: Job outcomes — Tikhonov confirmed, minimal calibration paper-ready, roofline OOM, laxscan running
 
 ### Job outcomes
