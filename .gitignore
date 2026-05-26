@@ -1,11 +1,6 @@
-# Claude-specific files
+# GitHub specific files and directories
+.github/
 .claude/
-
-# Internal development tools (not part of the land model)
-jax-agents/
-
-# Integration test log files (generated outputs)
-tests/integration/comparison_*.log
 
 # Python
 docs/
@@ -22,7 +17,8 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-diags/
+diags/figures/
+diags/output/
 downloads/
 eggs/
 .eggs/

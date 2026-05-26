@@ -1,0 +1,7 @@
+backend,N,seq_total_s,seq_ss_ms_per_site,parallel_wall_s,parallel_ms_per_site,speedup_par_vs_seq,parallel_quality
+fortran,1,0.3079,61.5765,0.2590,51.8078,1.189,ok
+fortran,2,0.5096,50.9575,0.3104,31.0400,1.643,ok
+fortran,4,1.0391,51.9528,0.6285,31.4248,1.652,ok
+fortran,8,1.9848,49.6198,1.5865,39.6625,1.250,ok
+fortran,16,4.3370,54.2130,0.7930,9.9125,5.470,noisy
+fortran,32,8.6453,54.0329,1.4885,9.3031,5.807,noisy

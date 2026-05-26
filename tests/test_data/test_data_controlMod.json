@@ -1,0 +1,328 @@
+{
+  "function_name": "control",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_tower_ndays",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-Ha1",
+          "start_ymd": 20150701,
+          "start_tod": 43200,
+          "stop_option": "ndays",
+          "stop_n": 30,
+          "clm_start_ymd": 20150701,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 1,
+          "tower_id": [
+            "US-Ha1"
+          ],
+          "tower_time": [
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Standard single tower configuration with 30-day simulation starting at noon UTC",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_multiple_towers_nsteps",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-Var",
+          "start_ymd": 20180415,
+          "start_tod": 0,
+          "stop_option": "nsteps",
+          "stop_n": 2880,
+          "clm_start_ymd": 20180401,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 5,
+          "tower_id": [
+            "US-Ha1",
+            "US-Var",
+            "US-UMB",
+            "US-MMS",
+            "US-WCr"
+          ],
+          "tower_time": [
+            30,
+            30,
+            60,
+            30,
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple tower sites with nsteps option, 2880 steps (30 days at 30-min intervals)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_leap_year_date",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-MMS",
+          "start_ymd": 20200229,
+          "start_tod": 21600,
+          "stop_option": "ndays",
+          "stop_n": 10,
+          "clm_start_ymd": 20200229,
+          "clm_start_tod": 21600
+        },
+        "tower_data": {
+          "ntower": 3,
+          "tower_id": [
+            "US-Ha1",
+            "US-MMS",
+            "US-WCr"
+          ],
+          "tower_time": [
+            30,
+            30,
+            60
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Leap year date (Feb 29) with 6-hour offset start time",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_year_boundary",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-UMB",
+          "start_ymd": 20191231,
+          "start_tod": 82800,
+          "stop_option": "ndays",
+          "stop_n": 5,
+          "clm_start_ymd": 20191231,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 2,
+          "tower_id": [
+            "US-UMB",
+            "US-Ha1"
+          ],
+          "tower_time": [
+            30,
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Year boundary crossing (Dec 31) with late evening start time (23:00 UTC)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_long_simulation",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-WCr",
+          "start_ymd": 20160101,
+          "start_tod": 0,
+          "stop_option": "ndays",
+          "stop_n": 365,
+          "clm_start_ymd": 20160101,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 1,
+          "tower_id": [
+            "US-WCr"
+          ],
+          "tower_time": [
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Full year simulation (365 days) starting at midnight UTC on Jan 1",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_minimum_stop_n",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-Ha1",
+          "start_ymd": 20170615,
+          "start_tod": 0,
+          "stop_option": "ndays",
+          "stop_n": 1,
+          "clm_start_ymd": 20170615,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 1,
+          "tower_id": [
+            "US-Ha1"
+          ],
+          "tower_time": [
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum simulation length (1 day)",
+        "edge_cases": [
+          "minimum_stop_n"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_boundary_start_tod_zero",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-Var",
+          "start_ymd": 20190801,
+          "start_tod": 0,
+          "stop_option": "nsteps",
+          "stop_n": 48,
+          "clm_start_ymd": 20190801,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 2,
+          "tower_id": [
+            "US-Var",
+            "US-MMS"
+          ],
+          "tower_time": [
+            30,
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Start time at exact midnight (0 seconds past 0Z)",
+        "edge_cases": [
+          "boundary_tod_zero"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_boundary_start_tod_max",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-UMB",
+          "start_ymd": 20210310,
+          "start_tod": 86400,
+          "stop_option": "ndays",
+          "stop_n": 7,
+          "clm_start_ymd": 20210310,
+          "clm_start_tod": 86400
+        },
+        "tower_data": {
+          "ntower": 1,
+          "tower_id": [
+            "US-UMB"
+          ],
+          "tower_time": [
+            60
+          ]
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Start time at maximum boundary (86400 seconds = end of day)",
+        "edge_cases": [
+          "boundary_tod_max"
+        ]
+      }
+    },
+    {
+      "name": "test_special_hourly_timestep",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-MMS",
+          "start_ymd": 20140920,
+          "start_tod": 10800,
+          "stop_option": "nsteps",
+          "stop_n": 720,
+          "clm_start_ymd": 20140920,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 4,
+          "tower_id": [
+            "US-Ha1",
+            "US-MMS",
+            "US-UMB",
+            "US-Var"
+          ],
+          "tower_time": [
+            60,
+            60,
+            60,
+            60
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "All towers with hourly (60-minute) time steps, 720 steps = 30 days",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_mixed_timesteps_large_ntower",
+      "inputs": {
+        "namelist": {
+          "tower_name": "US-WCr",
+          "start_ymd": 20221105,
+          "start_tod": 64800,
+          "stop_option": "ndays",
+          "stop_n": 90,
+          "clm_start_ymd": 20221101,
+          "clm_start_tod": 0
+        },
+        "tower_data": {
+          "ntower": 8,
+          "tower_id": [
+            "US-Ha1",
+            "US-Var",
+            "US-UMB",
+            "US-MMS",
+            "US-WCr",
+            "US-NR1",
+            "US-ARM",
+            "US-Bo1"
+          ],
+          "tower_time": [
+            30,
+            30,
+            60,
+            30,
+            15,
+            30,
+            60,
+            30
+          ]
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large number of towers (8) with mixed time steps (15, 30, 60 minutes), CLM start date differs from run start",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions: (1) Tower names follow FLUXNET convention (6 characters, US-XXX format). (2) Dates are valid calendar dates in yyyymmdd format (20140101-20251231 range). (3) Time-of-day values are in seconds past midnight UTC (0-86400). (4) Tower time steps are realistic for flux tower data (15, 30, or 60 minutes). (5) stop_n values are chosen to represent realistic simulation lengths (1-365 days or equivalent steps). (6) Edge cases test boundary conditions for tod (0 and 86400) and minimum stop_n (1). (7) Special cases test multiple towers, mixed time steps, and date boundaries (leap years, year-end). (8) All tower_id tuples have length matching ntower, and all tower_time values are positive. (9) CLM start dates can differ from run start dates to test offset scenarios. (10) Test cases cover both 'ndays' and 'nsteps' stop_option values."
+}

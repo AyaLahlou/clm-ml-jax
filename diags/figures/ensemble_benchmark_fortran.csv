@@ -1,0 +1,15 @@
+backend,N,run_wall_s,ms_per_sample,notes
+fortran_seq,1,0.292495,58.4991,measured
+fortran_par,1,0.241456,48.2912,measured_full_parallel
+fortran_seq,8,2.054485,51.3621,measured
+fortran_par,8,1.967018,49.1755,measured_capped_at_1
+fortran_seq,32,8.345583,52.1599,measured
+fortran_par,32,9.418370,58.8648,measured_capped_at_1
+fortran_seq,128,34.579200,54.0300,extrapolated_corrected
+fortran_par,128,35.484020,55.4438,measured_capped_at_1
+fortran_seq,512,138.316800,54.0300,extrapolated_corrected
+fortran_par,512,141.497879,55.2726,measured_capped_at_1
+fortran_seq,1024,276.633600,54.0300,extrapolated_corrected
+fortran_par,1024,282.824708,55.2392,measured_capped_at_1
+fortran_seq,2048,553.267200,54.0300,extrapolated_corrected
+fortran_par,2048,616.041363,60.1603,measured_capped_at_1

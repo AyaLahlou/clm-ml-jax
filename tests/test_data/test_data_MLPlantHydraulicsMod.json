@@ -1,0 +1,1095 @@
+{
+  "function_name": "plant_hydraulics_test_suite",
+  "test_cases": [
+    {
+      "name": "test_plant_resistance_nominal_single_patch",
+      "function": "plant_resistance",
+      "inputs": {
+        "gplant_SPA": [
+          150.0,
+          200.0,
+          180.0
+        ],
+        "ncan": [
+          10
+        ],
+        "rsoil": [
+          0.5
+        ],
+        "dpai": [
+          [
+            0.8,
+            0.7,
+            0.6,
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.1,
+            0.05,
+            0.02,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "zs": [
+          [
+            25.0,
+            22.5,
+            20.0,
+            17.5,
+            15.0,
+            12.5,
+            10.0,
+            7.5,
+            5.0,
+            2.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "itype": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single patch with typical forest canopy structure, decreasing PAI with height",
+        "edge_cases": [],
+        "dimensions": {
+          "n_pfts": 3,
+          "n_patches": 1,
+          "n_levcan": 15
+        }
+      }
+    },
+    {
+      "name": "test_plant_resistance_multiple_patches",
+      "function": "plant_resistance",
+      "inputs": {
+        "gplant_SPA": [
+          150.0,
+          200.0,
+          180.0,
+          120.0
+        ],
+        "ncan": [
+          10,
+          8,
+          12
+        ],
+        "rsoil": [
+          0.5,
+          0.8,
+          0.3
+        ],
+        "dpai": [
+          [
+            0.8,
+            0.7,
+            0.6,
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.1,
+            0.05,
+            0.02,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.6,
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.15,
+            0.1,
+            0.05,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.9,
+            0.8,
+            0.7,
+            0.6,
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.15,
+            0.1,
+            0.05,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "zs": [
+          [
+            25.0,
+            22.5,
+            20.0,
+            17.5,
+            15.0,
+            12.5,
+            10.0,
+            7.5,
+            5.0,
+            2.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            18.0,
+            16.0,
+            14.0,
+            12.0,
+            10.0,
+            8.0,
+            6.0,
+            4.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            30.0,
+            27.5,
+            25.0,
+            22.5,
+            20.0,
+            17.5,
+            15.0,
+            12.5,
+            10.0,
+            7.5,
+            5.0,
+            2.5,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "itype": [
+          1,
+          2,
+          0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple patches with different canopy heights and structures (tall forest, shrubland, very tall forest)",
+        "edge_cases": [],
+        "dimensions": {
+          "n_pfts": 4,
+          "n_patches": 3,
+          "n_levcan": 15
+        }
+      }
+    },
+    {
+      "name": "test_plant_resistance_edge_zero_soil_resistance",
+      "function": "plant_resistance",
+      "inputs": {
+        "gplant_SPA": [
+          150.0,
+          200.0
+        ],
+        "ncan": [
+          5
+        ],
+        "rsoil": [
+          0.0
+        ],
+        "dpai": [
+          [
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.1,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "zs": [
+          [
+            10.0,
+            8.0,
+            6.0,
+            4.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "itype": [
+          0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Zero soil resistance - tests behavior when soil offers no resistance to water flow",
+        "edge_cases": [
+          "zero_soil_resistance"
+        ],
+        "dimensions": {
+          "n_pfts": 2,
+          "n_patches": 1,
+          "n_levcan": 10
+        }
+      }
+    },
+    {
+      "name": "test_plant_resistance_edge_sparse_canopy",
+      "function": "plant_resistance",
+      "inputs": {
+        "gplant_SPA": [
+          100.0,
+          150.0,
+          120.0
+        ],
+        "ncan": [
+          3
+        ],
+        "rsoil": [
+          1.2
+        ],
+        "dpai": [
+          [
+            0.05,
+            0.03,
+            0.01,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "zs": [
+          [
+            3.0,
+            2.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "itype": [
+          2
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very sparse canopy with minimal PAI - tests low vegetation density",
+        "edge_cases": [
+          "sparse_canopy",
+          "small_values"
+        ],
+        "dimensions": {
+          "n_pfts": 3,
+          "n_patches": 1,
+          "n_levcan": 10
+        }
+      }
+    },
+    {
+      "name": "test_soil_resistance_nominal_multilayer",
+      "function": "soil_resistance",
+      "inputs": {
+        "root_radius": [
+          0.0001,
+          0.00015,
+          0.00012
+        ],
+        "root_density": [
+          50000.0,
+          60000.0,
+          55000.0
+        ],
+        "root_resist": [
+          25.0,
+          30.0,
+          28.0
+        ],
+        "dz": [
+          [
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8
+          ]
+        ],
+        "nbedrock": [
+          10
+        ],
+        "smp_l": [
+          [
+            -100.0,
+            -200.0,
+            -300.0,
+            -500.0,
+            -800.0,
+            -1200.0,
+            -1800.0,
+            -2500.0,
+            -3500.0,
+            -5000.0
+          ]
+        ],
+        "hk_l": [
+          [
+            0.001,
+            0.0008,
+            0.0006,
+            0.0004,
+            0.0003,
+            0.0002,
+            0.00015,
+            0.0001,
+            8e-05,
+            5e-05
+          ]
+        ],
+        "rootfr": [
+          [
+            0.25,
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08,
+            0.05,
+            0.03,
+            0.01,
+            0.01
+          ]
+        ],
+        "h2osoi_ice": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "root_biomass": [
+          150.0
+        ],
+        "lai": [
+          4.5
+        ],
+        "itype": [
+          1
+        ],
+        "patch_to_column": [
+          0
+        ],
+        "minlwp_SPA": -2.5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Typical soil profile with decreasing moisture and conductivity with depth, no ice",
+        "edge_cases": [],
+        "dimensions": {
+          "n_pfts": 3,
+          "n_patches": 1,
+          "n_columns": 1,
+          "n_layers": 10
+        }
+      }
+    },
+    {
+      "name": "test_soil_resistance_edge_frozen_soil",
+      "function": "soil_resistance",
+      "inputs": {
+        "root_radius": [
+          0.0001,
+          0.00015
+        ],
+        "root_density": [
+          50000.0,
+          60000.0
+        ],
+        "root_resist": [
+          25.0,
+          30.0
+        ],
+        "dz": [
+          [
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3,
+            0.4
+          ]
+        ],
+        "nbedrock": [
+          6
+        ],
+        "smp_l": [
+          [
+            -50.0,
+            -100.0,
+            -150.0,
+            -200.0,
+            -300.0,
+            -500.0
+          ]
+        ],
+        "hk_l": [
+          [
+            0.001,
+            0.0008,
+            0.0005,
+            0.0003,
+            0.0001,
+            5e-05
+          ]
+        ],
+        "rootfr": [
+          [
+            0.3,
+            0.25,
+            0.2,
+            0.15,
+            0.07,
+            0.03
+          ]
+        ],
+        "h2osoi_ice": [
+          [
+            5.0,
+            8.0,
+            12.0,
+            15.0,
+            10.0,
+            5.0
+          ]
+        ],
+        "root_biomass": [
+          120.0
+        ],
+        "lai": [
+          3.0
+        ],
+        "itype": [
+          0
+        ],
+        "patch_to_column": [
+          0
+        ],
+        "minlwp_SPA": -3.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Frozen soil conditions with significant ice content in all layers",
+        "edge_cases": [
+          "frozen_soil",
+          "ice_present"
+        ],
+        "dimensions": {
+          "n_pfts": 2,
+          "n_patches": 1,
+          "n_columns": 1,
+          "n_layers": 6
+        }
+      }
+    },
+    {
+      "name": "test_soil_resistance_edge_shallow_bedrock",
+      "function": "soil_resistance",
+      "inputs": {
+        "root_radius": [
+          0.0001,
+          0.00012,
+          0.00015
+        ],
+        "root_density": [
+          50000.0,
+          55000.0,
+          60000.0
+        ],
+        "root_resist": [
+          25.0,
+          27.0,
+          30.0
+        ],
+        "dz": [
+          [
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3,
+            0.4,
+            0.5,
+            0.6
+          ]
+        ],
+        "nbedrock": [
+          3
+        ],
+        "smp_l": [
+          [
+            -80.0,
+            -150.0,
+            -250.0,
+            -10000.0,
+            -10000.0,
+            -10000.0,
+            -10000.0,
+            -10000.0
+          ]
+        ],
+        "hk_l": [
+          [
+            0.001,
+            0.0008,
+            0.0005,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "rootfr": [
+          [
+            0.5,
+            0.35,
+            0.15,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "h2osoi_ice": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "root_biomass": [
+          100.0
+        ],
+        "lai": [
+          3.5
+        ],
+        "itype": [
+          2
+        ],
+        "patch_to_column": [
+          0
+        ],
+        "minlwp_SPA": -2.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Shallow bedrock at layer 3, roots concentrated in upper layers",
+        "edge_cases": [
+          "shallow_bedrock",
+          "limited_rooting_depth"
+        ],
+        "dimensions": {
+          "n_pfts": 3,
+          "n_patches": 1,
+          "n_columns": 1,
+          "n_layers": 8
+        }
+      }
+    },
+    {
+      "name": "test_leaf_water_potential_nominal_sunlit",
+      "function": "leaf_water_potential",
+      "inputs": {
+        "capac_SPA": [
+          5000.0,
+          6000.0,
+          5500.0
+        ],
+        "ncan": [
+          8
+        ],
+        "psis": [
+          -0.5
+        ],
+        "dpai": [
+          [
+            0.7,
+            0.6,
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.1,
+            0.05,
+            0.0,
+            0.0
+          ]
+        ],
+        "zs": [
+          [
+            20.0,
+            17.5,
+            15.0,
+            12.5,
+            10.0,
+            7.5,
+            5.0,
+            2.5,
+            0.0,
+            0.0
+          ]
+        ],
+        "lsc": [
+          [
+            80.0,
+            75.0,
+            70.0,
+            65.0,
+            60.0,
+            55.0,
+            50.0,
+            45.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "trleaf": [
+          [
+            [
+              0.003,
+              0.001
+            ],
+            [
+              0.0028,
+              0.0009
+            ],
+            [
+              0.0026,
+              0.0008
+            ],
+            [
+              0.0024,
+              0.0007
+            ],
+            [
+              0.0022,
+              0.0006
+            ],
+            [
+              0.002,
+              0.0005
+            ],
+            [
+              0.0018,
+              0.0004
+            ],
+            [
+              0.0015,
+              0.0003
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        ],
+        "lwp": [
+          [
+            [
+              -0.8,
+              -0.9
+            ],
+            [
+              -0.85,
+              -0.95
+            ],
+            [
+              -0.9,
+              -1.0
+            ],
+            [
+              -0.95,
+              -1.05
+            ],
+            [
+              -1.0,
+              -1.1
+            ],
+            [
+              -1.05,
+              -1.15
+            ],
+            [
+              -1.1,
+              -1.2
+            ],
+            [
+              -1.15,
+              -1.25
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        ],
+        "itype": [
+          1
+        ],
+        "dtime_substep": 300.0,
+        "il": 0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Sunlit leaf water potential update with typical transpiration rates",
+        "edge_cases": [],
+        "dimensions": {
+          "n_pfts": 3,
+          "n_patches": 1,
+          "n_canopy_layers": 10
+        }
+      }
+    },
+    {
+      "name": "test_leaf_water_potential_edge_high_stress",
+      "function": "leaf_water_potential",
+      "inputs": {
+        "capac_SPA": [
+          5000.0,
+          6000.0
+        ],
+        "ncan": [
+          6
+        ],
+        "psis": [
+          -2.5
+        ],
+        "dpai": [
+          [
+            0.5,
+            0.4,
+            0.3,
+            0.2,
+            0.1,
+            0.05,
+            0.0,
+            0.0
+          ]
+        ],
+        "zs": [
+          [
+            15.0,
+            12.5,
+            10.0,
+            7.5,
+            5.0,
+            2.5,
+            0.0,
+            0.0
+          ]
+        ],
+        "lsc": [
+          [
+            40.0,
+            35.0,
+            30.0,
+            25.0,
+            20.0,
+            15.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "trleaf": [
+          [
+            [
+              0.005,
+              0.002
+            ],
+            [
+              0.0048,
+              0.0019
+            ],
+            [
+              0.0045,
+              0.0018
+            ],
+            [
+              0.004,
+              0.0015
+            ],
+            [
+              0.0035,
+              0.0012
+            ],
+            [
+              0.003,
+              0.001
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        ],
+        "lwp": [
+          [
+            [
+              -2.0,
+              -2.2
+            ],
+            [
+              -2.1,
+              -2.3
+            ],
+            [
+              -2.2,
+              -2.4
+            ],
+            [
+              -2.3,
+              -2.5
+            ],
+            [
+              -2.4,
+              -2.6
+            ],
+            [
+              -2.5,
+              -2.7
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        ],
+        "itype": [
+          0
+        ],
+        "dtime_substep": 300.0,
+        "il": 1
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Shaded leaves under high water stress with low soil water potential",
+        "edge_cases": [
+          "high_water_stress",
+          "low_soil_potential"
+        ],
+        "dimensions": {
+          "n_pfts": 2,
+          "n_patches": 1,
+          "n_canopy_layers": 8
+        }
+      }
+    },
+    {
+      "name": "test_calculate_soil_resistance_per_layer_nominal",
+      "function": "_calculate_soil_resistance_per_layer",
+      "inputs": {
+        "root_radius": [
+          0.0001,
+          0.00015
+        ],
+        "root_density": [
+          50000.0,
+          60000.0
+        ],
+        "root_resist": [
+          25.0,
+          30.0
+        ],
+        "dz": [
+          [
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3
+          ]
+        ],
+        "nbedrock": [
+          5
+        ],
+        "smp_l": [
+          [
+            -100.0,
+            -200.0,
+            -350.0,
+            -600.0,
+            -1000.0
+          ]
+        ],
+        "hk_l": [
+          [
+            0.001,
+            0.0008,
+            0.0006,
+            0.0004,
+            0.0002
+          ]
+        ],
+        "rootfr": [
+          [
+            0.35,
+            0.3,
+            0.2,
+            0.1,
+            0.05
+          ]
+        ],
+        "h2osoi_ice": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "root_biomass": [
+          140.0
+        ],
+        "minlwp_SPA": -2.5,
+        "n_layers": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Per-layer soil resistance calculation with typical root distribution",
+        "edge_cases": [],
+        "dimensions": {
+          "n_patches": 1,
+          "n_columns": 1,
+          "n_layers": 5
+        }
+      }
+    },
+    {
+      "name": "test_finalize_soil_resistance_edge_zero_lai",
+      "function": "_finalize_soil_resistance",
+      "inputs": {
+        "rsoil_conductance": [
+          100.0
+        ],
+        "lai": [
+          0.0
+        ],
+        "smp_mpa": [
+          [
+            -0.1,
+            -0.2,
+            -0.35,
+            -0.6,
+            -1.0
+          ]
+        ],
+        "evap": [
+          [
+            5.0,
+            4.0,
+            3.0,
+            2.0,
+            1.0
+          ]
+        ],
+        "totevap": [
+          15.0
+        ],
+        "minlwp_SPA": -2.5
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Zero LAI condition - tests behavior with no leaf area",
+        "edge_cases": [
+          "zero_lai",
+          "no_canopy"
+        ],
+        "dimensions": {
+          "n_patches": 1,
+          "nlayers": 5
+        }
+      }
+    }
+  ],
+  "notes": "Test data generation approach:\n\n1. **Physical Realism**: All values respect physical constraints:\n   - Hydraulic conductances > 0\n   - Water potentials \u2264 0 (MPa)\n   - Soil matric potentials \u2264 0 (mm or MPa)\n   - Fractions in [0, 1]\n   - Integer indices \u2265 0\n   - Temperatures would be > 0K if included\n\n2. **Dimensional Consistency**: Each test case maintains consistent dimensions:\n   - Array shapes match within each test\n   - Patch-to-column mappings are valid indices\n   - PFT indices reference valid positions in PFT arrays\n   - Canopy layers (n_levcan) match dpai/zs dimensions\n\n3. **Nominal Cases** (tests 1, 2, 5, 8, 10):\n   - Typical forest/vegetation parameters\n   - Realistic canopy structures with decreasing PAI\n   - Moderate water stress conditions\n   - Standard soil profiles\n\n4. **Edge Cases** (tests 3, 4, 6, 7, 9, 11):\n   - Zero soil resistance (perfect soil water availability)\n   - Sparse canopy (very low PAI)\n   - Frozen soil (ice content present)\n   - Shallow bedrock (limited rooting depth)\n   - High water stress (very negative potentials)\n   - Zero LAI (no canopy)\n\n5. **Parameter Ranges**:\n   - gplant_SPA: 100-200 mmol/m\u00b2/s/MPa (typical plant conductance)\n   - Root radius: 0.0001-0.00015 m (fine roots)\n   - Root density: 50000-60000 g/m\u00b3\n   - Soil matric potential: -50 to -5000 mm (moist to dry)\n   - Leaf water potential: -0.5 to -2.7 MPa (mild to severe stress)\n   - Transpiration: 0.001-0.005 mol/m\u00b2/s (typical rates)\n   - LAI: 0-4.5 m\u00b2/m\u00b2 (bare to dense canopy)\n\n6. **Array Structures**:\n   - Canopy layers: up to 15 levels with padding zeros\n   - Soil layers: 5-10 layers with realistic thickness\n   - Root fractions sum to ~1.0 across active layers\n   - Heights decrease monotonically from top to bottom\n\n7. **Special Considerations**:\n   - Bedrock index limits active soil layers\n   - Ice content affects hydraulic conductivity\n   - Leaf index (il) is 0 for sunlit, 1 for shaded\n   - Time steps are realistic (300s = 5 minutes)\n\nAll test cases are designed to be executable with JAX/NumPy and cover the full range of expected operating conditions plus critical edge cases."
+}

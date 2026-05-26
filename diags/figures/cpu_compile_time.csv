@@ -1,0 +1,8 @@
+N,compile_s,status,run_ms,ms_per_sample
+1,219.5,ok,20.8,20.83
+8,243.0,ok,141.6,17.70
+32,426.6,ok,577.3,18.04
+128,nan,oom_128G_and_700G,nan,nan
+512,nan,oom_128G_after_72h,nan,nan
+1024,nan,not_reached,nan,nan
+2048,nan,not_reached,nan,nan

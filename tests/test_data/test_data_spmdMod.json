@@ -1,0 +1,122 @@
+{
+  "function_name": "is_master_proc",
+  "test_cases": [
+    {
+      "name": "test_single_process_default",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests default behavior in single-process JAX execution where MASTERPROC constant is True",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_repeated_calls_consistency",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Verifies that multiple calls to is_master_proc return consistent results",
+        "edge_cases": [],
+        "call_count": 5
+      }
+    },
+    {
+      "name": "test_within_jit_compilation",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests behavior when called within a JAX jit-compiled function",
+        "edge_cases": [],
+        "jit_context": true
+      }
+    },
+    {
+      "name": "test_within_vmap_context",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "special",
+        "description": "Tests behavior when called within a JAX vmap (vectorized map) context",
+        "edge_cases": [],
+        "vmap_context": true,
+        "vmap_size": 4
+      }
+    },
+    {
+      "name": "test_within_pmap_single_device",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "special",
+        "description": "Tests behavior within pmap context on single device (should still return True)",
+        "edge_cases": [],
+        "pmap_context": true,
+        "device_count": 1
+      }
+    },
+    {
+      "name": "test_cold_start_initialization",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests first call after module import (cold start scenario)",
+        "edge_cases": [],
+        "initialization_test": true
+      }
+    },
+    {
+      "name": "test_concurrent_calls",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "special",
+        "description": "Tests behavior with concurrent/parallel calls in single-process mode",
+        "edge_cases": [],
+        "concurrent": true,
+        "thread_count": 3
+      }
+    },
+    {
+      "name": "test_after_device_operations",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that is_master_proc returns correct value after JAX device operations",
+        "edge_cases": [],
+        "prior_device_ops": true
+      }
+    },
+    {
+      "name": "test_type_consistency",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "edge",
+        "description": "Verifies return type is exactly bool (not int or other truthy value)",
+        "edge_cases": [
+          "type_validation"
+        ],
+        "strict_type_check": true
+      }
+    },
+    {
+      "name": "test_constant_alignment",
+      "inputs": {},
+      "expected_output": true,
+      "metadata": {
+        "type": "edge",
+        "description": "Verifies function return matches MASTERPROC constant value",
+        "edge_cases": [
+          "constant_consistency"
+        ],
+        "validate_against_constant": "MASTERPROC"
+      }
+    }
+  ],
+  "notes": "Test data generation strategy: Since is_master_proc() takes no parameters and returns a constant boolean value in single-process JAX mode, test cases focus on different execution contexts and consistency checks rather than input variations. The function is designed as a compatibility layer for SPMD/MPI patterns, so tests verify: (1) Consistent True return in single-process mode, (2) Behavior in various JAX contexts (jit, vmap, pmap), (3) Type correctness, (4) Alignment with MASTERPROC constant. In a true multi-process/multi-host JAX deployment, additional tests would verify process rank detection, but the current implementation always returns True per the specification. Edge cases focus on execution context variations and type validation rather than input boundaries since no inputs exist."
+}

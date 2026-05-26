@@ -1,0 +1,417 @@
+{
+  "function_name": "soil_texture_module",
+  "test_cases": [
+    {
+      "name": "test_create_soil_texture_params_nominal",
+      "inputs": {},
+      "expected_properties": {
+        "ntex": 11,
+        "soil_tex_length": 11,
+        "array_shapes": "(11,)",
+        "sand_silt_clay_sum": 1.0,
+        "watsat_range": [
+          0.0,
+          1.0
+        ],
+        "smpsat_negative": true,
+        "hksat_positive": true,
+        "bsw_positive": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that create_soil_texture_params returns valid structure with correct dimensions and physical constraints",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_texture_class_index_all_valid_names",
+      "inputs": {
+        "texture_names": [
+          "sand",
+          "loamy sand",
+          "sandy loam",
+          "silty loam",
+          "loam",
+          "sandy clay loam",
+          "silty clay loam",
+          "clay loam",
+          "sandy clay",
+          "silty clay",
+          "clay"
+        ]
+      },
+      "expected_outputs": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests all valid texture class names map to correct indices 0-10",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_texture_class_index_case_sensitivity",
+      "inputs": {
+        "texture_names": [
+          "Sand",
+          "LOAM",
+          "Clay",
+          "SaNdY cLaY"
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests case sensitivity handling - should either normalize or raise clear error",
+        "edge_cases": [
+          "case_variation"
+        ]
+      }
+    },
+    {
+      "name": "test_get_texture_class_index_invalid_name",
+      "inputs": {
+        "texture_names": [
+          "invalid_texture",
+          "",
+          "silt",
+          "sandy_loam"
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests error handling for invalid texture names including empty string and near-matches",
+        "edge_cases": [
+          "invalid_input"
+        ]
+      }
+    },
+    {
+      "name": "test_interpolate_texture_params_pure_textures",
+      "inputs": {
+        "sand_frac": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "clay_frac": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "description": "Pure sand (100% sand), pure clay (100% clay), pure silt (0% sand, 0% clay)"
+      },
+      "expected_properties": {
+        "watsat_range": [
+          0.0,
+          1.0
+        ],
+        "smpsat_negative": true,
+        "hksat_positive": true,
+        "bsw_positive": true,
+        "output_shape": "(3,)"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests interpolation at pure texture endpoints - should match or be close to reference texture classes",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_interpolate_texture_params_typical_soils",
+      "inputs": {
+        "sand_frac": [
+          0.52,
+          0.42,
+          0.23,
+          0.15,
+          0.65
+        ],
+        "clay_frac": [
+          0.06,
+          0.18,
+          0.27,
+          0.42,
+          0.1
+        ],
+        "description": "Typical field soils: sandy loam, loam, clay loam, clay, loamy sand"
+      },
+      "expected_properties": {
+        "watsat_range": [
+          0.0,
+          1.0
+        ],
+        "smpsat_negative": true,
+        "hksat_positive": true,
+        "bsw_positive": true,
+        "output_shape": "(5,)"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests interpolation with realistic soil compositions from agricultural fields",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_interpolate_texture_params_boundary_conditions",
+      "inputs": {
+        "sand_frac": [
+          0.0,
+          1.0,
+          0.5,
+          0.0,
+          0.33
+        ],
+        "clay_frac": [
+          0.0,
+          0.0,
+          0.5,
+          1.0,
+          0.33
+        ],
+        "description": "Boundary conditions: all zeros, all sand, 50-50 sand-clay, all clay, equal thirds"
+      },
+      "expected_properties": {
+        "watsat_range": [
+          0.0,
+          1.0
+        ],
+        "smpsat_negative": true,
+        "hksat_positive": true,
+        "bsw_positive": true,
+        "output_shape": "(5,)"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary conditions including extreme compositions and equal fractions",
+        "edge_cases": [
+          "boundary_values",
+          "zero_values"
+        ]
+      }
+    },
+    {
+      "name": "test_interpolate_texture_params_large_array",
+      "inputs": {
+        "sand_frac": [
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.15,
+          0.25,
+          0.35,
+          0.45,
+          0.55,
+          0.65,
+          0.75,
+          0.85,
+          0.12,
+          0.22,
+          0.32,
+          0.42
+        ],
+        "clay_frac": [
+          0.1,
+          0.15,
+          0.2,
+          0.25,
+          0.3,
+          0.15,
+          0.1,
+          0.05,
+          0.35,
+          0.3,
+          0.25,
+          0.2,
+          0.15,
+          0.1,
+          0.05,
+          0.02,
+          0.4,
+          0.35,
+          0.3,
+          0.25
+        ],
+        "description": "Large array with 20 diverse soil compositions for spatial applications"
+      },
+      "expected_properties": {
+        "output_shape": "(20,)",
+        "watsat_range": [
+          0.0,
+          1.0
+        ],
+        "smpsat_negative": true,
+        "hksat_positive": true,
+        "bsw_positive": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests interpolation with larger arrays typical of gridded spatial data",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_interpolate_texture_params_single_point",
+      "inputs": {
+        "sand_frac": [
+          0.4
+        ],
+        "clay_frac": [
+          0.2
+        ],
+        "description": "Single point interpolation - loam texture"
+      },
+      "expected_properties": {
+        "output_shape": "(1,)",
+        "watsat_range": [
+          0.0,
+          1.0
+        ],
+        "smpsat_negative": true,
+        "hksat_positive": true,
+        "bsw_positive": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests interpolation with single point - minimum valid array size",
+        "edge_cases": [
+          "minimal_size"
+        ]
+      }
+    },
+    {
+      "name": "test_interpolate_texture_params_invalid_fractions",
+      "inputs": {
+        "test_cases": [
+          {
+            "sand_frac": [
+              -0.1,
+              0.5
+            ],
+            "clay_frac": [
+              0.2,
+              0.3
+            ],
+            "description": "Negative sand fraction"
+          },
+          {
+            "sand_frac": [
+              0.5,
+              0.3
+            ],
+            "clay_frac": [
+              1.2,
+              0.3
+            ],
+            "description": "Clay fraction > 1.0"
+          },
+          {
+            "sand_frac": [
+              0.7,
+              0.5
+            ],
+            "clay_frac": [
+              0.5,
+              0.3
+            ],
+            "description": "Sand + clay > 1.0"
+          },
+          {
+            "sand_frac": [
+              1.5,
+              0.3
+            ],
+            "clay_frac": [
+              0.2,
+              0.3
+            ],
+            "description": "Sand fraction > 1.0"
+          }
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests error handling for physically invalid fraction values (negative, >1.0, or sum >1.0)",
+        "edge_cases": [
+          "invalid_input",
+          "constraint_violation"
+        ]
+      }
+    }
+  ],
+  "additional_test_scenarios": [
+    {
+      "name": "test_module_constants_consistency",
+      "description": "Verify all module constants (SAND_INDEX, LOAM_INDEX, etc.) match the indices returned by get_texture_class_index",
+      "metadata": {
+        "type": "nominal",
+        "description": "Integration test ensuring constants are consistent with function behavior"
+      }
+    },
+    {
+      "name": "test_default_params_singleton",
+      "description": "Verify DEFAULT_SOIL_TEXTURE_PARAMS is properly initialized and matches create_soil_texture_params() output",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests module-level constant initialization"
+      }
+    },
+    {
+      "name": "test_texture_params_immutability",
+      "description": "Verify SoilTextureParams namedtuple is immutable (attempting to modify should raise error)",
+      "metadata": {
+        "type": "special",
+        "description": "Tests immutability constraint of namedtuple"
+      }
+    },
+    {
+      "name": "test_interpolate_monotonicity",
+      "description": "Test that interpolated parameters change monotonically as sand/clay fractions change along expected gradients",
+      "inputs": {
+        "sand_gradient": [
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "clay_constant": [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests physical realism - hydraulic properties should change predictably with texture"
+      }
+    }
+  ],
+  "notes": "Test data generation approach:\n\n1. **create_soil_texture_params**: No inputs, so tests focus on validating output structure, dimensions, and physical constraints (fractions sum to 1, proper signs, valid ranges).\n\n2. **get_texture_class_index**: Tests cover all 11 valid texture names, case sensitivity, and invalid inputs. Expected behavior should handle or reject invalid names gracefully.\n\n3. **interpolate_texture_params**: \n   - Nominal cases use realistic soil compositions from USDA texture triangle\n   - Edge cases test boundaries (0, 1, combinations)\n   - Special cases test array size variations (1 to 20 points)\n   - Invalid cases test constraint violations (negative, >1.0, sum>1.0)\n   - Physical realism: sand+clay \u2264 1.0, with silt = 1 - sand - clay\n\n4. **Physical constraints enforced**:\n   - All fractions in [0, 1]\n   - sand + silt + clay = 1.0\n   - watsat (porosity) in [0, 1]\n   - smpsat (matric potential) \u2264 0 (tension/suction)\n   - hksat (hydraulic conductivity) \u2265 0\n   - bsw (Clapp-Hornberger b) \u2265 0\n\n5. **Array dimensions**: All arrays within a test case have matching dimensions. Tests include single points (n=1), typical (n=3-5), and larger arrays (n=20) for spatial applications.\n\n6. **Reference data**: Based on Cosby et al. (1984) and Clapp & Hornberger (1978) soil hydraulic properties, which are standard in land surface modeling.\n\n7. **Integration tests**: Additional scenarios test cross-function consistency (constants vs. function outputs) and data structure properties (immutability)."
+}

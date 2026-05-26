@@ -1,0 +1,270 @@
+{
+  "function_name": "leaf_fluxes",
+  "test_cases": [
+    {
+      "name": "test_nominal_temperate_conditions",
+      "inputs": {
+        "dtime_substep": 1800.0,
+        "tref": 298.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 2.5,
+        "tair": 298.15,
+        "eair": 1500.0,
+        "cpleaf": 2500.0,
+        "fwet": 0.2,
+        "fdry": 0.8,
+        "gbh": 0.5,
+        "gbv": 0.5,
+        "gs": 0.15,
+        "rnleaf": 400.0,
+        "tleaf_bef": 298.15
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Typical temperate forest conditions at 25\u00b0C with moderate radiation and partial stomatal opening",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_hot_dry_conditions",
+      "inputs": {
+        "dtime_substep": 900.0,
+        "tref": 313.15,
+        "pref": 95000.0,
+        "cpair": 29.3,
+        "dpai": 1.8,
+        "tair": 313.15,
+        "eair": 800.0,
+        "cpleaf": 2200.0,
+        "fwet": 0.0,
+        "fdry": 1.0,
+        "gbh": 0.8,
+        "gbv": 0.8,
+        "gs": 0.05,
+        "rnleaf": 600.0,
+        "tleaf_bef": 314.15
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Hot, dry desert conditions at 40\u00b0C with low humidity, high radiation, and stomatal closure",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_cold_humid_conditions",
+      "inputs": {
+        "dtime_substep": 3600.0,
+        "tref": 278.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 3.5,
+        "tair": 278.15,
+        "eair": 600.0,
+        "cpleaf": 2800.0,
+        "fwet": 0.6,
+        "fdry": 0.4,
+        "gbh": 0.3,
+        "gbv": 0.3,
+        "gs": 0.08,
+        "rnleaf": 150.0,
+        "tleaf_bef": 278.15
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Cold, humid conditions at 5\u00b0C with high wetness fraction and low radiation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_high_lai_tropical",
+      "inputs": {
+        "dtime_substep": 1200.0,
+        "tref": 303.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 5.0,
+        "tair": 303.15,
+        "eair": 2800.0,
+        "cpleaf": 2600.0,
+        "fwet": 0.3,
+        "fdry": 0.7,
+        "gbh": 0.6,
+        "gbv": 0.6,
+        "gs": 0.25,
+        "rnleaf": 500.0,
+        "tleaf_bef": 303.15
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tropical rainforest with high LAI, high humidity at 30\u00b0C, and high stomatal conductance",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_nighttime_conditions",
+      "inputs": {
+        "dtime_substep": 1800.0,
+        "tref": 288.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 2.0,
+        "tair": 288.15,
+        "eair": 1200.0,
+        "cpleaf": 2400.0,
+        "fwet": 0.4,
+        "fdry": 0.6,
+        "gbh": 0.4,
+        "gbv": 0.4,
+        "gs": 0.02,
+        "rnleaf": -50.0,
+        "tleaf_bef": 288.15
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Nighttime conditions with negative net radiation, low stomatal conductance, and moderate wetness",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_zero_dpai",
+      "inputs": {
+        "dtime_substep": 1800.0,
+        "tref": 298.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 0.0,
+        "tair": 298.15,
+        "eair": 1500.0,
+        "cpleaf": 2500.0,
+        "fwet": 0.2,
+        "fdry": 0.8,
+        "gbh": 0.5,
+        "gbv": 0.5,
+        "gs": 0.15,
+        "rnleaf": 400.0,
+        "tleaf_bef": 298.15
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Special case: zero plant area index should result in tleaf=tair and all fluxes=0",
+        "edge_cases": [
+          "zero_dpai",
+          "zero_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_negative_dpai",
+      "inputs": {
+        "dtime_substep": 1800.0,
+        "tref": 298.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": -0.5,
+        "tair": 298.15,
+        "eair": 1500.0,
+        "cpleaf": 2500.0,
+        "fwet": 0.2,
+        "fdry": 0.8,
+        "gbh": 0.5,
+        "gbv": 0.5,
+        "gs": 0.15,
+        "rnleaf": 400.0,
+        "tleaf_bef": 298.15
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case: negative dpai should be treated like zero (tleaf=tair, all fluxes=0)",
+        "edge_cases": [
+          "negative_dpai",
+          "zero_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_zero_stomatal_conductance",
+      "inputs": {
+        "dtime_substep": 1800.0,
+        "tref": 308.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 2.0,
+        "tair": 308.15,
+        "eair": 1000.0,
+        "cpleaf": 2500.0,
+        "fwet": 0.0,
+        "fdry": 1.0,
+        "gbh": 0.7,
+        "gbv": 0.7,
+        "gs": 0.0,
+        "rnleaf": 550.0,
+        "tleaf_bef": 308.15
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Complete stomatal closure (gs=0) under stress, only evaporation from wet fraction (which is 0)",
+        "edge_cases": [
+          "zero_stomatal_conductance",
+          "zero_transpiration"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_fully_wet_canopy",
+      "inputs": {
+        "dtime_substep": 1800.0,
+        "tref": 293.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 3.0,
+        "tair": 293.15,
+        "eair": 1800.0,
+        "cpleaf": 2500.0,
+        "fwet": 1.0,
+        "fdry": 0.0,
+        "gbh": 0.5,
+        "gbv": 0.5,
+        "gs": 0.12,
+        "rnleaf": 300.0,
+        "tleaf_bef": 293.15
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Fully wet canopy after rain (fwet=1.0, fdry=0.0), transpiration should be zero",
+        "edge_cases": [
+          "boundary_fraction",
+          "zero_transpiration"
+        ]
+      }
+    },
+    {
+      "name": "test_special_extreme_temperature_gradient",
+      "inputs": {
+        "dtime_substep": 600.0,
+        "tref": 298.15,
+        "pref": 101325.0,
+        "cpair": 29.3,
+        "dpai": 2.5,
+        "tair": 298.15,
+        "eair": 1500.0,
+        "cpleaf": 2500.0,
+        "fwet": 0.1,
+        "fdry": 0.9,
+        "gbh": 1.2,
+        "gbv": 1.2,
+        "gs": 0.3,
+        "rnleaf": 800.0,
+        "tleaf_bef": 283.15
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large temperature difference between previous leaf temp (10\u00b0C) and air temp (25\u00b0C) with high radiation to test thermal inertia",
+        "edge_cases": [
+          "large_temperature_gradient"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. NOMINAL CASES (5 cases, 50%):\n   - Temperate forest: Standard mid-latitude conditions (25\u00b0C, moderate humidity)\n   - Hot/dry: Desert/drought stress conditions (40\u00b0C, low humidity, stomatal closure)\n   - Cold/humid: Early spring/high latitude (5\u00b0C, high wetness)\n   - Tropical: High LAI, high humidity, high conductance (30\u00b0C)\n   - Nighttime: Negative radiation, low stomatal conductance (15\u00b0C)\n\n2. EDGE CASES (4 cases, 40%):\n   - Zero dpai: Tests special case where dpai=0 should give tleaf=tair, zero fluxes\n   - Negative dpai: Tests handling of invalid but possible input (dpai<0)\n   - Zero stomatal conductance: Complete stomatal closure, tests transpiration=0\n   - Fully wet canopy: Boundary condition fwet=1.0, fdry=0.0\n\n3. SPECIAL CASE (1 case, 10%):\n   - Extreme temperature gradient: Tests thermal inertia with 15K difference between tleaf_bef and tair\n\n4. PHYSICAL REALISM:\n   - All temperatures > 0K (range: 278.15-313.15K = 5-40\u00b0C)\n   - Pressures realistic for sea level to 1000m elevation (95000-101325 Pa)\n   - Fractions strictly in [0,1] with fwet+fdry \u2264 1.0\n   - Conductances > 0 (range: 0.02-1.2 mol/m2/s)\n   - Time steps: 600-3600s (10min-1hr, typical for land models)\n   - Net radiation: -50 to 800 W/m2 (nighttime cooling to strong solar)\n   - Vapor pressure: 600-2800 Pa (various humidity levels)\n   - LAI: 0-5.0 m2/m2 (bare ground to dense tropical forest)\n\n5. PARAMETER RELATIONSHIPS:\n   - eair consistent with tair (relative humidity varies 30-90%)\n   - gs correlates with stress (low when hot/dry, higher when optimal)\n   - fwet inversely related to gs (wet leaves \u2192 open stomata less important)\n   - gbh=gbv (simplified assumption, typical for many models)\n   - cpair constant at 29.3 J/mol/K (standard for air)\n   - cpleaf varies 2200-2800 J/m2/K (typical leaf heat capacity range)\n\n6. ENERGY BALANCE CONSIDERATIONS:\n   - rnleaf values span negative (cooling) to high positive (heating)\n   - Combinations designed to test solver convergence\n   - tleaf_bef sometimes equals tair (equilibrium start) or differs (transient)\n\nAll test cases are designed to be physically plausible while exercising different code paths and numerical edge cases."
+}

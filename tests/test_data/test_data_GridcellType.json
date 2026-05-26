@@ -1,0 +1,561 @@
+{
+  "function_name": "gridcell_type",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_gridcell",
+      "inputs": {
+        "begg": 1,
+        "endg": 1,
+        "latitudes": [
+          45.0
+        ],
+        "longitudes": [
+          -122.5
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single gridcell at mid-latitude location (Portland, OR area)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_small_regional_grid",
+      "inputs": {
+        "begg": 0,
+        "endg": 9,
+        "latitudes": [
+          40.0,
+          40.5,
+          41.0,
+          41.5,
+          42.0,
+          42.5,
+          43.0,
+          43.5,
+          44.0,
+          44.5
+        ],
+        "longitudes": [
+          -105.0,
+          -104.5,
+          -104.0,
+          -103.5,
+          -103.0,
+          -102.5,
+          -102.0,
+          -101.5,
+          -101.0,
+          -100.5
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Small regional grid covering Colorado/Nebraska area with 10 gridcells",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_global_coarse_grid",
+      "inputs": {
+        "begg": 100,
+        "endg": 119,
+        "latitudes": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0,
+          15.0,
+          30.0,
+          45.0,
+          60.0,
+          75.0,
+          -80.0,
+          -65.0,
+          -50.0,
+          -35.0,
+          -20.0,
+          -5.0,
+          10.0,
+          25.0,
+          40.0
+        ],
+        "longitudes": [
+          0.0,
+          18.0,
+          36.0,
+          54.0,
+          72.0,
+          90.0,
+          108.0,
+          126.0,
+          144.0,
+          162.0,
+          180.0,
+          198.0,
+          216.0,
+          234.0,
+          252.0,
+          270.0,
+          288.0,
+          306.0,
+          324.0,
+          342.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Coarse global grid with 20 gridcells spanning full latitude/longitude ranges",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_equator_prime_meridian",
+      "inputs": {
+        "begg": 0,
+        "endg": 4,
+        "latitudes": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "longitudes": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All gridcells at equator and prime meridian (zero coordinates)",
+        "edge_cases": [
+          "zero_latitude",
+          "zero_longitude"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_polar_regions",
+      "inputs": {
+        "begg": 1,
+        "endg": 8,
+        "latitudes": [
+          90.0,
+          89.5,
+          -90.0,
+          -89.5,
+          85.0,
+          87.5,
+          -85.0,
+          -87.5
+        ],
+        "longitudes": [
+          0.0,
+          45.0,
+          180.0,
+          -180.0,
+          90.0,
+          270.0,
+          -90.0,
+          135.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Gridcells at and near poles (boundary latitudes)",
+        "edge_cases": [
+          "max_latitude",
+          "min_latitude",
+          "polar_convergence"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_longitude_boundaries",
+      "inputs": {
+        "begg": 50,
+        "endg": 56,
+        "latitudes": [
+          30.0,
+          30.0,
+          30.0,
+          30.0,
+          30.0,
+          30.0,
+          30.0
+        ],
+        "longitudes": [
+          -180.0,
+          -179.9,
+          0.0,
+          179.9,
+          180.0,
+          359.9,
+          360.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Longitude boundary conditions including dateline and wraparound",
+        "edge_cases": [
+          "min_longitude",
+          "max_longitude",
+          "dateline_crossing"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_single_index_begg_equals_endg",
+      "inputs": {
+        "begg": 42,
+        "endg": 42,
+        "latitudes": [
+          51.5
+        ],
+        "longitudes": [
+          -0.1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum grid size where begg equals endg (London coordinates)",
+        "edge_cases": [
+          "minimum_grid_size"
+        ]
+      }
+    },
+    {
+      "name": "test_special_large_grid",
+      "inputs": {
+        "begg": 0,
+        "endg": 99,
+        "latitudes": [
+          -85.0,
+          -80.0,
+          -75.0,
+          -70.0,
+          -65.0,
+          -60.0,
+          -55.0,
+          -50.0,
+          -45.0,
+          -40.0,
+          -35.0,
+          -30.0,
+          -25.0,
+          -20.0,
+          -15.0,
+          -10.0,
+          -5.0,
+          0.0,
+          5.0,
+          10.0,
+          15.0,
+          20.0,
+          25.0,
+          30.0,
+          35.0,
+          40.0,
+          45.0,
+          50.0,
+          55.0,
+          60.0,
+          65.0,
+          70.0,
+          75.0,
+          80.0,
+          85.0,
+          -82.5,
+          -77.5,
+          -72.5,
+          -67.5,
+          -62.5,
+          -57.5,
+          -52.5,
+          -47.5,
+          -42.5,
+          -37.5,
+          -32.5,
+          -27.5,
+          -22.5,
+          -17.5,
+          -12.5,
+          -7.5,
+          -2.5,
+          2.5,
+          7.5,
+          12.5,
+          17.5,
+          22.5,
+          27.5,
+          32.5,
+          37.5,
+          42.5,
+          47.5,
+          52.5,
+          57.5,
+          62.5,
+          67.5,
+          72.5,
+          77.5,
+          82.5,
+          -87.5,
+          -84.0,
+          -79.0,
+          -74.0,
+          -69.0,
+          -64.0,
+          -59.0,
+          -54.0,
+          -49.0,
+          -44.0,
+          -39.0,
+          -34.0,
+          -29.0,
+          -24.0,
+          -19.0,
+          -14.0,
+          -9.0,
+          -4.0,
+          1.0,
+          6.0,
+          11.0,
+          16.0,
+          21.0,
+          26.0,
+          31.0,
+          36.0,
+          41.0,
+          46.0,
+          51.0,
+          56.0,
+          61.0
+        ],
+        "longitudes": [
+          0.0,
+          3.6,
+          7.2,
+          10.8,
+          14.4,
+          18.0,
+          21.6,
+          25.2,
+          28.8,
+          32.4,
+          36.0,
+          39.6,
+          43.2,
+          46.8,
+          50.4,
+          54.0,
+          57.6,
+          61.2,
+          64.8,
+          68.4,
+          72.0,
+          75.6,
+          79.2,
+          82.8,
+          86.4,
+          90.0,
+          93.6,
+          97.2,
+          100.8,
+          104.4,
+          108.0,
+          111.6,
+          115.2,
+          118.8,
+          122.4,
+          126.0,
+          129.6,
+          133.2,
+          136.8,
+          140.4,
+          144.0,
+          147.6,
+          151.2,
+          154.8,
+          158.4,
+          162.0,
+          165.6,
+          169.2,
+          172.8,
+          176.4,
+          180.0,
+          183.6,
+          187.2,
+          190.8,
+          194.4,
+          198.0,
+          201.6,
+          205.2,
+          208.8,
+          212.4,
+          216.0,
+          219.6,
+          223.2,
+          226.8,
+          230.4,
+          234.0,
+          237.6,
+          241.2,
+          244.8,
+          248.4,
+          252.0,
+          255.6,
+          259.2,
+          262.8,
+          266.4,
+          270.0,
+          273.6,
+          277.2,
+          280.8,
+          284.4,
+          288.0,
+          291.6,
+          295.2,
+          298.8,
+          302.4,
+          306.0,
+          309.6,
+          313.2,
+          316.8,
+          320.4,
+          324.0,
+          327.6,
+          331.2,
+          334.8,
+          338.4,
+          342.0,
+          345.6,
+          349.2,
+          352.8,
+          356.4
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large grid with 100 gridcells covering global extent with fine resolution",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_southern_hemisphere_focus",
+      "inputs": {
+        "begg": 200,
+        "endg": 214,
+        "latitudes": [
+          -45.0,
+          -50.0,
+          -55.0,
+          -60.0,
+          -65.0,
+          -70.0,
+          -75.0,
+          -42.5,
+          -47.5,
+          -52.5,
+          -57.5,
+          -62.5,
+          -67.5,
+          -72.5,
+          -77.5
+        ],
+        "longitudes": [
+          145.0,
+          150.0,
+          155.0,
+          160.0,
+          165.0,
+          170.0,
+          175.0,
+          147.5,
+          152.5,
+          157.5,
+          162.5,
+          167.5,
+          172.5,
+          177.5,
+          -178.0
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Southern hemisphere high-latitude grid (Antarctica/Southern Ocean region)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_tropical_belt",
+      "inputs": {
+        "begg": 1000,
+        "endg": 1023,
+        "latitudes": [
+          -23.5,
+          -20.0,
+          -15.0,
+          -10.0,
+          -5.0,
+          0.0,
+          5.0,
+          10.0,
+          15.0,
+          20.0,
+          23.5,
+          -22.0,
+          -18.0,
+          -12.0,
+          -7.0,
+          -2.0,
+          3.0,
+          8.0,
+          13.0,
+          18.0,
+          22.0,
+          -21.0,
+          -16.0,
+          -11.0
+        ],
+        "longitudes": [
+          -120.0,
+          -110.0,
+          -100.0,
+          -90.0,
+          -80.0,
+          -70.0,
+          -60.0,
+          -50.0,
+          -40.0,
+          -30.0,
+          -20.0,
+          -115.0,
+          -105.0,
+          -95.0,
+          -85.0,
+          -75.0,
+          -65.0,
+          -55.0,
+          -45.0,
+          -35.0,
+          -25.0,
+          -112.5,
+          -102.5,
+          -92.5
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tropical belt grid between Tropics of Cancer and Capricorn (Americas)",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Nominal cases (tests 1-3)**: Cover typical use cases from single gridcell to regional to global scales. Coordinates chosen to represent real geographic locations with physically realistic values.\n\n2. **Edge cases (tests 4-7)**: \n   - Test 4: Zero coordinates at equator/prime meridian\n   - Test 5: Polar extremes (\u00b190\u00b0 latitude)\n   - Test 6: Longitude boundaries including dateline (-180\u00b0, 180\u00b0, 360\u00b0)\n   - Test 7: Minimum grid size (begg == endg)\n\n3. **Special cases (tests 8-10)**:\n   - Test 8: Large grid (100 cells) to test scalability\n   - Test 9: Southern hemisphere focus for regional analysis\n   - Test 10: Tropical belt with dense sampling\n\n**Coordinate constraints enforced**:\n- Latitude: [-90, 90] degrees\n- Longitude: [-180, 360] degrees (supporting both conventions)\n- begg <= endg (array size = endg - begg + 1)\n- Array dimensions match grid size for all coordinate arrays\n\n**Physical realism**:\n- All coordinates represent valid Earth locations\n- Longitude values test both [-180, 180] and [0, 360] conventions\n- Polar regions included to test numerical stability near convergence points\n- Dateline crossing scenarios included\n\n**JAX/NumPy compatibility**:\n- All arrays provided as Python lists (convertible to jnp.ndarray)\n- Consistent shapes within each test case\n- Integer indices use standard Python/Fortran conventions"
+}

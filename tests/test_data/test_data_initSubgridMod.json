@@ -1,0 +1,1039 @@
+{
+  "function_name": "subgrid_patch_management",
+  "test_cases": [
+    {
+      "name": "test_add_patch_nominal_sequential",
+      "inputs": {
+        "pi": 0,
+        "ptype": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Adding a patch sequentially with typical patch type",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_add_patch_initial_state",
+      "inputs": {
+        "pi": -1,
+        "ptype": 0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Adding first patch (pi=-1) with minimum patch type (0)",
+        "edge_cases": [
+          "initial_state",
+          "minimum_ptype"
+        ]
+      }
+    },
+    {
+      "name": "test_add_patch_large_index",
+      "inputs": {
+        "pi": 999,
+        "ptype": 15
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Adding patch near maximum capacity with typical ptype",
+        "edge_cases": [
+          "large_index"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_hierarchy_simple_valid",
+      "inputs": {
+        "patch_columns": [
+          1,
+          1,
+          2,
+          2,
+          3
+        ],
+        "patch_gridcells": [
+          1,
+          1,
+          1,
+          1,
+          2
+        ],
+        "patch_types": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "active_mask": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Valid hierarchy with multiple columns and gridcells, all patches active",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_hierarchy_partial_active",
+      "inputs": {
+        "patch_columns": [
+          1,
+          1,
+          2,
+          3,
+          3,
+          3
+        ],
+        "patch_gridcells": [
+          1,
+          1,
+          1,
+          2,
+          2,
+          2
+        ],
+        "patch_types": [
+          0,
+          5,
+          10,
+          2,
+          8,
+          12
+        ],
+        "active_mask": [
+          true,
+          false,
+          true,
+          true,
+          false,
+          true
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Valid hierarchy with some inactive patches",
+        "edge_cases": [
+          "partial_active"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_hierarchy_single_patch",
+      "inputs": {
+        "patch_columns": [
+          1
+        ],
+        "patch_gridcells": [
+          1
+        ],
+        "patch_types": [
+          0
+        ],
+        "active_mask": [
+          true
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimal valid hierarchy with single patch",
+        "edge_cases": [
+          "single_element",
+          "minimum_ptype"
+        ]
+      }
+    },
+    {
+      "name": "test_get_patch_statistics_diverse_types",
+      "inputs": {
+        "patch_types": [
+          0,
+          5,
+          10,
+          15,
+          20,
+          25,
+          30,
+          35,
+          40,
+          45
+        ],
+        "active_mask": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Statistics for diverse patch types, all active",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_patch_statistics_sparse_active",
+      "inputs": {
+        "patch_types": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "active_mask": [
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Statistics with sparse active patches (only 4 of 13 active)",
+        "edge_cases": [
+          "sparse_active"
+        ]
+      }
+    },
+    {
+      "name": "test_create_simple_subgrid_multi_patch",
+      "inputs": {
+        "patch_types": [
+          0,
+          1,
+          2,
+          5,
+          8,
+          10
+        ],
+        "column_assignments": [
+          1,
+          1,
+          2,
+          2,
+          3,
+          3
+        ],
+        "gridcell_assignments": [
+          1,
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Creating subgrid with multiple patches across columns and gridcells",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_create_simple_subgrid_defaults",
+      "inputs": {
+        "patch_types": [
+          0,
+          3,
+          7
+        ],
+        "column_assignments": null,
+        "gridcell_assignments": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Creating subgrid with default column/gridcell assignments (all 1)",
+        "edge_cases": [
+          "default_assignments"
+        ]
+      }
+    },
+    {
+      "name": "test_add_multiple_patches_varied",
+      "inputs": {
+        "patch_info": [
+          [
+            1,
+            1,
+            0
+          ],
+          [
+            1,
+            1,
+            5
+          ],
+          [
+            2,
+            1,
+            10
+          ],
+          [
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            2,
+            8
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Adding multiple patches with varied column, gridcell, and type assignments",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_add_multiple_patches_single",
+      "inputs": {
+        "patch_info": [
+          [
+            1,
+            1,
+            0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Adding single patch via multiple patch interface",
+        "edge_cases": [
+          "single_element",
+          "minimum_ptype"
+        ]
+      }
+    },
+    {
+      "name": "test_reset_subgrid_structure_default",
+      "inputs": {
+        "max_patches": 1000
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Resetting subgrid structure with default maximum patches",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_reset_subgrid_structure_minimal",
+      "inputs": {
+        "max_patches": 1
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Resetting subgrid structure with minimal capacity (1 patch)",
+        "edge_cases": [
+          "minimum_capacity"
+        ]
+      }
+    },
+    {
+      "name": "test_reset_subgrid_structure_large",
+      "inputs": {
+        "max_patches": 10000
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Resetting subgrid structure with large capacity",
+        "edge_cases": [
+          "large_capacity"
+        ]
+      }
+    },
+    {
+      "name": "test_create_single_patch_subgrid_default",
+      "inputs": {
+        "ptype": 1
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Creating single patch subgrid with default patch type",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_create_single_patch_subgrid_zero_type",
+      "inputs": {
+        "ptype": 0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Creating single patch subgrid with minimum patch type (0)",
+        "edge_cases": [
+          "minimum_ptype"
+        ]
+      }
+    },
+    {
+      "name": "test_create_multi_column_subgrid_varied",
+      "inputs": {
+        "patch_configs": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            8
+          ],
+          [
+            3,
+            12
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Creating multi-column subgrid with varied patch types across columns",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_create_multi_column_subgrid_single_column",
+      "inputs": {
+        "patch_configs": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            1,
+            10
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Creating multi-column subgrid with all patches in single column",
+        "edge_cases": [
+          "single_column"
+        ]
+      }
+    },
+    {
+      "name": "test_subgrid_structure_initialization",
+      "inputs": {
+        "max_patches": 500,
+        "current_patches": 0,
+        "patch_columns": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "patch_gridcells": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "patch_types": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_mask": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "metadata": {}
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "SubgridStructure initialization with custom max_patches and empty state",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_subgrid_structure_fully_populated",
+      "inputs": {
+        "max_patches": 10,
+        "current_patches": 10,
+        "patch_columns": [
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          4,
+          4
+        ],
+        "patch_gridcells": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2
+        ],
+        "patch_types": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "active_mask": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "metadata": {
+          "description": "fully populated test structure"
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "SubgridStructure at full capacity with all patches active",
+        "edge_cases": [
+          "full_capacity"
+        ]
+      }
+    },
+    {
+      "name": "test_get_patch_statistics_all_inactive",
+      "inputs": {
+        "patch_types": [
+          0,
+          5,
+          10,
+          15,
+          20
+        ],
+        "active_mask": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Statistics with all patches inactive",
+        "edge_cases": [
+          "all_inactive"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_hierarchy_large_scale",
+      "inputs": {
+        "patch_columns": [
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "patch_gridcells": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "patch_types": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "active_mask": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large-scale hierarchy validation with 20 patches across multiple columns and gridcells",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_create_simple_subgrid_single_patch",
+      "inputs": {
+        "patch_types": [
+          0
+        ],
+        "column_assignments": [
+          1
+        ],
+        "gridcell_assignments": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Creating simplest possible subgrid with single patch",
+        "edge_cases": [
+          "single_element",
+          "minimum_ptype"
+        ]
+      }
+    },
+    {
+      "name": "test_add_multiple_patches_large_batch",
+      "inputs": {
+        "patch_info": [
+          [
+            1,
+            1,
+            0
+          ],
+          [
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            2,
+            1,
+            4
+          ],
+          [
+            2,
+            1,
+            5
+          ],
+          [
+            3,
+            2,
+            6
+          ],
+          [
+            3,
+            2,
+            7
+          ],
+          [
+            3,
+            2,
+            8
+          ],
+          [
+            4,
+            2,
+            9
+          ],
+          [
+            4,
+            2,
+            10
+          ],
+          [
+            4,
+            2,
+            11
+          ],
+          [
+            5,
+            3,
+            12
+          ],
+          [
+            5,
+            3,
+            13
+          ],
+          [
+            5,
+            3,
+            14
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Adding large batch of patches (15) across multiple columns and gridcells",
+        "edge_cases": [
+          "large_batch"
+        ]
+      }
+    },
+    {
+      "name": "test_subgrid_structure_mixed_state",
+      "inputs": {
+        "max_patches": 20,
+        "current_patches": 8,
+        "patch_columns": [
+          1,
+          1,
+          2,
+          2,
+          3,
+          3,
+          4,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "patch_gridcells": [
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "patch_types": [
+          0,
+          5,
+          10,
+          15,
+          20,
+          25,
+          30,
+          35,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_mask": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "metadata": {
+          "note": "partially filled structure"
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "SubgridStructure partially filled with 8 active patches out of 20 capacity",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_hierarchy_zero_columns_gridcells",
+      "inputs": {
+        "patch_columns": [
+          1,
+          1,
+          1
+        ],
+        "patch_gridcells": [
+          1,
+          1,
+          1
+        ],
+        "patch_types": [
+          0,
+          0,
+          0
+        ],
+        "active_mask": [
+          true,
+          true,
+          true
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Hierarchy with all patches having same column, gridcell, and minimum patch type",
+        "edge_cases": [
+          "uniform_assignment",
+          "minimum_ptype"
+        ]
+      }
+    },
+    {
+      "name": "test_get_patch_statistics_single_active",
+      "inputs": {
+        "patch_types": [
+          0,
+          5,
+          10,
+          15,
+          20,
+          25,
+          30
+        ],
+        "active_mask": [
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Statistics with only one active patch among many",
+        "edge_cases": [
+          "single_active"
+        ]
+      }
+    },
+    {
+      "name": "test_create_multi_column_subgrid_many_columns",
+      "inputs": {
+        "patch_configs": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            9,
+            8
+          ],
+          [
+            10,
+            9
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Creating subgrid with many columns (10), one patch per column",
+        "edge_cases": [
+          "many_columns"
+        ]
+      }
+    },
+    {
+      "name": "test_patch_data_initialization",
+      "inputs": {
+        "column": [],
+        "gridcell": [],
+        "itype": []
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "PatchData initialization with empty arrays",
+        "edge_cases": [
+          "empty_arrays"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Patch Indices (pi)**: Range from -1 (initial state) to 999 (near max capacity). The constraint min=-1 indicates -1 is valid for initial state.\n\n2. **Patch Types (ptype)**: Non-negative integers starting from 0. Used values 0-45 to cover minimum, typical, and diverse ranges. In land surface models, these typically represent Plant Functional Types (PFTs).\n\n3. **Column and Gridcell Assignments**: Minimum value of 1 per constraints. Used values 1-10 to represent realistic spatial hierarchies where gridcells contain columns, and columns contain patches.\n\n4. **Active Masks**: Boolean arrays indicating which patches are currently active. Tested scenarios include all active, all inactive, sparse active, and single active to cover different operational states.\n\n5. **Array Dimensions**: All arrays within a test case have consistent dimensions. Tested sizes range from 1 (minimal) to 20 (large-scale) elements.\n\n6. **SubgridStructure Capacity**: max_patches ranges from 1 (minimal) to 10000 (large). Default is 1000. current_patches must be <= max_patches.\n\n7. **Hierarchy Validity**: Valid hierarchies maintain consistent mappings where patches belong to columns, and columns belong to gridcells. Test cases include both valid and potentially invalid configurations.\n\n8. **Physical Realism**: All values respect the constraint that patch types, columns, and gridcells are non-negative integers. The hierarchical structure (gridcell > column > patch) is maintained in test data.\n\n9. **Edge Cases Covered**:\n   - Minimum values (0 for ptypes, -1 for pi, 1 for columns/gridcells)\n   - Single element arrays\n   - Empty/inactive states\n   - Full capacity scenarios\n   - Sparse vs dense active masks\n   - Default vs explicit assignments\n\n10. **Test Distribution**: 50% nominal (typical operations), 30% edge cases (boundaries and extremes), 20% special cases (large-scale, unusual but valid configurations)."
+}

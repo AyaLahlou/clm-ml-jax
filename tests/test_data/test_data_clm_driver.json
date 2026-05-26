@@ -1,0 +1,358 @@
+{
+  "function_name": "clm_drv",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_column_single_patch",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 0,
+          "begp": 0,
+          "endp": 0
+        },
+        "time_indx": 100,
+        "fin": "/data/clm_input_nominal.nc"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single column and patch with typical mid-season conditions",
+        "edge_cases": [],
+        "expected_state": {
+          "cv_shape": [
+            1,
+            20
+          ],
+          "tk_shape": [
+            1,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            1
+          ],
+          "note": "Assuming nlevgrnd=15, nlevsno=5"
+        }
+      }
+    },
+    {
+      "name": "test_nominal_multiple_columns_patches",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 9,
+          "begp": 0,
+          "endp": 19
+        },
+        "time_indx": 500,
+        "fin": "/data/clm_input_multi.nc"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple columns (10) and patches (20) representing typical spatial domain",
+        "edge_cases": [],
+        "expected_state": {
+          "cv_shape": [
+            10,
+            20
+          ],
+          "tk_shape": [
+            10,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            10
+          ],
+          "note": "Tests spatial parallelization with 2 patches per column on average"
+        }
+      }
+    },
+    {
+      "name": "test_nominal_winter_conditions",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 4,
+          "begp": 0,
+          "endp": 4
+        },
+        "time_indx": 15,
+        "fin": "/data/clm_input_winter.nc"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Winter conditions with snow cover, early in year (calday ~1.5)",
+        "edge_cases": [],
+        "expected_state": {
+          "cv_shape": [
+            5,
+            20
+          ],
+          "tk_shape": [
+            5,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            5
+          ],
+          "physical_expectations": {
+            "snl": "negative values expected (snow layers present)",
+            "h2osno": "positive values > 10 kg/m2",
+            "frac_sno_eff": "values near 1.0"
+          }
+        }
+      }
+    },
+    {
+      "name": "test_nominal_summer_dry_conditions",
+      "inputs": {
+        "bounds": {
+          "begc": 5,
+          "endc": 14,
+          "begp": 10,
+          "endp": 29
+        },
+        "time_indx": 5000,
+        "fin": "/data/clm_input_summer.nc"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Summer conditions with no snow, high vegetation fraction",
+        "edge_cases": [],
+        "expected_state": {
+          "cv_shape": [
+            10,
+            20
+          ],
+          "tk_shape": [
+            10,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            10
+          ],
+          "physical_expectations": {
+            "snl": "zero (no snow layers)",
+            "h2osno": "zero or near-zero",
+            "frac_sno_eff": "zero",
+            "frac_veg_nosno": "values 0.5-1.0"
+          }
+        }
+      }
+    },
+    {
+      "name": "test_nominal_transition_season",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 2,
+          "begp": 0,
+          "endp": 5
+        },
+        "time_indx": 2500,
+        "fin": "/data/clm_input_transition.nc"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Spring/fall transition with partial snow cover and vegetation",
+        "edge_cases": [],
+        "expected_state": {
+          "cv_shape": [
+            3,
+            20
+          ],
+          "tk_shape": [
+            3,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            3
+          ],
+          "physical_expectations": {
+            "snl": "mix of 0 and negative values",
+            "h2osno": "range 0-50 kg/m2",
+            "frac_sno_eff": "range 0.1-0.8",
+            "frac_veg_nosno": "range 0.2-0.8"
+          }
+        }
+      }
+    },
+    {
+      "name": "test_edge_zero_time_index",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 1,
+          "begp": 0,
+          "endp": 1
+        },
+        "time_indx": 0,
+        "fin": "/data/clm_input_init.nc"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Initial time step (calday = 1.000, start of year)",
+        "edge_cases": [
+          "zero_time_index",
+          "initialization"
+        ],
+        "expected_state": {
+          "cv_shape": [
+            2,
+            20
+          ],
+          "tk_shape": [
+            2,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            2
+          ],
+          "note": "Tests initialization at reference date"
+        }
+      }
+    },
+    {
+      "name": "test_edge_minimal_bounds",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 0,
+          "begp": 0,
+          "endp": 0
+        },
+        "time_indx": 1,
+        "fin": "/data/clm_input_minimal.nc"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimal domain: single column and single patch",
+        "edge_cases": [
+          "minimal_domain",
+          "boundary_indices"
+        ],
+        "expected_state": {
+          "cv_shape": [
+            1,
+            20
+          ],
+          "tk_shape": [
+            1,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            1
+          ],
+          "note": "Tests smallest valid domain size"
+        }
+      }
+    },
+    {
+      "name": "test_edge_no_snow_no_surface_water",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 3,
+          "begp": 0,
+          "endp": 3
+        },
+        "time_indx": 3000,
+        "fin": "/data/clm_input_dry.nc"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Extreme dry conditions with zero snow and surface water",
+        "edge_cases": [
+          "zero_h2osno",
+          "zero_h2osfc",
+          "zero_frac_sno_eff"
+        ],
+        "expected_state": {
+          "cv_shape": [
+            4,
+            20
+          ],
+          "tk_shape": [
+            4,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            4
+          ],
+          "physical_expectations": {
+            "snl": "all zeros",
+            "h2osno": "all zeros",
+            "h2osfc": "all zeros",
+            "frac_sno_eff": "all zeros",
+            "tk_h2osfc": "zeros (no surface water to conduct heat)"
+          }
+        }
+      }
+    },
+    {
+      "name": "test_special_large_domain",
+      "inputs": {
+        "bounds": {
+          "begc": 0,
+          "endc": 99,
+          "begp": 0,
+          "endp": 299
+        },
+        "time_indx": 10000,
+        "fin": "/data/clm_input_large.nc"
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large spatial domain with 100 columns and 300 patches",
+        "edge_cases": [],
+        "expected_state": {
+          "cv_shape": [
+            100,
+            20
+          ],
+          "tk_shape": [
+            100,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            100
+          ],
+          "note": "Tests scalability and memory handling for large domains"
+        }
+      }
+    },
+    {
+      "name": "test_special_non_zero_begin_indices",
+      "inputs": {
+        "bounds": {
+          "begc": 50,
+          "endc": 59,
+          "begp": 100,
+          "endp": 119
+        },
+        "time_indx": 7500,
+        "fin": "/data/clm_input_offset.nc"
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Non-zero starting indices for columns and patches (subdomain processing)",
+        "edge_cases": [
+          "non_zero_begin_index"
+        ],
+        "expected_state": {
+          "cv_shape": [
+            10,
+            20
+          ],
+          "tk_shape": [
+            10,
+            20
+          ],
+          "tk_h2osfc_shape": [
+            10
+          ],
+          "note": "Tests correct indexing when processing subdomain with offset indices"
+        }
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Array Dimensions**: Assumed nlevgrnd=15 (soil layers) and nlevsno=5 (max snow layers) for total of 20 layers, which are typical CLM values.\n\n2. **Physical Realism**:\n   - All temperatures in Kelvin (> 0K, typically 200-330K range)\n   - Heat capacity (cv) > 0, typically 1e5 - 1e7 J/m2/K for soil\n   - Thermal conductivity (tk) >= 0, typically 0.1-5.0 W/m/K\n   - Snow water equivalent (h2osno) >= 0, range 0-500 kg/m2\n   - Surface water (h2osfc) >= 0, range 0-10 kg/m2\n   - Fractions (frac_sno_eff, frac_veg_nosno) in [0, 1]\n   - Snow layers (snl) <= 0, range typically -5 to 0\n\n3. **Bounds Constraints**: All test cases satisfy begc <= endc and begp <= endp\n\n4. **Time Index**: Represents time steps from reference date. With typical 30-minute time steps, time_indx=10000 represents ~208 days into the year.\n\n5. **File Paths**: Placeholder paths used; actual implementation would need valid NetCDF files with appropriate CLM input data structure.\n\n6. **Test Coverage**:\n   - Nominal cases (50%): Tests 1-5 cover typical seasonal conditions\n   - Edge cases (30%): Tests 6-8 cover boundary conditions and extreme values\n   - Special cases (20%): Tests 9-10 cover scalability and indexing edge cases\n\n7. **Global State**: Function modifies multiple global instance variables in-place. Tests should verify state changes in soilstate_inst, waterstate_inst, canopystate_inst, temperature_inst, waterflux_inst, energyflux_inst, frictionvel_inst, surfalb_inst, solarabs_inst, and mlcanopy_inst.\n\n8. **Internal Arrays**: The function creates internal cv, tk, and tk_h2osfc arrays with shapes derived from bounds. Expected shapes are documented in metadata.\n\n9. **Dependencies**: Tests assume availability of external functions (clmData, SoilAlbedo, etc.) and constants (nlevgrnd, nlevsno, r8).\n\n10. **Validation Strategy**: Each test case should verify:\n    - Correct array shapes for internal variables\n    - Physical constraints maintained (positive temps, fractions in [0,1])\n    - Consistency between related variables (e.g., snl=0 implies h2osno~0)\n    - Proper handling of boundary indices"
+}

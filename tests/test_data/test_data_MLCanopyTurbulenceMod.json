@@ -1,0 +1,995 @@
+{
+  "function_name": "MLCanopyTurbulenceMod",
+  "test_cases": [
+    {
+      "name": "test_phim_neutral_conditions",
+      "inputs": {
+        "zeta": [
+          0.0,
+          0.001,
+          -0.001,
+          0.01,
+          -0.01
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests phi_m near neutral stability (zeta \u2248 0)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_phim_unstable_range",
+      "inputs": {
+        "zeta": [
+          -10.0,
+          -5.0,
+          -2.0,
+          -1.0,
+          -0.5,
+          -0.1
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests phi_m in typical unstable conditions (convective)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_phim_stable_range",
+      "inputs": {
+        "zeta": [
+          0.1,
+          0.2,
+          0.5,
+          0.8,
+          1.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests phi_m in stable conditions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_phim_extreme_unstable",
+      "inputs": {
+        "zeta": [
+          -100.0,
+          -50.0,
+          -25.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests phi_m at extreme unstable boundary",
+        "edge_cases": [
+          "extreme_unstable"
+        ]
+      }
+    },
+    {
+      "name": "test_phic_multidimensional",
+      "inputs": {
+        "zeta": [
+          [
+            -5.0,
+            -2.0,
+            -0.5
+          ],
+          [
+            0.0,
+            0.1,
+            0.5
+          ],
+          [
+            -1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests phi_c with 2D array input covering stability range",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_prsc_typical_canopy",
+      "inputs": {
+        "beta_neutral": [
+          0.25,
+          0.3,
+          0.28,
+          0.32
+        ],
+        "beta_neutral_max": [
+          0.35,
+          0.35,
+          0.35,
+          0.35
+        ],
+        "LcL": [
+          0.5,
+          -0.2,
+          1.0,
+          -1.5
+        ],
+        "params": {
+          "Pr0": 0.5,
+          "Pr1": 0.3,
+          "Pr2": 0.143
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests Prandtl/Schmidt number calculation for typical canopy conditions with varying stability",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_prsc_edge_beta",
+      "inputs": {
+        "beta_neutral": [
+          0.01,
+          0.99,
+          0.5
+        ],
+        "beta_neutral_max": [
+          0.35,
+          0.35,
+          0.35
+        ],
+        "LcL": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "params": {
+          "Pr0": 0.5,
+          "Pr1": 0.3,
+          "Pr2": 0.143
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests Prandtl/Schmidt at beta boundaries (min/max)",
+        "edge_cases": [
+          "beta_min",
+          "beta_max",
+          "neutral"
+        ]
+      }
+    },
+    {
+      "name": "test_get_beta_neutral",
+      "inputs": {
+        "beta_neutral": 0.3,
+        "lcl": 0.0,
+        "beta_min": 0.01,
+        "beta_max": 0.99,
+        "phim_func": "phim_monin_obukhov"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests beta calculation under neutral conditions (lcl=0)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_lookup_psihat_interpolation",
+      "inputs": {
+        "zdt": 1.5,
+        "dtL": 0.3,
+        "zdtgrid": [
+          [
+            3.0
+          ],
+          [
+            2.0
+          ],
+          [
+            1.0
+          ],
+          [
+            0.5
+          ],
+          [
+            0.1
+          ]
+        ],
+        "dtLgrid": [
+          [
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0
+          ]
+        ],
+        "psigrid": [
+          [
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9
+          ],
+          [
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8
+          ],
+          [
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7
+          ],
+          [
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6
+          ],
+          [
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+            0.5
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests bilinear interpolation in psihat lookup table",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_psi_rsl_complete",
+      "inputs": {
+        "za": [
+          50.0,
+          45.0,
+          60.0,
+          40.0
+        ],
+        "hc": [
+          20.0,
+          18.0,
+          25.0,
+          15.0
+        ],
+        "disp": [
+          13.0,
+          12.0,
+          16.0,
+          10.0
+        ],
+        "obu": [
+          -100.0,
+          50.0,
+          -200.0,
+          150.0
+        ],
+        "beta": [
+          0.3,
+          0.28,
+          0.32,
+          0.25
+        ],
+        "prsc": [
+          0.7,
+          0.65,
+          0.75,
+          0.68
+        ],
+        "vkc": 0.4,
+        "c2": 0.5,
+        "dtlgrid_m": [
+          [
+            -2.0,
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0,
+            2.0
+          ]
+        ],
+        "zdtgrid_m": [
+          [
+            5.0
+          ],
+          [
+            3.0
+          ],
+          [
+            2.0
+          ],
+          [
+            1.5
+          ],
+          [
+            1.0
+          ],
+          [
+            0.5
+          ]
+        ],
+        "psigrid_m": [
+          [
+            1.0,
+            1.1,
+            1.2,
+            1.3,
+            1.4,
+            1.5,
+            1.6
+          ],
+          [
+            0.8,
+            0.9,
+            1.0,
+            1.1,
+            1.2,
+            1.3,
+            1.4
+          ],
+          [
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0,
+            1.1,
+            1.2
+          ],
+          [
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0,
+            1.1
+          ],
+          [
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0
+          ],
+          [
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8
+          ]
+        ],
+        "dtlgrid_h": [
+          [
+            -2.0,
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0,
+            2.0
+          ]
+        ],
+        "zdtgrid_h": [
+          [
+            5.0
+          ],
+          [
+            3.0
+          ],
+          [
+            2.0
+          ],
+          [
+            1.5
+          ],
+          [
+            1.0
+          ],
+          [
+            0.5
+          ]
+        ],
+        "psigrid_h": [
+          [
+            1.2,
+            1.3,
+            1.4,
+            1.5,
+            1.6,
+            1.7,
+            1.8
+          ],
+          [
+            1.0,
+            1.1,
+            1.2,
+            1.3,
+            1.4,
+            1.5,
+            1.6
+          ],
+          [
+            0.8,
+            0.9,
+            1.0,
+            1.1,
+            1.2,
+            1.3,
+            1.4
+          ],
+          [
+            0.7,
+            0.8,
+            0.9,
+            1.0,
+            1.1,
+            1.2,
+            1.3
+          ],
+          [
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0,
+            1.1,
+            1.2
+          ],
+          [
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0
+          ]
+        ],
+        "phim_monin_obukhov_fn": "phim_monin_obukhov",
+        "phic_monin_obukhov_fn": "phic_monin_obukhov",
+        "psim_monin_obukhov_fn": "psim_monin_obukhov",
+        "psic_monin_obukhov_fn": "psic_monin_obukhov",
+        "lookup_psihat_fn": "lookup_psihat"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests complete RSL psi calculation with multiple patches under varying stability",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_obu_func_typical_conditions",
+      "inputs": {
+        "inputs": {
+          "p": 0,
+          "ic": 5,
+          "il": 1,
+          "obu_val": -50.0,
+          "zref": 50.0,
+          "uref": 5.0,
+          "thref": 298.15,
+          "thvref": 299.0,
+          "qref": 0.012,
+          "rhomol": 41.6,
+          "ztop": 20.0,
+          "lai": 4.5,
+          "sai": 0.5,
+          "Lc": 8.0,
+          "taf": 295.0,
+          "qaf": 0.01,
+          "vkc": 0.4,
+          "grav": 9.80616,
+          "beta_neutral_max": 0.35,
+          "cr": 0.3,
+          "z0mg": 0.01,
+          "zeta_min": -100.0,
+          "zeta_max": 1.0
+        },
+        "get_beta_fn": "get_beta",
+        "get_prsc_fn": "get_prsc",
+        "get_psi_rsl_fn": "get_psi_rsl"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests Obukhov length calculation for typical daytime unstable conditions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_obu_func_stable_nighttime",
+      "inputs": {
+        "inputs": {
+          "p": 0,
+          "ic": 5,
+          "il": 2,
+          "obu_val": 100.0,
+          "zref": 50.0,
+          "uref": 3.0,
+          "thref": 285.0,
+          "thvref": 285.5,
+          "qref": 0.005,
+          "rhomol": 43.0,
+          "ztop": 15.0,
+          "lai": 3.0,
+          "sai": 0.3,
+          "Lc": 6.0,
+          "taf": 283.0,
+          "qaf": 0.004,
+          "vkc": 0.4,
+          "grav": 9.80616,
+          "beta_neutral_max": 0.35,
+          "cr": 0.3,
+          "z0mg": 0.01,
+          "zeta_min": -100.0,
+          "zeta_max": 1.0
+        },
+        "get_beta_fn": "get_beta",
+        "get_prsc_fn": "get_prsc",
+        "get_psi_rsl_fn": "get_psi_rsl"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests Obukhov length calculation for stable nighttime conditions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_obu_func_near_neutral",
+      "inputs": {
+        "inputs": {
+          "p": 0,
+          "ic": 3,
+          "il": 1,
+          "obu_val": 1000.0,
+          "zref": 40.0,
+          "uref": 4.5,
+          "thref": 293.0,
+          "thvref": 293.5,
+          "qref": 0.008,
+          "rhomol": 42.0,
+          "ztop": 12.0,
+          "lai": 2.5,
+          "sai": 0.2,
+          "Lc": 5.0,
+          "taf": 293.0,
+          "qaf": 0.008,
+          "vkc": 0.4,
+          "grav": 9.80616,
+          "beta_neutral_max": 0.35,
+          "cr": 0.3,
+          "z0mg": 0.01,
+          "zeta_min": -100.0,
+          "zeta_max": 1.0
+        },
+        "get_beta_fn": "get_beta",
+        "get_prsc_fn": "get_prsc",
+        "get_psi_rsl_fn": "get_psi_rsl"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests Obukhov length calculation near neutral conditions (large |L|)",
+        "edge_cases": [
+          "near_neutral"
+        ]
+      }
+    },
+    {
+      "name": "test_obu_func_low_wind",
+      "inputs": {
+        "inputs": {
+          "p": 0,
+          "ic": 4,
+          "il": 1,
+          "obu_val": -30.0,
+          "zref": 45.0,
+          "uref": 0.1,
+          "thref": 300.0,
+          "thvref": 301.0,
+          "qref": 0.015,
+          "rhomol": 41.0,
+          "ztop": 18.0,
+          "lai": 5.0,
+          "sai": 0.6,
+          "Lc": 7.5,
+          "taf": 298.0,
+          "qaf": 0.013,
+          "vkc": 0.4,
+          "grav": 9.80616,
+          "beta_neutral_max": 0.35,
+          "cr": 0.3,
+          "z0mg": 0.01,
+          "zeta_min": -100.0,
+          "zeta_max": 1.0
+        },
+        "get_beta_fn": "get_beta",
+        "get_prsc_fn": "get_prsc",
+        "get_psi_rsl_fn": "get_psi_rsl"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests Obukhov length calculation at minimum wind speed threshold",
+        "edge_cases": [
+          "minimum_wind"
+        ]
+      }
+    },
+    {
+      "name": "test_obu_func_sparse_canopy",
+      "inputs": {
+        "inputs": {
+          "p": 0,
+          "ic": 2,
+          "il": 1,
+          "obu_val": -80.0,
+          "zref": 35.0,
+          "uref": 6.0,
+          "thref": 302.0,
+          "thvref": 303.0,
+          "qref": 0.018,
+          "rhomol": 40.5,
+          "ztop": 8.0,
+          "lai": 0.5,
+          "sai": 0.1,
+          "Lc": 3.0,
+          "taf": 300.0,
+          "qaf": 0.016,
+          "vkc": 0.4,
+          "grav": 9.80616,
+          "beta_neutral_max": 0.35,
+          "cr": 0.3,
+          "z0mg": 0.01,
+          "zeta_min": -100.0,
+          "zeta_max": 1.0
+        },
+        "get_beta_fn": "get_beta",
+        "get_prsc_fn": "get_prsc",
+        "get_psi_rsl_fn": "get_psi_rsl"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests Obukhov length calculation for sparse canopy (low LAI)",
+        "edge_cases": [
+          "sparse_canopy"
+        ]
+      }
+    },
+    {
+      "name": "test_obu_func_dense_canopy",
+      "inputs": {
+        "inputs": {
+          "p": 0,
+          "ic": 6,
+          "il": 1,
+          "obu_val": -60.0,
+          "zref": 55.0,
+          "uref": 4.0,
+          "thref": 296.0,
+          "thvref": 297.0,
+          "qref": 0.011,
+          "rhomol": 42.2,
+          "ztop": 25.0,
+          "lai": 8.0,
+          "sai": 1.2,
+          "Lc": 12.0,
+          "taf": 294.0,
+          "qaf": 0.009,
+          "vkc": 0.4,
+          "grav": 9.80616,
+          "beta_neutral_max": 0.35,
+          "cr": 0.3,
+          "z0mg": 0.01,
+          "zeta_min": -100.0,
+          "zeta_max": 1.0
+        },
+        "get_beta_fn": "get_beta",
+        "get_prsc_fn": "get_prsc",
+        "get_psi_rsl_fn": "get_psi_rsl"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests Obukhov length calculation for dense canopy (high LAI)",
+        "edge_cases": [
+          "dense_canopy"
+        ]
+      }
+    },
+    {
+      "name": "test_psim_psic_array_shapes",
+      "inputs": {
+        "zeta_scalar": 0.5,
+        "zeta_1d": [
+          -2.0,
+          -1.0,
+          0.0,
+          0.5,
+          1.0
+        ],
+        "zeta_2d": [
+          [
+            -5.0,
+            -2.0,
+            0.0
+          ],
+          [
+            0.5,
+            1.0,
+            0.8
+          ]
+        ],
+        "zeta_3d": [
+          [
+            [
+              -10.0,
+              -5.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ],
+          [
+            [
+              0.2,
+              0.5
+            ],
+            [
+              0.8,
+              1.0
+            ]
+          ]
+        ],
+        "pi": 3.141592653589793
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests psi functions with various array dimensions (scalar, 1D, 2D, 3D)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_canopy_turbulence_harman_finnigan",
+      "inputs": {
+        "niter": 3,
+        "num_filter": 5,
+        "filter_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "mlcanopy_inst": {
+          "n_patches": 5,
+          "n_layers": 10,
+          "zref": [
+            50.0,
+            48.0,
+            52.0,
+            45.0,
+            55.0
+          ],
+          "uref": [
+            5.0,
+            4.5,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "thref": [
+            298.0,
+            297.0,
+            299.0,
+            296.0,
+            300.0
+          ],
+          "qref": [
+            0.012,
+            0.011,
+            0.013,
+            0.01,
+            0.014
+          ],
+          "hc": [
+            20.0,
+            18.0,
+            22.0,
+            16.0,
+            24.0
+          ],
+          "lai": [
+            4.5,
+            4.0,
+            5.0,
+            3.5,
+            5.5
+          ],
+          "sai": [
+            0.5,
+            0.4,
+            0.6,
+            0.3,
+            0.7
+          ]
+        },
+        "turb_type": 1
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests full canopy turbulence calculation using Harman & Finnigan (2008) parameterization",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_canopy_turbulence_well_mixed",
+      "inputs": {
+        "niter": 0,
+        "num_filter": 3,
+        "filter_indices": [
+          0,
+          1,
+          2
+        ],
+        "mlcanopy_inst": {
+          "n_patches": 3,
+          "n_layers": 8,
+          "zref": [
+            40.0,
+            42.0,
+            38.0
+          ],
+          "uref": [
+            3.5,
+            4.0,
+            3.0
+          ],
+          "thref": [
+            290.0,
+            291.0,
+            289.0
+          ],
+          "qref": [
+            0.008,
+            0.009,
+            0.007
+          ],
+          "hc": [
+            15.0,
+            16.0,
+            14.0
+          ],
+          "lai": [
+            3.0,
+            3.5,
+            2.5
+          ],
+          "sai": [
+            0.3,
+            0.35,
+            0.25
+          ]
+        },
+        "turb_type": 0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests canopy turbulence with well-mixed assumption (turb_type=0)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_lookup_psihat_boundary_extrapolation",
+      "inputs": {
+        "zdt_below": 0.05,
+        "zdt_above": 6.0,
+        "dtL_below": -2.5,
+        "dtL_above": 2.5,
+        "zdtgrid": [
+          [
+            5.0
+          ],
+          [
+            3.0
+          ],
+          [
+            2.0
+          ],
+          [
+            1.0
+          ],
+          [
+            0.5
+          ],
+          [
+            0.1
+          ]
+        ],
+        "dtLgrid": [
+          [
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        ],
+        "psigrid": [
+          [
+            1.0,
+            1.2,
+            1.4,
+            1.6,
+            1.8
+          ],
+          [
+            0.8,
+            1.0,
+            1.2,
+            1.4,
+            1.6
+          ],
+          [
+            0.6,
+            0.8,
+            1.0,
+            1.2,
+            1.4
+          ],
+          [
+            0.4,
+            0.6,
+            0.8,
+            1.0,
+            1.2
+          ],
+          [
+            0.3,
+            0.5,
+            0.7,
+            0.9,
+            1.1
+          ],
+          [
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests psihat lookup at boundaries requiring extrapolation",
+        "edge_cases": [
+          "extrapolation_below",
+          "extrapolation_above"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**:\n   - Temperatures in Kelvin (>273K for typical atmospheric conditions)\n   - Specific humidity in [0, 1] kg/kg range\n   - Wind speeds >= 0.1 m/s (minimum threshold)\n   - Heights and lengths > 0\n   - Beta values constrained to [0.01, 0.99]\n   - LAI/SAI >= 0\n\n2. **Monin-Obukhov Stability Parameter (zeta)**:\n   - Typical range: [-100, 1] as specified\n   - Negative values: unstable (convective) conditions\n   - Positive values: stable conditions\n   - Near zero: neutral conditions\n   - Extreme values test numerical stability\n\n3. **Canopy Parameters**:\n   - LAI ranges from sparse (0.5) to dense (8.0)\n   - Canopy heights from 8m to 25m (typical forest range)\n   - Reference heights 1.5-3x canopy height\n   - Displacement height ~0.65 * canopy height\n\n4. **Obukhov Length**:\n   - Negative: unstable/convective (daytime)\n   - Positive: stable (nighttime)\n   - Large magnitude: near-neutral\n   - Typical range: [-1000, 1000] m\n\n5. **Array Dimensions**:\n   - Scalar, 1D, 2D, and 3D arrays tested\n   - Lookup tables use standard grid sizes (5-7 points per dimension)\n   - Multi-patch tests use 3-5 patches\n\n6. **Edge Cases**:\n   - Minimum wind speed (0.1 m/s)\n   - Beta at boundaries (0.01, 0.99)\n   - Extreme stability (zeta = -100, 1)\n   - Sparse/dense canopy extremes\n   - Near-neutral conditions (large |L|)\n   - Grid boundary extrapolation\n\n7. **Numerical Considerations**:\n   - von Karman constant: 0.4 (standard)\n   - Gravity: 9.80616 m/s\u00b2 (standard)\n   - Prandtl number parameters from literature\n   - Grid values chosen for smooth interpolation\n\nAll test cases maintain physical consistency and dimensional compatibility within each test."
+}

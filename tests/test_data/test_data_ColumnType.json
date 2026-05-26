@@ -1,0 +1,355 @@
+{
+  "function_name": "column_type",
+  "test_cases": [
+    {
+      "name": "test_init_single_column",
+      "inputs": {
+        "begc": 0,
+        "endc": 0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize a single column (minimal case)",
+        "edge_cases": [],
+        "expected_behavior": "Creates column with begc=0, endc=0, col_size=1"
+      }
+    },
+    {
+      "name": "test_init_multiple_columns_typical",
+      "inputs": {
+        "begc": 0,
+        "endc": 9
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize 10 columns with typical range",
+        "edge_cases": [],
+        "expected_behavior": "Creates column with col_size=10, all arrays properly shaped"
+      }
+    },
+    {
+      "name": "test_init_large_column_range",
+      "inputs": {
+        "begc": 0,
+        "endc": 99
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize 100 columns (larger typical simulation)",
+        "edge_cases": [],
+        "expected_behavior": "Creates column with col_size=100, tests scalability"
+      }
+    },
+    {
+      "name": "test_init_non_zero_start",
+      "inputs": {
+        "begc": 10,
+        "endc": 19
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize columns with non-zero starting index",
+        "edge_cases": [],
+        "expected_behavior": "Creates column with begc=10, endc=19, col_size=10"
+      }
+    },
+    {
+      "name": "test_init_equal_indices",
+      "inputs": {
+        "begc": 5,
+        "endc": 5
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Initialize with begc == endc (single column at offset)",
+        "edge_cases": [
+          "boundary_condition"
+        ],
+        "expected_behavior": "Creates single column at index 5"
+      }
+    },
+    {
+      "name": "test_get_fortran_indices_snow_layer",
+      "inputs": {
+        "col_idx": 0,
+        "layer_idx": 0,
+        "array_type": "dz"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Convert Python indices to Fortran for snow layer (negative Fortran index)",
+        "edge_cases": [],
+        "expected_behavior": "Returns Fortran-style indices for snow layers",
+        "assumptions": "nlevsno=5, so layer_idx=0 maps to Fortran layer -4"
+      }
+    },
+    {
+      "name": "test_get_fortran_indices_soil_layer",
+      "inputs": {
+        "col_idx": 2,
+        "layer_idx": 10,
+        "array_type": "z"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Convert Python indices to Fortran for soil layer (positive Fortran index)",
+        "edge_cases": [],
+        "expected_behavior": "Returns Fortran-style indices for soil layers",
+        "assumptions": "nlevsno=5, so layer_idx=10 maps to Fortran layer 6"
+      }
+    },
+    {
+      "name": "test_get_fortran_indices_interface",
+      "inputs": {
+        "col_idx": 1,
+        "layer_idx": 5,
+        "array_type": "zi"
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Convert indices for interface array (zi has one extra layer)",
+        "edge_cases": [],
+        "expected_behavior": "Returns Fortran-style indices for interface layers",
+        "assumptions": "zi array has nlevgrnd + nlevsno + 1 layers"
+      }
+    },
+    {
+      "name": "test_get_active_snow_layers_mixed",
+      "inputs": {
+        "snl_array": [
+          0,
+          2,
+          0,
+          5,
+          1,
+          0,
+          3,
+          0,
+          4,
+          0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Identify columns with active snow layers (mixed zeros and positive values)",
+        "edge_cases": [],
+        "expected_behavior": "Returns boolean mask [False, True, False, True, True, False, True, False, True, False]"
+      }
+    },
+    {
+      "name": "test_get_active_snow_layers_all_zero",
+      "inputs": {
+        "snl_array": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "No active snow layers (all zeros)",
+        "edge_cases": [
+          "zero_values"
+        ],
+        "expected_behavior": "Returns all False boolean mask"
+      }
+    },
+    {
+      "name": "test_get_active_snow_layers_all_active",
+      "inputs": {
+        "snl_array": [
+          5,
+          3,
+          4,
+          2,
+          1,
+          5,
+          4,
+          3
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All columns have active snow layers",
+        "edge_cases": [
+          "boundary_condition"
+        ],
+        "expected_behavior": "Returns all True boolean mask",
+        "assumptions": "Max snow layers is 5 (nlevsno)"
+      }
+    },
+    {
+      "name": "test_get_soil_layer_mask_positive_indices",
+      "inputs": {
+        "layer_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Mask for positive layer indices (soil layers in Fortran convention)",
+        "edge_cases": [],
+        "expected_behavior": "Returns all True for positive indices"
+      }
+    },
+    {
+      "name": "test_get_soil_layer_mask_negative_indices",
+      "inputs": {
+        "layer_indices": [
+          -4,
+          -3,
+          -2,
+          -1,
+          0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Mask for negative/zero layer indices (snow layers in Fortran convention)",
+        "edge_cases": [
+          "negative_values",
+          "zero_values"
+        ],
+        "expected_behavior": "Returns all False for non-positive indices"
+      }
+    },
+    {
+      "name": "test_get_soil_layer_mask_mixed_indices",
+      "inputs": {
+        "layer_indices": [
+          -2,
+          -1,
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Mask for mixed positive and negative indices",
+        "edge_cases": [],
+        "expected_behavior": "Returns [False, False, False, True, True, True, True, True]"
+      }
+    },
+    {
+      "name": "test_get_snow_layer_mask_negative_indices",
+      "inputs": {
+        "layer_indices": [
+          -5,
+          -4,
+          -3,
+          -2,
+          -1
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Mask for negative layer indices (snow layers)",
+        "edge_cases": [],
+        "expected_behavior": "Returns all True for negative indices",
+        "assumptions": "Fortran convention: snow layers have negative indices"
+      }
+    },
+    {
+      "name": "test_get_snow_layer_mask_positive_indices",
+      "inputs": {
+        "layer_indices": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Mask for positive indices (should be False for snow mask)",
+        "edge_cases": [],
+        "expected_behavior": "Returns all False for positive indices"
+      }
+    },
+    {
+      "name": "test_get_snow_layer_mask_with_zero",
+      "inputs": {
+        "layer_indices": [
+          -3,
+          -2,
+          -1,
+          0,
+          1,
+          2
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Mask including zero index (boundary between snow and soil)",
+        "edge_cases": [
+          "zero_values",
+          "boundary_condition"
+        ],
+        "expected_behavior": "Returns [True, True, True, False, False, False]",
+        "assumptions": "Zero is not considered a snow layer"
+      }
+    },
+    {
+      "name": "test_validate_arrays_consistent_dimensions",
+      "inputs": {
+        "col_size": 5,
+        "nlevgrnd": 15,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Validate arrays with consistent dimensions",
+        "edge_cases": [],
+        "expected_behavior": "Returns True when all array dimensions match expected shapes",
+        "assumptions": "dz/z shape: (5, 20), zi shape: (5, 21), snl/nbedrock shape: (5,)"
+      }
+    },
+    {
+      "name": "test_get_layer_info_typical",
+      "inputs": {
+        "begc": 0,
+        "endc": 9,
+        "nlevgrnd": 15,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Get layer information for typical configuration",
+        "edge_cases": [],
+        "expected_behavior": "Returns dict with num_columns=10, dz_z_layers=20, zi_layers=21, snow_layers_max=5, ground_layers_total=15"
+      }
+    },
+    {
+      "name": "test_create_column_instance_minimal",
+      "inputs": {
+        "begc": 0,
+        "endc": 0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Create column instance with minimal size",
+        "edge_cases": [
+          "boundary_condition"
+        ],
+        "expected_behavior": "Returns initialized column_type with single column"
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions: 1) Standard CLM configuration uses nlevgrnd=15 (soil layers) and nlevsno=5 (max snow layers). 2) Fortran indexing convention: snow layers have negative indices (-nlevsno+1 to 0), soil layers have positive indices (1 to nlevgrnd). 3) Python uses 0-based indexing, so conversions are needed. 4) Physical constraints: layer thickness (dz) >= 0, depth (z, zi) >= 0, snow layer count (snl) in [0, nlevsno]. 5) Special values: ispval for uninitialized integers, nan for uninitialized floats. 6) Array shapes: dz/z have (col_size, nlevgrnd+nlevsno) shape, zi has (col_size, nlevgrnd+nlevsno+1) for interfaces, snl/nbedrock have (col_size,) shape. 7) Column indices: begc <= endc, both >= 0. 8) Test cases cover initialization, index conversion, masking operations, and validation. 9) Edge cases include single columns, zero values, boundary conditions, and mixed positive/negative indices. 10) JAX-compatible functions (get_active_snow_layers, get_soil_layer_mask, get_snow_layer_mask) use jnp.ndarray inputs."
+}

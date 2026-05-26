@@ -1,0 +1,534 @@
+{
+  "function_name": "hist_addfld1d",
+  "test_cases": [
+    {
+      "name": "test_nominal_gridcell_1d",
+      "inputs": {
+        "fname": "TEMPERATURE",
+        "units": "K",
+        "avgflag": "A",
+        "long_name": "Surface temperature",
+        "type1d_out": "gridcell",
+        "ptr_gcell": [
+          [
+            273.15,
+            280.5,
+            290.0,
+            285.3,
+            275.8
+          ]
+        ],
+        "ptr_lunit": null,
+        "ptr_col": null,
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": null,
+        "c2l_scale_type": null,
+        "l2g_scale_type": null,
+        "set_lake": null,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Basic gridcell field with typical temperature values and averaging flag",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_column_2d_with_scaling",
+      "inputs": {
+        "fname": "SOIL_MOISTURE",
+        "units": "kg/m2",
+        "avgflag": "I",
+        "long_name": "Soil moisture content by layer",
+        "type1d_out": "column",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": [
+          [
+            25.5,
+            30.2,
+            28.7,
+            32.1
+          ],
+          [
+            22.3,
+            27.8,
+            25.9,
+            29.4
+          ],
+          [
+            18.9,
+            24.5,
+            22.1,
+            26.3
+          ],
+          [
+            15.2,
+            20.8,
+            18.6,
+            22.7
+          ],
+          [
+            12.1,
+            17.3,
+            15.4,
+            19.2
+          ]
+        ],
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": "area",
+        "c2l_scale_type": "mass",
+        "l2g_scale_type": "area",
+        "set_lake": null,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "2D column field with multiple levels and hierarchical scaling types",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_patch_with_lake_urban_filters",
+      "inputs": {
+        "fname": "LAI",
+        "units": "m2/m2",
+        "avgflag": "A",
+        "long_name": "Leaf area index",
+        "type1d_out": "patch",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": null,
+        "ptr_patch": [
+          [
+            3.5,
+            4.2,
+            2.8,
+            5.1,
+            3.9,
+            4.7,
+            2.3,
+            3.1
+          ]
+        ],
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": "area",
+        "c2l_scale_type": "area",
+        "l2g_scale_type": "area",
+        "set_lake": 0.0,
+        "set_nolake": null,
+        "set_urb": 0.5,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Patch-level vegetation field with lake and urban special value settings",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_landunit_maximum_flag",
+      "inputs": {
+        "fname": "SNOW_DEPTH",
+        "units": "m",
+        "avgflag": "X",
+        "long_name": "Maximum snow depth",
+        "type1d_out": "landunit",
+        "ptr_gcell": null,
+        "ptr_lunit": [
+          [
+            0.85,
+            1.23,
+            0.0,
+            2.15,
+            0.42,
+            1.67
+          ]
+        ],
+        "ptr_col": null,
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": null,
+        "c2l_scale_type": "unity",
+        "l2g_scale_type": "area",
+        "set_lake": null,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": 0.0,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Landunit field with maximum averaging flag and glacier filter",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_atmosphere_minimum_flag",
+      "inputs": {
+        "fname": "PRECIP_MIN",
+        "units": "mm/s",
+        "avgflag": "M",
+        "long_name": "Minimum precipitation rate",
+        "type1d_out": "atmosphere",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": null,
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": [
+          [
+            0.0,
+            0.001,
+            0.0,
+            0.005,
+            0.002,
+            0.0,
+            0.003
+          ]
+        ],
+        "p2c_scale_type": null,
+        "c2l_scale_type": null,
+        "l2g_scale_type": null,
+        "set_lake": null,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": "inactive"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Atmosphere field with minimum flag and inactive default setting",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_zero_values_all_pointers",
+      "inputs": {
+        "fname": "ZERO_FLUX",
+        "units": "W/m2",
+        "avgflag": "A",
+        "long_name": "Zero energy flux test",
+        "type1d_out": "land",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": null,
+        "ptr_patch": null,
+        "ptr_lnd": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "ptr_atm": null,
+        "p2c_scale_type": "unity",
+        "c2l_scale_type": "unity",
+        "l2g_scale_type": "unity",
+        "set_lake": 0.0,
+        "set_nolake": 0.0,
+        "set_urb": 0.0,
+        "set_nourb": 0.0,
+        "set_noglcmec": 0.0,
+        "set_spec": 0.0,
+        "default": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All zero values across data and special value settings",
+        "edge_cases": [
+          "zero_flux",
+          "zero_special_values"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_single_element_arrays",
+      "inputs": {
+        "fname": "SINGLE_POINT",
+        "units": "fraction",
+        "avgflag": "S",
+        "long_name": "Single point test field",
+        "type1d_out": "gridcell",
+        "ptr_gcell": [
+          [
+            0.5
+          ]
+        ],
+        "ptr_lunit": null,
+        "ptr_col": null,
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": null,
+        "c2l_scale_type": null,
+        "l2g_scale_type": null,
+        "set_lake": null,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum array size with single element",
+        "edge_cases": [
+          "minimum_array_size",
+          "boundary_fraction"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_extreme_temperature_range",
+      "inputs": {
+        "fname": "TEMP_EXTREME",
+        "units": "K",
+        "avgflag": "A",
+        "long_name": "Extreme temperature range",
+        "type1d_out": "column",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": [
+          [
+            183.15,
+            323.15,
+            273.15
+          ],
+          [
+            200.0,
+            310.0,
+            280.0
+          ],
+          [
+            190.5,
+            315.8,
+            275.3
+          ]
+        ],
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": "volume",
+        "c2l_scale_type": "volume",
+        "l2g_scale_type": "area",
+        "set_lake": 273.15,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Extreme but physically valid temperature range from polar to hot desert",
+        "edge_cases": [
+          "extreme_cold",
+          "extreme_hot",
+          "physical_boundaries"
+        ]
+      }
+    },
+    {
+      "name": "test_special_large_multidimensional_array",
+      "inputs": {
+        "fname": "CARBON_POOL",
+        "units": "gC/m2",
+        "avgflag": "I",
+        "long_name": "Carbon pool by layer and patch",
+        "type1d_out": "patch",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": null,
+        "ptr_patch": [
+          [
+            1250.5,
+            1180.3,
+            1320.7,
+            1095.2,
+            1410.8,
+            1275.4,
+            1155.9,
+            1385.1,
+            1220.6,
+            1305.3
+          ],
+          [
+            980.2,
+            925.7,
+            1045.3,
+            870.5,
+            1120.4,
+            1015.8,
+            920.3,
+            1098.7,
+            970.1,
+            1035.9
+          ],
+          [
+            745.8,
+            705.2,
+            795.6,
+            665.3,
+            850.7,
+            770.9,
+            700.8,
+            835.2,
+            738.4,
+            785.1
+          ],
+          [
+            520.3,
+            490.8,
+            555.2,
+            465.7,
+            595.4,
+            538.6,
+            488.5,
+            582.9,
+            515.7,
+            548.3
+          ],
+          [
+            315.7,
+            298.4,
+            337.8,
+            283.2,
+            362.1,
+            327.5,
+            296.9,
+            354.6,
+            313.2,
+            333.4
+          ],
+          [
+            180.2,
+            170.5,
+            193.1,
+            161.8,
+            206.9,
+            187.3,
+            169.7,
+            202.7,
+            179.1,
+            190.6
+          ],
+          [
+            95.8,
+            90.7,
+            102.6,
+            86.0,
+            110.0,
+            99.6,
+            90.2,
+            107.8,
+            95.2,
+            101.4
+          ],
+          [
+            45.3,
+            42.9,
+            48.5,
+            40.7,
+            52.0,
+            47.1,
+            42.6,
+            50.9,
+            45.0,
+            47.9
+          ]
+        ],
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": "mass",
+        "c2l_scale_type": "mass",
+        "l2g_scale_type": "mass",
+        "set_lake": null,
+        "set_nolake": null,
+        "set_urb": null,
+        "set_nourb": null,
+        "set_noglcmec": null,
+        "set_spec": null,
+        "default": null
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large 2D array with 8 vertical levels and 10 patches, testing memory and dimension handling",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_all_scale_types_and_filters",
+      "inputs": {
+        "fname": "COMPREHENSIVE_TEST",
+        "units": "kg/m2/s",
+        "avgflag": "A",
+        "long_name": "Comprehensive field with all options",
+        "type1d_out": "column",
+        "ptr_gcell": null,
+        "ptr_lunit": null,
+        "ptr_col": [
+          [
+            0.00015,
+            0.00023,
+            0.00018,
+            0.00031,
+            0.00012
+          ],
+          [
+            0.00021,
+            0.00029,
+            0.00024,
+            0.00037,
+            0.00018
+          ]
+        ],
+        "ptr_patch": null,
+        "ptr_lnd": null,
+        "ptr_atm": null,
+        "p2c_scale_type": "area",
+        "c2l_scale_type": "mass",
+        "l2g_scale_type": "volume",
+        "set_lake": -999.0,
+        "set_nolake": 1.0,
+        "set_urb": -888.0,
+        "set_nourb": 2.0,
+        "set_noglcmec": -777.0,
+        "set_spec": -666.0,
+        "default": "inactive"
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests all scale types, all special value filters, and inactive default simultaneously",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**: All temperatures in Kelvin (>0K), with realistic ranges from 183K (polar) to 323K (hot desert). Fractions constrained to [0,1]. Moisture and carbon values based on typical land model ranges.\n\n2. **Array Dimensions**: \n   - 1D arrays: shape (n,) represented as [[val1, val2, ...]]\n   - 2D arrays: shape (n, m) for vertical levels, with consistent dimensions within each test\n   - Sizes vary from 1 (edge case) to 10 elements (special case) to test scalability\n\n3. **Averaging Flags**: Covered all valid values (I=instantaneous, A=average, X=maximum, M=minimum, S=standard deviation)\n\n4. **Scale Types**: Tested all valid combinations (unity, area, mass, volume) across hierarchical averaging (patch->column->landunit->gridcell)\n\n5. **Special Value Filters**: \n   - set_lake/set_nolake: For water body masking\n   - set_urb/set_nourb: For urban/rural distinction\n   - set_noglcmec: For glacier exclusion\n   - set_spec: For special conditions\n   - Used sentinel values (-999, -888, etc.) to test filter logic\n\n6. **Edge Cases**:\n   - Zero values: Test numerical stability and null handling\n   - Single elements: Minimum array size boundary\n   - Extreme ranges: Physical limits while maintaining validity\n\n7. **Field Types**: Covered all spatial types (gridcell, landunit, column, patch, land, atmosphere) with appropriate data structures\n\n8. **Default Setting**: Tested both null (active) and 'inactive' states\n\n9. **Null Pointers**: Only one pointer type populated per test to match typical usage patterns where fields exist at specific spatial scales"
+}

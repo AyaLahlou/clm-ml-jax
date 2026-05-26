@@ -1,0 +1,513 @@
+{
+  "function_name": "clm_varpar_module",
+  "test_cases": [
+    {
+      "name": "test_clm5_preset_initialization",
+      "inputs": {
+        "preset_name": "CLM5_0"
+      },
+      "expected_outputs": {
+        "nlevsno": 12,
+        "nlevsoi": 20,
+        "nlevgrnd": 25,
+        "is_initialized": true,
+        "validate": true,
+        "layer_info": {
+          "max_snow_layers": 12,
+          "active_soil_layers": 20,
+          "total_ground_layers": 25,
+          "inactive_soil_layers": 5,
+          "total_subsurface_layers": 37
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests standard CLM5.0 preset configuration with typical layer counts",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_clm4_5_preset_initialization",
+      "inputs": {
+        "preset_name": "CLM4_5"
+      },
+      "expected_outputs": {
+        "nlevsno": 5,
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "is_initialized": true,
+        "validate": true,
+        "layer_info": {
+          "max_snow_layers": 5,
+          "active_soil_layers": 10,
+          "total_ground_layers": 15,
+          "inactive_soil_layers": 5,
+          "total_subsurface_layers": 20
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests standard CLM4.5 preset configuration with legacy layer counts",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_minimal_valid_configuration",
+      "inputs": {
+        "nlevsno_val": 1,
+        "nlevsoi_val": 1,
+        "nlevgrnd_val": 1
+      },
+      "expected_outputs": {
+        "is_initialized": true,
+        "validate": true,
+        "snow_layer_indices": [
+          0
+        ],
+        "soil_layer_indices": [
+          1
+        ],
+        "ground_layer_indices": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests minimum valid layer configuration (1 layer each)",
+        "edge_cases": [
+          "minimum_layers",
+          "boundary_condition"
+        ]
+      }
+    },
+    {
+      "name": "test_maximum_valid_configuration",
+      "inputs": {
+        "nlevsno_val": 50,
+        "nlevsoi_val": 100,
+        "nlevgrnd_val": 100
+      },
+      "expected_outputs": {
+        "is_initialized": true,
+        "validate": true,
+        "snow_layer_count": 50,
+        "soil_layer_count": 100,
+        "ground_layer_count": 100
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests maximum allowed layer configuration at constraint boundaries",
+        "edge_cases": [
+          "maximum_layers",
+          "boundary_condition"
+        ]
+      }
+    },
+    {
+      "name": "test_custom_configuration_with_inactive_layers",
+      "inputs": {
+        "nlevsno_val": 8,
+        "nlevsoi_val": 15,
+        "nlevgrnd_val": 30
+      },
+      "expected_outputs": {
+        "is_initialized": true,
+        "validate": true,
+        "layer_info": {
+          "max_snow_layers": 8,
+          "active_soil_layers": 15,
+          "total_ground_layers": 30,
+          "inactive_soil_layers": 15,
+          "total_subsurface_layers": 38
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests custom configuration with significant inactive soil layers (nlevgrnd > nlevsoi)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_equal_soil_and_ground_layers",
+      "inputs": {
+        "nlevsno_val": 10,
+        "nlevsoi_val": 25,
+        "nlevgrnd_val": 25
+      },
+      "expected_outputs": {
+        "is_initialized": true,
+        "validate": true,
+        "layer_info": {
+          "max_snow_layers": 10,
+          "active_soil_layers": 25,
+          "total_ground_layers": 25,
+          "inactive_soil_layers": 0,
+          "total_subsurface_layers": 35
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary case where nlevgrnd equals nlevsoi (no inactive layers)",
+        "edge_cases": [
+          "boundary_condition",
+          "zero_inactive_layers"
+        ]
+      }
+    },
+    {
+      "name": "test_invalid_ground_less_than_soil",
+      "inputs": {
+        "nlevsno_val": 5,
+        "nlevsoi_val": 20,
+        "nlevgrnd_val": 15
+      },
+      "expected_outputs": {
+        "validate": false,
+        "raises": "ValueError"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests validation failure when nlevgrnd < nlevsoi (violates constraint)",
+        "edge_cases": [
+          "constraint_violation",
+          "invalid_configuration"
+        ]
+      }
+    },
+    {
+      "name": "test_snow_layer_indices_generation",
+      "inputs": {
+        "nlevsno_val": 7
+      },
+      "expected_outputs": {
+        "snow_layer_indices": [
+          -6,
+          -5,
+          -4,
+          -3,
+          -2,
+          -1,
+          0
+        ],
+        "array_shape": [
+          7
+        ],
+        "array_dtype": "int32"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests generation of negative snow layer indices from -nlevsno+1 to 0",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_radiation_and_pft_constants",
+      "inputs": {},
+      "expected_outputs": {
+        "radiation_info": {
+          "total_bands": 2,
+          "visible_band_index": 1,
+          "near_infrared_band_index": 2
+        },
+        "pft_info": {
+          "max_pft_types": 78
+        },
+        "radiation_bands": [
+          1,
+          2
+        ],
+        "pft_indices_count": 78
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests immutable radiation and PFT constants that should remain fixed",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_uninitialized_state",
+      "inputs": {},
+      "expected_outputs": {
+        "nlevsno": -1,
+        "nlevsoi": -1,
+        "nlevgrnd": -1,
+        "is_initialized": false,
+        "create_layer_arrays_raises": "RuntimeError"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests behavior when parameters are in uninitialized state (all values -1)",
+        "edge_cases": [
+          "uninitialized",
+          "negative_values",
+          "error_handling"
+        ]
+      }
+    }
+  ],
+  "additional_test_scenarios": [
+    {
+      "name": "test_reset_and_reinitialize",
+      "description": "Test sequence: initialize -> reset -> reinitialize to verify state management",
+      "sequence": [
+        {
+          "action": "load_preset",
+          "preset": "CLM5_0"
+        },
+        {
+          "action": "verify_initialized",
+          "expected": true
+        },
+        {
+          "action": "reset_parameters"
+        },
+        {
+          "action": "verify_initialized",
+          "expected": false
+        },
+        {
+          "action": "load_preset",
+          "preset": "CLM4_5"
+        },
+        {
+          "action": "verify_initialized",
+          "expected": true
+        }
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests state transitions and parameter lifecycle management"
+      }
+    },
+    {
+      "name": "test_layer_array_consistency",
+      "description": "Verify all layer arrays have correct shapes and consistent indexing",
+      "inputs": {
+        "nlevsno_val": 6,
+        "nlevsoi_val": 12,
+        "nlevgrnd_val": 18
+      },
+      "validations": [
+        {
+          "check": "snow_layers_shape",
+          "expected": [
+            6
+          ]
+        },
+        {
+          "check": "soil_layers_shape",
+          "expected": [
+            12
+          ]
+        },
+        {
+          "check": "ground_layers_shape",
+          "expected": [
+            18
+          ]
+        },
+        {
+          "check": "snow_indices_range",
+          "min": -5,
+          "max": 0
+        },
+        {
+          "check": "soil_indices_range",
+          "min": 1,
+          "max": 12
+        },
+        {
+          "check": "ground_indices_range",
+          "min": 1,
+          "max": 18
+        }
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests array generation consistency and index ranges"
+      }
+    },
+    {
+      "name": "test_config_dict_completeness",
+      "description": "Verify get_config_dict returns all expected parameters",
+      "inputs": {
+        "preset_name": "CLM5_0"
+      },
+      "expected_keys": [
+        "nlevsno",
+        "nlevsoi",
+        "nlevgrnd",
+        "numrad",
+        "ivis",
+        "inir",
+        "mxpft"
+      ],
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests configuration dictionary export completeness"
+      }
+    },
+    {
+      "name": "test_jit_compilation_compatibility",
+      "description": "Verify layer index functions work with JAX JIT compilation",
+      "inputs": {
+        "nlevsno_val": 5,
+        "nlevsoi_val": 10,
+        "nlevgrnd_val": 15
+      },
+      "validations": [
+        {
+          "check": "jit_snow_layer_indices",
+          "compiles": true
+        },
+        {
+          "check": "jit_soil_layer_indices",
+          "compiles": true
+        },
+        {
+          "check": "jit_ground_layer_indices",
+          "compiles": true
+        },
+        {
+          "check": "output_matches_non_jit",
+          "expected": true
+        }
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests JAX JIT compilation compatibility for index generation functions"
+      }
+    }
+  ],
+  "parametrized_test_data": {
+    "valid_layer_combinations": [
+      {
+        "nlevsno": 3,
+        "nlevsoi": 5,
+        "nlevgrnd": 8
+      },
+      {
+        "nlevsno": 5,
+        "nlevsoi": 10,
+        "nlevgrnd": 15
+      },
+      {
+        "nlevsno": 12,
+        "nlevsoi": 20,
+        "nlevgrnd": 25
+      },
+      {
+        "nlevsno": 10,
+        "nlevsoi": 30,
+        "nlevgrnd": 50
+      },
+      {
+        "nlevsno": 20,
+        "nlevsoi": 50,
+        "nlevgrnd": 75
+      }
+    ],
+    "invalid_layer_combinations": [
+      {
+        "nlevsno": 0,
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "error": "nlevsno < 1"
+      },
+      {
+        "nlevsno": 5,
+        "nlevsoi": 0,
+        "nlevgrnd": 15,
+        "error": "nlevsoi < 1"
+      },
+      {
+        "nlevsno": 5,
+        "nlevsoi": 10,
+        "nlevgrnd": 5,
+        "error": "nlevgrnd < nlevsoi"
+      },
+      {
+        "nlevsno": 51,
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "error": "nlevsno > 50"
+      },
+      {
+        "nlevsno": 5,
+        "nlevsoi": 101,
+        "nlevgrnd": 101,
+        "error": "nlevsoi > 100"
+      },
+      {
+        "nlevsno": -5,
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "error": "negative nlevsno"
+      }
+    ],
+    "preset_names": [
+      {
+        "name": "CLM5_0",
+        "valid": true
+      },
+      {
+        "name": "CLM4_5",
+        "valid": true
+      },
+      {
+        "name": "CLM3_0",
+        "valid": false,
+        "error": "unknown preset"
+      },
+      {
+        "name": "invalid",
+        "valid": false,
+        "error": "unknown preset"
+      },
+      {
+        "name": "",
+        "valid": false,
+        "error": "empty string"
+      }
+    ]
+  },
+  "fixtures": {
+    "default_clm5_params": {
+      "description": "Fixture providing initialized CLM5.0 parameters",
+      "setup": "load_preset('CLM5_0')",
+      "provides": {
+        "nlevsno": 12,
+        "nlevsoi": 20,
+        "nlevgrnd": 25
+      }
+    },
+    "default_clm4_5_params": {
+      "description": "Fixture providing initialized CLM4.5 parameters",
+      "setup": "load_preset('CLM4_5')",
+      "provides": {
+        "nlevsno": 5,
+        "nlevsoi": 10,
+        "nlevgrnd": 15
+      }
+    },
+    "uninitialized_params": {
+      "description": "Fixture providing reset/uninitialized parameters",
+      "setup": "reset_parameters()",
+      "provides": {
+        "nlevsno": -1,
+        "nlevsoi": -1,
+        "nlevgrnd": -1
+      }
+    },
+    "custom_small_config": {
+      "description": "Fixture for small custom configuration",
+      "setup": "set_custom_parameters(3, 5, 8)",
+      "provides": {
+        "nlevsno": 3,
+        "nlevsoi": 5,
+        "nlevgrnd": 8
+      }
+    }
+  },
+  "notes": "Test data generation strategy:\n\n1. **Nominal Cases (50%)**: Used standard CLM presets (CLM4.5, CLM5.0) and typical custom configurations that represent realistic model setups. These cover the most common use cases in climate modeling.\n\n2. **Edge Cases (30%)**: Focused on boundary conditions including:\n   - Minimum valid values (1 layer each)\n   - Maximum valid values (50 snow, 100 soil/ground)\n   - Boundary equality (nlevgrnd == nlevsoi)\n   - Constraint violations (nlevgrnd < nlevsoi)\n   - Uninitialized state (all -1 values)\n   - Invalid preset names\n\n3. **Special Cases (20%)**: Tested state management, array generation consistency, JIT compilation compatibility, and configuration export.\n\n4. **Physical Realism**: All valid configurations respect the physical constraint that total ground layers must be >= active soil layers, representing the reality that some deep layers may be hydrologically inactive.\n\n5. **Array Generation**: Snow layer indices are negative (representing layers above ground), while soil/ground indices are positive (below ground). This follows CLM convention.\n\n6. **Constants**: Radiation bands (2) and PFT count (78) are immutable Final values that should never change.\n\n7. **Parametrized Data**: Provided additional combinations for thorough parametrized testing of valid/invalid configurations.\n\n8. **Fixtures**: Defined reusable fixtures for common initialization states to reduce test setup duplication.\n\n9. **Error Handling**: Included tests for expected exceptions (ValueError, RuntimeError) to verify proper validation.\n\n10. **JAX Compatibility**: Ensured test data works with JAX arrays and JIT compilation requirements."
+}

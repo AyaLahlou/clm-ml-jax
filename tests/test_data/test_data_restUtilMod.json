@@ -1,0 +1,432 @@
+{
+  "function_name": "restartvar_1d",
+  "test_cases": [
+    {
+      "name": "test_nominal_read_temperature_data",
+      "inputs": {
+        "ncid": 1001,
+        "flag": "read",
+        "varname": "temperature",
+        "xtype": 6,
+        "dim1name": "gridcell",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Surface temperature",
+        "units": "K",
+        "interpinic_flag": "interp",
+        "data": [
+          273.15,
+          280.5,
+          295.0,
+          310.2,
+          288.7
+        ],
+        "readvar": true,
+        "comment": null,
+        "flag_meanings": null,
+        "missing_value": null,
+        "fill_value": null,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Standard read operation for temperature data with typical values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_write_soil_moisture",
+      "inputs": {
+        "ncid": 1002,
+        "flag": "write",
+        "varname": "soil_moisture",
+        "xtype": 6,
+        "dim1name": "column",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Volumetric soil moisture",
+        "units": "m3/m3",
+        "interpinic_flag": "copy",
+        "data": [
+          0.15,
+          0.22,
+          0.35,
+          0.41,
+          0.28,
+          0.19,
+          0.33
+        ],
+        "readvar": false,
+        "comment": "Soil water content",
+        "flag_meanings": null,
+        "missing_value": -999.0,
+        "fill_value": -999.0,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Write operation with fractional data and missing value attributes",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_zero_values",
+      "inputs": {
+        "ncid": 1003,
+        "flag": "read",
+        "varname": "snow_depth",
+        "xtype": 6,
+        "dim1name": "landunit",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Snow depth",
+        "units": "m",
+        "interpinic_flag": "interp",
+        "data": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "readvar": true,
+        "comment": null,
+        "flag_meanings": null,
+        "missing_value": null,
+        "fill_value": 0.0,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All zero values representing no snow conditions",
+        "edge_cases": [
+          "zero_values"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_single_element_array",
+      "inputs": {
+        "ncid": 1004,
+        "flag": "write",
+        "varname": "global_mean_temp",
+        "xtype": 6,
+        "dim1name": "scalar",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Global mean temperature",
+        "units": "K",
+        "interpinic_flag": "skip",
+        "data": [
+          288.15
+        ],
+        "readvar": false,
+        "comment": "Single scalar value",
+        "flag_meanings": null,
+        "missing_value": null,
+        "fill_value": null,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum array size with single element",
+        "edge_cases": [
+          "boundary_size"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_large_array_with_extremes",
+      "inputs": {
+        "ncid": 1005,
+        "flag": "read",
+        "varname": "elevation",
+        "xtype": 6,
+        "dim1name": "gridcell",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Surface elevation",
+        "units": "m",
+        "interpinic_flag": "interp",
+        "data": [
+          0.0,
+          10.5,
+          100.0,
+          500.0,
+          1000.0,
+          2500.0,
+          4500.0,
+          8848.0,
+          5.2,
+          250.0,
+          750.0,
+          1500.0,
+          3000.0,
+          6000.0,
+          8000.0,
+          100.0,
+          200.0,
+          300.0,
+          400.0,
+          500.0
+        ],
+        "readvar": true,
+        "comment": null,
+        "flag_meanings": null,
+        "missing_value": -999.0,
+        "fill_value": -999.0,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Large array with extreme elevation values from sea level to Mt. Everest",
+        "edge_cases": [
+          "large_magnitude",
+          "zero_values"
+        ]
+      }
+    },
+    {
+      "name": "test_special_integer_flags_with_meanings",
+      "inputs": {
+        "ncid": 1006,
+        "flag": "write",
+        "varname": "vegetation_type",
+        "xtype": 4,
+        "dim1name": "gridcell",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Vegetation type classification",
+        "units": "categorical",
+        "interpinic_flag": "copy",
+        "data": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3
+        ],
+        "readvar": false,
+        "comment": "Land cover classification",
+        "flag_meanings": [
+          "forest",
+          "grassland",
+          "cropland",
+          "urban",
+          "water"
+        ],
+        "missing_value": null,
+        "fill_value": null,
+        "imissing_value": -1,
+        "ifill_value": -1,
+        "flag_values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "nvalid_range": [
+          1,
+          5
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Integer categorical data with flag meanings and valid range",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_colon_delimited_varnames",
+      "inputs": {
+        "ncid": 1007,
+        "flag": "read",
+        "varname": "temp:pressure:humidity",
+        "xtype": 6,
+        "dim1name": "level",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Atmospheric state variables",
+        "units": "mixed",
+        "interpinic_flag": "interp",
+        "data": [
+          250.0,
+          260.0,
+          270.0,
+          280.0,
+          290.0,
+          300.0
+        ],
+        "readvar": true,
+        "comment": "Colon-delimited variable list",
+        "flag_meanings": null,
+        "missing_value": null,
+        "fill_value": null,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Multiple variables specified with colon delimiter",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_with_all_optional_attributes",
+      "inputs": {
+        "ncid": 1008,
+        "flag": "write",
+        "varname": "leaf_area_index",
+        "xtype": 6,
+        "dim1name": "pft",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Leaf area index",
+        "units": "m2/m2",
+        "interpinic_flag": "interp",
+        "data": [
+          0.5,
+          1.2,
+          2.8,
+          4.5,
+          5.1,
+          3.7,
+          2.1,
+          0.8,
+          1.5,
+          3.2
+        ],
+        "readvar": false,
+        "comment": "One-sided leaf area per unit ground area",
+        "flag_meanings": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "missing_value": -999.0,
+        "fill_value": -999.0,
+        "imissing_value": -999,
+        "ifill_value": -999,
+        "flag_values": [
+          0,
+          1,
+          2
+        ],
+        "nvalid_range": [
+          0,
+          10
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Complete test with all optional attributes populated",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_very_small_positive_values",
+      "inputs": {
+        "ncid": 1009,
+        "flag": "read",
+        "varname": "trace_gas_concentration",
+        "xtype": 6,
+        "dim1name": "gridcell",
+        "dim2name": "",
+        "switchdim": false,
+        "long_name": "Trace gas concentration",
+        "units": "ppmv",
+        "interpinic_flag": "interp",
+        "data": [
+          1e-10,
+          1e-09,
+          1e-08,
+          1e-07,
+          1e-06,
+          1e-05,
+          0.0001,
+          0.001
+        ],
+        "readvar": true,
+        "comment": null,
+        "flag_meanings": null,
+        "missing_value": null,
+        "fill_value": null,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very small positive values testing numerical precision",
+        "edge_cases": [
+          "small_magnitude"
+        ]
+      }
+    },
+    {
+      "name": "test_special_switchdim_true",
+      "inputs": {
+        "ncid": 1010,
+        "flag": "write",
+        "varname": "carbon_flux",
+        "xtype": 6,
+        "dim1name": "time",
+        "dim2name": "gridcell",
+        "switchdim": true,
+        "long_name": "Net carbon flux",
+        "units": "gC/m2/s",
+        "interpinic_flag": "copy",
+        "data": [
+          -0.5,
+          0.0,
+          0.3,
+          1.2,
+          -0.8,
+          0.5,
+          -0.2,
+          0.9,
+          1.5,
+          -1.0,
+          0.1,
+          0.7
+        ],
+        "readvar": false,
+        "comment": "Positive values indicate uptake",
+        "flag_meanings": null,
+        "missing_value": -9999.0,
+        "fill_value": -9999.0,
+        "imissing_value": null,
+        "ifill_value": null,
+        "flag_values": null,
+        "nvalid_range": null
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Test with dimension switching enabled and mixed positive/negative flux values",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generated with the following considerations: (1) Temperature values in Kelvin always > 0K (absolute zero constraint); (2) Fractional values (soil moisture, LAI) kept in physically realistic ranges [0, 1] or [0, 10]; (3) Integer categorical data uses valid flag values with corresponding meanings; (4) Missing/fill values set to -999 or -9999 following NetCDF conventions; (5) Array sizes vary from 1 to 20 elements to test boundary conditions; (6) NetCDF xtype values: 4=NC_INT, 6=NC_DOUBLE following NetCDF conventions; (7) Edge cases include zero values, very small magnitudes (1e-10), and large magnitudes (8848m for Mt. Everest); (8) Both read and write operations tested; (9) switchdim parameter tested in both true and false states; (10) Colon-delimited variable names tested as per specification."
+}

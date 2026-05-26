@@ -1,0 +1,372 @@
+{
+  "function_name": "get_mlcanopy_params",
+  "test_cases": [
+    {
+      "name": "test_default_params_structure",
+      "inputs": {},
+      "expected_output": {
+        "nlevmlcan": 100,
+        "nleaf": 2,
+        "isun": 1,
+        "isha": 2
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify default parameter values match specification",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_params_type_consistency",
+      "inputs": {},
+      "expected_checks": {
+        "nlevmlcan_is_int": true,
+        "nleaf_is_int": true,
+        "isun_is_int": true,
+        "isha_is_int": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify all parameters are integers as specified",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_sunlit_shaded_indexing_convention",
+      "inputs": {},
+      "expected_checks": {
+        "isun_equals_1": true,
+        "isha_equals_2": true,
+        "isun_ne_isha": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify 1-based Fortran indexing convention for sunlit/shaded",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nleaf_fixed_at_two",
+      "inputs": {},
+      "expected_checks": {
+        "nleaf_equals_2": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify nleaf is always 2 (sunlit and shaded only)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nlevmlcan_positive",
+      "inputs": {},
+      "expected_checks": {
+        "nlevmlcan_gt_0": true,
+        "nlevmlcan_equals_100": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify nlevmlcan is positive and equals default 100",
+        "edge_cases": []
+      }
+    }
+  ],
+  "validation_test_cases": [
+    {
+      "name": "test_validate_default_params",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Default parameters should pass validation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_minimum_layers",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 1,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum valid nlevmlcan (1 layer) should pass",
+        "edge_cases": [
+          "minimum_layers"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_zero_layers_invalid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 0,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": false,
+      "metadata": {
+        "type": "edge",
+        "description": "Zero layers should fail validation (need at least one)",
+        "edge_cases": [
+          "zero_layers"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_negative_layers_invalid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": -10,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": false,
+      "metadata": {
+        "type": "edge",
+        "description": "Negative layers should fail validation",
+        "edge_cases": [
+          "negative_layers"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_wrong_nleaf_invalid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 3,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": false,
+      "metadata": {
+        "type": "edge",
+        "description": "nleaf must be exactly 2 (sunlit and shaded only)",
+        "edge_cases": [
+          "wrong_nleaf"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_wrong_isun_invalid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 2,
+          "isun": 0,
+          "isha": 2
+        }
+      },
+      "expected_output": false,
+      "metadata": {
+        "type": "edge",
+        "description": "isun must be exactly 1 (standard indexing convention)",
+        "edge_cases": [
+          "wrong_isun"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_wrong_isha_invalid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 3
+        }
+      },
+      "expected_output": false,
+      "metadata": {
+        "type": "edge",
+        "description": "isha must be exactly 2 (standard indexing convention)",
+        "edge_cases": [
+          "wrong_isha"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_swapped_indices_invalid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 2,
+          "isun": 2,
+          "isha": 1
+        }
+      },
+      "expected_output": false,
+      "metadata": {
+        "type": "edge",
+        "description": "Swapped sunlit/shaded indices should fail validation",
+        "edge_cases": [
+          "swapped_indices"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_large_nlevmlcan_valid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 1000,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "special",
+        "description": "Large but valid nlevmlcan (10x default) should pass",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_very_large_nlevmlcan_valid",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 10000,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "special",
+        "description": "Very large nlevmlcan (100x default) should still pass if computationally feasible",
+        "edge_cases": []
+      }
+    }
+  ],
+  "constant_test_cases": [
+    {
+      "name": "test_module_constants_match_defaults",
+      "expected_values": {
+        "NLEVMLCAN": 100,
+        "NLEAF": 2,
+        "ISUN": 1,
+        "ISHA": 2
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Module constants should match default parameter values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_default_instance_matches_getter",
+      "expected_checks": {
+        "DEFAULT_MLCANOPY_PARAMS_equals_get_mlcanopy_params": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "DEFAULT_MLCANOPY_PARAMS should equal output of get_mlcanopy_params()",
+        "edge_cases": []
+      }
+    }
+  ],
+  "integration_test_cases": [
+    {
+      "name": "test_jax_array_indexing_sunlit",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        },
+        "mock_array_shape": [
+          100,
+          2
+        ]
+      },
+      "expected_checks": {
+        "sunlit_index_0based": 0,
+        "shaded_index_0based": 1
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Verify 1-based indices convert correctly to 0-based JAX indexing",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_canopy_layer_array_dimensions",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 100,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_array_shapes": {
+        "radiation_array": [
+          100,
+          2
+        ],
+        "flux_array": [
+          100,
+          2
+        ],
+        "temperature_array": [
+          100,
+          2
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Verify parameter values correctly dimension typical canopy arrays",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_minimal_canopy_single_layer",
+      "inputs": {
+        "params": {
+          "nlevmlcan": 1,
+          "nleaf": 2,
+          "isun": 1,
+          "isha": 2
+        }
+      },
+      "expected_array_shapes": {
+        "radiation_array": [
+          1,
+          2
+        ],
+        "flux_array": [
+          1,
+          2
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Single-layer canopy (big-leaf model) should work with minimal arrays",
+        "edge_cases": [
+          "single_layer"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **get_mlcanopy_params() tests (5 cases)**: Focus on verifying the function returns correct default values and types. No inputs needed since it's a parameter-less getter function.\n\n2. **validate_mlcanopy_params() tests (10 cases)**: Comprehensive validation testing covering:\n   - Nominal: Default and valid parameter combinations (2 cases)\n   - Edge cases: Boundary conditions (nlevmlcan=1), zero/negative values, wrong nleaf/isun/isha values (7 cases)\n   - Special: Large but valid nlevmlcan values to test scalability (1 case)\n\n3. **Module constants tests (2 cases)**: Verify constants match defaults and are consistent.\n\n4. **Integration tests (3 cases)**: Test how parameters interact with actual array operations:\n   - JAX 0-based indexing conversion\n   - Array dimensioning for typical canopy model arrays\n   - Edge case of single-layer canopy\n\n**Physical realism considerations**:\n- nlevmlcan must be positive (need at least one layer for any canopy model)\n- nleaf is fixed at 2 (fundamental sunlit/shaded distinction in radiative transfer)\n- isun=1, isha=2 is a convention (1-based Fortran indexing)\n- Large nlevmlcan values (1000-10000) are physically valid but may be computationally expensive\n\n**Edge cases covered**:\n- Minimum valid: nlevmlcan=1 (big-leaf model)\n- Invalid boundaries: nlevmlcan=0, nlevmlcan<0\n- Wrong fixed values: nleaf\u22602, isun\u22601, isha\u22602\n- Swapped indices: isun=2, isha=1\n- Large values: nlevmlcan=1000, 10000\n\n**Assumptions**:\n- MLCanopyParams is a NamedTuple or similar immutable structure\n- Validation function returns boolean\n- Module constants are accessible at module level\n- JAX arrays use 0-based indexing (Python convention) while params use 1-based (Fortran convention)"
+}

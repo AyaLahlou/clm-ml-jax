@@ -1,0 +1,120 @@
+Initializing model (phase 1)...
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.4.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "/burg-archive/home/al4385/clm-ml-jax/diags/benchmark_gpu.py", line 111, in <module>
+    InitializeRealize(bounds)
+  File "/burg-archive/home/al4385/clm-ml-jax/src/clm_src_cpl/lnd_comp_nuopc.py", line 34, in InitializeRealize
+    from clm_src_main.clm_initializeMod import initialize1, initialize2  # noqa: F401
+  File "/burg-archive/home/al4385/clm-ml-jax/src/clm_src_main/clm_initializeMod.py", line 24, in <module>
+    from clm_src_main.clm_instMod import clm_instInit                                   # noqa: F401
+  File "/burg-archive/home/al4385/clm-ml-jax/src/clm_src_main/clm_instMod.py", line 32, in <module>
+    from clm_src_main.ncdio_pio import file_desc_t                                                      # noqa: F401
+  File "/burg-archive/home/al4385/clm-ml-jax/src/clm_src_main/ncdio_pio.py", line 30, in <module>
+    import xarray as xr
+  File "/burg-archive/home/al4385/.local/lib/python3.11/site-packages/xarray/__init__.py", line 3, in <module>
+    from xarray import coders, groupers, indexes, testing, tutorial, ufuncs
+  File "/burg-archive/home/al4385/.local/lib/python3.11/site-packages/xarray/coders.py", line 6, in <module>
+    from xarray.coding.times import CFDatetimeCoder, CFTimedeltaCoder
+  File "/burg-archive/home/al4385/.local/lib/python3.11/site-packages/xarray/coding/times.py", line 12, in <module>
+    import pandas as pd
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/__init__.py", line 49, in <module>
+    from pandas.core.api import (
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/api.py", line 28, in <module>
+    from pandas.core.arrays import Categorical
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/arrays/__init__.py", line 1, in <module>
+    from pandas.core.arrays.arrow import ArrowExtensionArray
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/arrays/arrow/__init__.py", line 5, in <module>
+    from pandas.core.arrays.arrow.array import ArrowExtensionArray
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/arrays/arrow/array.py", line 50, in <module>
+    from pandas.core import (
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/ops/__init__.py", line 8, in <module>
+    from pandas.core.ops.array_ops import (
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/ops/array_ops.py", line 56, in <module>
+    from pandas.core.computation import expressions
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/computation/expressions.py", line 21, in <module>
+    from pandas.core.computation.check import NUMEXPR_INSTALLED
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/core/computation/check.py", line 5, in <module>
+    ne = import_optional_dependency("numexpr", errors="warn")
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/pandas/compat/_optional.py", line 135, in import_optional_dependency
+    module = importlib.import_module(name)
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/burg-archive/opt/anaconda3-2023.09/lib/python3.11/site-packages/numexpr/__init__.py", line 24, in <module>
+    from numexpr.interpreter import MAX_THREADS, use_vml, __BLOCK_SIZE1__
+AttributeError: _ARRAY_API not found
+6: pftconMod ... using non-default values
+6: Attempting to initialize MLpftcon .....
+6: MLpftcon ... using non-default values
+6: Successfuly initialized MLpftcon
+6: pftconMod ... using non-default values
+6: Attempting to initialize MLpftcon .....
+6: MLpftcon ... using non-default values
+6: Successfuly initialized MLpftcon
+Attempting to read RSL look-up table .....
+Successfully read RSL look-up table
+Initializing model (phase 2: acclim + veg + soil)...
+Initialization complete.
+
+[1/2] Compile + first run (timestep 1)...
+/burg-archive/home/al4385/.local/lib/python3.11/site-packages/jax/_src/ops/scatter.py:104: FutureWarning: scatter inputs have incompatible types: cannot safely cast value from dtype=float64 to dtype=float32 with jax_numpy_dtype_promotion=standard. In future JAX releases this will result in an error.
+  warnings.warn(
+Attempting to initialize multilayer canopy pad parameters .....
+Successfuly initialized multilayer canopy pad parameters
+Attempting to initialize multilayer canopy vertical structure .....
+Successfully initialized multilayer canopy vertical structure
+MLCanopyFluxes: starting ML sub-steps (num_ml_steps=6, nrk_steps=4, num_mlcan=1)
+MLCanopyFluxes: sub-step 1/6
+MLCanopyFluxes: sub-step 2/6
+MLCanopyFluxes: sub-step 3/6
+MLCanopyFluxes: sub-step 4/6
+MLCanopyFluxes: sub-step 5/6
+MLCanopyFluxes: sub-step 6/6
+      Compile + first-run: 342.563 s
+      num_exposedvegp after first advance: 1
+
+[2/2] Steady-state timing (5 more timesteps)...
+      timestep 2/6: 147.2818 s
+      timestep 3/6: 148.1860 s
+      timestep 4/6: 146.5540 s
+      timestep 5/6: 145.5191 s
+      timestep 6/6: 145.4735 s
+
+======================================================================
+  CLM-ML-JAX  |  GPU Benchmark Baseline  |  CHATS7 site
+======================================================================
+  JAX backend:           GPU  —  cuda:0
+  JAX version:           0.9.2
+  Site / forcing:        CHATS7  (2007-05.nc)
+  dtstep:                1800 s
+  num_ml_steps:          6  (dtime_ml = 300.0 s)
+  RK inner steps:        5  (runge_kutta_type = 41)
+  num_exposedvegp:       1
+
+  Compile + first run (timestep 1):    342.563 s
+
+  Steady-state (5 timesteps, jax.block_until_ready):
+    mean:                146.6029 s
+    std:                 1.1640 s
+    min:                 145.4735 s
+    max:                 148.1860 s
+    per-ml-substep est:  24433.81 ms
+
+  Device memory:         0.9 MB in use, peak 2.1 MB
+======================================================================
+
+  NOTE: Per-module breakdown requires manual instrumentation.
+  Non-diff mode (grid=None) — standard forward pass, no gradient tracking.
+  Timing via ModelAdvance (includes met I/O, output writing).
+  Direct MLCanopyFluxes calls OOM on CUDA graph instantiation after
+  ModelAdvance has already populated all CUDA graphs (14-graph limit).
+======================================================================
+
+Results saved to: /burg-archive/home/al4385/clm-ml-jax/diags/figures/benchmark_baseline.txt

@@ -1,0 +1,231 @@
+{
+  "function_name": "soil_state_initialization_suite",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_patch_column",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 1,
+          "begc": 1,
+          "endc": 1,
+          "begg": 1,
+          "endg": 1
+        },
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Minimal valid configuration with single patch, column, and gridcell using default layer counts",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_small_domain",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 5,
+          "begc": 1,
+          "endc": 3,
+          "begg": 1,
+          "endg": 2
+        },
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Small domain with multiple patches (5), columns (3), and gridcells (2) representing typical small-scale simulation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_large_domain",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 100,
+          "begc": 1,
+          "endc": 50,
+          "begg": 1,
+          "endg": 25
+        },
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Large domain representing regional-scale simulation with 100 patches, 50 columns, 25 gridcells",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_custom_layers",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 10,
+          "begc": 1,
+          "endc": 5,
+          "begg": 1,
+          "endg": 3
+        },
+        "nlevsoi": 8,
+        "nlevgrnd": 12,
+        "nlevsno": 3
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Custom layer configuration with fewer layers than default (8 soil, 12 ground, 3 snow)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_deep_soil_profile",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 20,
+          "begc": 1,
+          "endc": 10,
+          "begg": 1,
+          "endg": 5
+        },
+        "nlevsoi": 15,
+        "nlevgrnd": 25,
+        "nlevsno": 7
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Deep soil profile with more layers than default for permafrost or deep root zone studies",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_minimum_layers",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 3,
+          "begc": 1,
+          "endc": 2,
+          "begg": 1,
+          "endg": 1
+        },
+        "nlevsoi": 1,
+        "nlevgrnd": 1,
+        "nlevsno": 1
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum valid layer configuration (1 layer each) to test boundary conditions",
+        "edge_cases": [
+          "minimum_layers",
+          "boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_single_layer_soil_multi_ground",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 5,
+          "begc": 1,
+          "endc": 3,
+          "begg": 1,
+          "endg": 2
+        },
+        "nlevsoi": 1,
+        "nlevgrnd": 20,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case with minimal soil layers but extensive ground layers (bedrock-dominated)",
+        "edge_cases": [
+          "minimum_soil_layers",
+          "deep_bedrock"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_large_snow_layers",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 8,
+          "begc": 1,
+          "endc": 4,
+          "begg": 1,
+          "endg": 2
+        },
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "nlevsno": 15
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Large number of snow layers for deep snowpack regions (arctic/alpine)",
+        "edge_cases": [
+          "deep_snowpack",
+          "large_snow_layers"
+        ]
+      }
+    },
+    {
+      "name": "test_special_non_contiguous_bounds",
+      "inputs": {
+        "bounds": {
+          "begp": 10,
+          "endp": 25,
+          "begc": 5,
+          "endc": 15,
+          "begg": 3,
+          "endg": 8
+        },
+        "nlevsoi": 10,
+        "nlevgrnd": 15,
+        "nlevsno": 5
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Non-zero-based bounds to test 1-based indexing and offset handling",
+        "edge_cases": [
+          "non_zero_start",
+          "offset_indices"
+        ]
+      }
+    },
+    {
+      "name": "test_special_asymmetric_domain",
+      "inputs": {
+        "bounds": {
+          "begp": 1,
+          "endp": 200,
+          "begc": 1,
+          "endc": 20,
+          "begg": 1,
+          "endg": 5
+        },
+        "nlevsoi": 12,
+        "nlevgrnd": 18,
+        "nlevsno": 6
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Highly asymmetric domain with many patches per column (10:1 ratio) representing heterogeneous landscape",
+        "edge_cases": [
+          "high_patch_density",
+          "asymmetric_domain"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Bounds Generation**: Created BoundsType instances with 1-based indexing (min=1) as specified in constraints. Ensured beg <= end for all dimensions (patches, columns, gridcells). Varied domain sizes from minimal (1x1x1) to large (200x50x25) to test scalability.\n\n2. **Layer Configuration**: \n   - Nominal cases use default values (nlevsoi=10, nlevgrnd=15, nlevsno=5) or reasonable variations\n   - Edge cases test minimum constraints (all layers = 1)\n   - Special cases test extreme but valid configurations (deep profiles, large snowpacks)\n\n3. **Physical Realism**:\n   - All layer counts >= 1 (constraint satisfaction)\n   - Bounds follow 1-based indexing convention\n   - Domain hierarchies maintain logical relationships (patches >= columns >= gridcells typically)\n\n4. **Coverage Strategy**:\n   - 50% nominal: Tests 1-5 cover typical use cases with varying domain sizes and layer configurations\n   - 30% edge: Tests 6-8 explore boundary conditions (minimum layers, extreme ratios)\n   - 20% special: Tests 9-10 examine unusual but valid scenarios (non-contiguous bounds, asymmetric domains)\n\n5. **Expected Behavior**: All functions should initialize SoilStateType with NaN-filled arrays of correct dimensions:\n   - Column arrays: (n_columns, nlevsoi) or (n_columns, nlevgrnd)\n   - Patch arrays: (n_patches, nlevgrnd)\n   - Scalar column arrays: (n_columns,)\n   - thk_col special case: (n_columns, nlevgrnd+nlevsno)\n\n6. **Dimension Calculations**:\n   - n_patches = endp - begp + 1\n   - n_columns = endc - begc + 1\n   - n_gridcells = endg - begg + 1\n\n7. **Test Independence**: Each test case is self-contained with all required inputs specified. No dependencies between test cases.\n\n8. **Validation Points**: Tests should verify:\n   - Correct array shapes based on bounds and layer counts\n   - NaN initialization (all values should be NaN initially)\n   - Proper NamedTuple structure\n   - No memory errors with large domains\n   - Correct handling of 1-based indexing"
+}

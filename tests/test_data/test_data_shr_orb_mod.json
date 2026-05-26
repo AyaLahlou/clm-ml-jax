@@ -1,0 +1,413 @@
+{
+  "function_name": "orbital_functions",
+  "test_cases": [
+    {
+      "name": "test_shr_orb_cosz_equinox_equator",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": 80.0,
+        "lat": 0.0,
+        "lon": 0.0,
+        "declin": 0.0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Spring equinox at equator, noon at Greenwich - sun should be near zenith",
+        "edge_cases": [],
+        "expected_behavior": "cosz should be close to 1.0 (sun overhead)"
+      }
+    },
+    {
+      "name": "test_shr_orb_cosz_summer_solstice_north",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": 172.0,
+        "lat": 0.4101,
+        "lon": 0.0,
+        "declin": 0.4091
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Summer solstice at Tropic of Cancer (23.44\u00b0N), noon - maximum declination",
+        "edge_cases": [],
+        "expected_behavior": "cosz should be 1.0 (sun directly overhead)"
+      }
+    },
+    {
+      "name": "test_shr_orb_cosz_winter_pole",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": 355.0,
+        "lat": 1.5708,
+        "lon": 0.0,
+        "declin": -0.4091
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Winter at North Pole - sun below horizon (polar night)",
+        "edge_cases": [
+          "boundary_latitude",
+          "negative_cosz"
+        ],
+        "expected_behavior": "cosz should be negative (sun below horizon)"
+      }
+    },
+    {
+      "name": "test_shr_orb_cosz_array_broadcast",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": [
+          1.0,
+          91.0,
+          182.0,
+          273.0,
+          365.0
+        ],
+        "lat": [
+          0.0,
+          0.7854,
+          1.0472,
+          -0.7854,
+          -1.5708
+        ],
+        "lon": [
+          0.0,
+          1.5708,
+          3.1416,
+          -1.5708,
+          0.0
+        ],
+        "declin": [
+          -0.4091,
+          0.0,
+          0.4091,
+          0.0,
+          -0.4091
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Array of seasonal and geographic variations - tests broadcasting",
+        "edge_cases": [
+          "array_dimensions"
+        ],
+        "expected_behavior": "Returns array of same shape with valid cosz values"
+      }
+    },
+    {
+      "name": "test_shr_orb_cosz_midnight_negative",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": 200.0,
+        "lat": 0.0,
+        "lon": 3.1416,
+        "declin": 0.2
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Midnight at equator (lon=\u03c0 opposite to sun) - sun below horizon",
+        "edge_cases": [
+          "negative_cosz",
+          "boundary_longitude"
+        ],
+        "expected_behavior": "cosz should be negative (nighttime)"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_vernal_equinox",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 80.5,
+        "eccen": 0.0167,
+        "mvelpp": 4.9368,
+        "lambm0": 4.8951,
+        "obliqr": 0.4091
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Vernal equinox with current Earth orbital parameters",
+        "edge_cases": [],
+        "expected_behavior": "delta near 0.0 (equinox), eccf near 1.0"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_summer_solstice",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 172.0,
+        "eccen": 0.0167,
+        "mvelpp": 4.9368,
+        "lambm0": 4.8951,
+        "obliqr": 0.4091
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Summer solstice - maximum positive declination",
+        "edge_cases": [],
+        "expected_behavior": "delta near +0.4091 (max declination), eccf near 0.97"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_zero_eccentricity",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 1.0,
+        "eccen": 0.0,
+        "mvelpp": 3.1416,
+        "lambm0": 0.0,
+        "obliqr": 0.4091
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Circular orbit (zero eccentricity) - simplest case",
+        "edge_cases": [
+          "zero_eccentricity"
+        ],
+        "expected_behavior": "eccf should be exactly 1.0, delta varies with calday"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_array_days",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": [
+          1.0,
+          80.5,
+          172.0,
+          266.0,
+          355.0,
+          365.99
+        ],
+        "eccen": 0.0167,
+        "mvelpp": 4.9368,
+        "lambm0": 4.8951,
+        "obliqr": 0.4091
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Full year cycle including edge days - tests array handling",
+        "edge_cases": [
+          "array_dimensions",
+          "boundary_calday"
+        ],
+        "expected_behavior": "Returns arrays with seasonal variation in delta and eccf"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_high_eccentricity",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 1.0,
+        "eccen": 0.06,
+        "mvelpp": 0.0,
+        "lambm0": -3.1416,
+        "obliqr": 0.4276
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Maximum valid eccentricity and obliquity - extreme but valid orbit",
+        "edge_cases": [
+          "boundary_eccentricity",
+          "boundary_obliquity"
+        ],
+        "expected_behavior": "eccf varies more from 1.0, delta within valid range"
+      }
+    },
+    {
+      "name": "test_shr_orb_params_current_epoch",
+      "function": "shr_orb_params",
+      "inputs": {
+        "iyear_AD": 2000
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Current epoch (year 2000) - well-known orbital parameters",
+        "edge_cases": [],
+        "expected_behavior": "eccen\u22480.0167, obliq\u224823.44\u00b0, all parameters in valid ranges"
+      }
+    },
+    {
+      "name": "test_shr_orb_params_year_1950",
+      "function": "shr_orb_params",
+      "inputs": {
+        "iyear_AD": 1950
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Reference year 1950 - baseline for orbital calculations",
+        "edge_cases": [],
+        "expected_behavior": "Returns valid orbital parameters for mid-20th century"
+      }
+    },
+    {
+      "name": "test_shr_orb_params_past_extreme",
+      "function": "shr_orb_params",
+      "inputs": {
+        "iyear_AD": -998000
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Near minimum valid year (1 million years in past)",
+        "edge_cases": [
+          "boundary_year_past"
+        ],
+        "expected_behavior": "Returns valid parameters within physical constraints"
+      }
+    },
+    {
+      "name": "test_shr_orb_params_future_extreme",
+      "function": "shr_orb_params",
+      "inputs": {
+        "iyear_AD": 1001900
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Near maximum valid year (1 million years in future)",
+        "edge_cases": [
+          "boundary_year_future"
+        ],
+        "expected_behavior": "Returns valid parameters within physical constraints"
+      }
+    },
+    {
+      "name": "test_shr_orb_params_ice_age",
+      "function": "shr_orb_params",
+      "inputs": {
+        "iyear_AD": -20000
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Last glacial maximum (~20,000 years ago) - different orbital config",
+        "edge_cases": [],
+        "expected_behavior": "Different eccentricity and obliquity from present"
+      }
+    },
+    {
+      "name": "test_shr_orb_cosz_multidim_array",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": [
+          [
+            1.0,
+            91.0
+          ],
+          [
+            182.0,
+            273.0
+          ]
+        ],
+        "lat": [
+          [
+            0.0,
+            0.7854
+          ],
+          [
+            -0.7854,
+            0.0
+          ]
+        ],
+        "lon": [
+          [
+            0.0,
+            1.5708
+          ],
+          [
+            -1.5708,
+            3.1416
+          ]
+        ],
+        "declin": [
+          [
+            -0.4091,
+            0.0
+          ],
+          [
+            0.4091,
+            0.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "2D array inputs - tests multi-dimensional broadcasting",
+        "edge_cases": [
+          "multidim_array"
+        ],
+        "expected_behavior": "Returns 2D array with shape (2, 2) of valid cosz values"
+      }
+    },
+    {
+      "name": "test_shr_orb_cosz_south_pole_summer",
+      "function": "shr_orb_cosz",
+      "inputs": {
+        "jday": 355.0,
+        "lat": -1.5708,
+        "lon": 0.0,
+        "declin": -0.4091
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "South Pole during southern summer - continuous daylight",
+        "edge_cases": [
+          "boundary_latitude",
+          "polar_day"
+        ],
+        "expected_behavior": "cosz should be positive (sun above horizon)"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_perihelion",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 3.0,
+        "eccen": 0.0167,
+        "mvelpp": 4.9368,
+        "lambm0": 4.8951,
+        "obliqr": 0.4091
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Near perihelion (early January) - Earth closest to sun",
+        "edge_cases": [],
+        "expected_behavior": "eccf should be maximum (>1.0), delta negative (winter NH)"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_aphelion",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 186.0,
+        "eccen": 0.0167,
+        "mvelpp": 4.9368,
+        "lambm0": 4.8951,
+        "obliqr": 0.4091
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Near aphelion (early July) - Earth farthest from sun",
+        "edge_cases": [],
+        "expected_behavior": "eccf should be minimum (<1.0), delta positive (summer NH)"
+      }
+    },
+    {
+      "name": "test_shr_orb_decl_minimum_obliquity",
+      "function": "shr_orb_decl",
+      "inputs": {
+        "calday": 172.0,
+        "eccen": 0.0167,
+        "mvelpp": 4.9368,
+        "lambm0": 4.8951,
+        "obliqr": 0.384
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum obliquity (22\u00b0) - reduced seasonal variation",
+        "edge_cases": [
+          "boundary_obliquity"
+        ],
+        "expected_behavior": "delta magnitude reduced compared to current obliquity"
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Physical Realism**: All values respect physical constraints (e.g., jday 1-365.99, lat \u00b1\u03c0/2, lon \u00b1\u03c0, declination \u00b123.44\u00b0 in radians)\n\n2. **Seasonal Coverage**: Tests cover key astronomical events (equinoxes, solstices, perihelion, aphelion)\n\n3. **Geographic Coverage**: Tests span from poles to equator, all longitudes\n\n4. **Edge Cases**:\n   - Boundary values: poles (\u00b1\u03c0/2), date boundaries (1.0, 365.99)\n   - Zero eccentricity (circular orbit)\n   - Maximum eccentricity (0.06)\n   - Extreme years (\u00b11 million from 1950)\n   - Negative cosz (nighttime/polar night)\n\n5. **Array Dimensions**: Tests include scalars, 1D arrays, and 2D arrays to verify broadcasting\n\n6. **Orbital Parameters**: Current epoch (2000), reference (1950), ice age (-20000), and extreme past/future\n\n7. **Expected Behaviors**:\n   - cosz: -1 to 1 (cosine range)\n   - delta: \u00b10.4091 rad (\u00b123.44\u00b0)\n   - eccf: 0.9 to 1.1 (inverse square distance factor)\n   - eccen: 0 to 0.06\n   - obliq: 22\u00b0 to 24.5\u00b0\n\n8. **Coordinate Systems**: Uses radians consistently, with lon centered at 0 (\u00b1\u03c0) and lat at 0 (\u00b1\u03c0/2)\n\n9. **Numerical Stability**: Includes cases that might challenge numerical precision (very small angles, boundary conditions)\n\n10. **Integration Testing**: Some tests combine multiple functions (e.g., using shr_orb_params output as input to shr_orb_decl)"
+}

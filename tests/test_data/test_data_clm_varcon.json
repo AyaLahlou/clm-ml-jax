@@ -1,0 +1,655 @@
+{
+  "function_name": "constants_module",
+  "test_cases": [
+    {
+      "name": "test_get_jax_constants_structure",
+      "inputs": {},
+      "expected": {
+        "keys": [
+          "rpi",
+          "tfrz",
+          "sb",
+          "grav",
+          "vkc",
+          "denh2o",
+          "denice",
+          "tkwat",
+          "tkice",
+          "tkair",
+          "hfus",
+          "hvap",
+          "hsub",
+          "cpice",
+          "cpliq",
+          "thk_bedrock",
+          "csol_bedrock",
+          "zmin_bedrock",
+          "spval",
+          "ispval"
+        ],
+        "dtypes": {
+          "rpi": "float32",
+          "tfrz": "float32",
+          "ispval": "int32"
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Verify get_jax_constants returns all expected constants with correct structure",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_constant_as_python_scalar",
+      "inputs": {
+        "name": "tfrz",
+        "as_jax": false
+      },
+      "expected": {
+        "value": 273.15,
+        "type": "float"
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Test retrieving constant as Python scalar",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_constant_as_jax_array",
+      "inputs": {
+        "name": "grav",
+        "as_jax": true
+      },
+      "expected": {
+        "value": 9.80665,
+        "is_jax_array": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Test retrieving constant as JAX array",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_is_special_value_exact_match",
+      "inputs": {
+        "value": 1e+36,
+        "tolerance": 1e-10
+      },
+      "expected": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Test exact match with special value (spval)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_is_special_value_within_tolerance",
+      "inputs": {
+        "value": 1.0000000001e+36,
+        "tolerance": 1e-05
+      },
+      "expected": true,
+      "metadata": {
+        "type": "edge",
+        "description": "Test special value detection within tolerance",
+        "edge_cases": [
+          "tolerance_boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_is_special_value_negative_and_zero",
+      "inputs": [
+        {
+          "value": -1e+36,
+          "tolerance": 1e-10
+        },
+        {
+          "value": 0.0,
+          "tolerance": 1e-10
+        },
+        {
+          "value": 100.5,
+          "tolerance": 1e-10
+        }
+      ],
+      "expected": [
+        false,
+        false,
+        false
+      ],
+      "metadata": {
+        "type": "edge",
+        "description": "Test non-special values including negative, zero, and normal values",
+        "edge_cases": [
+          "zero_value",
+          "negative_value"
+        ]
+      }
+    },
+    {
+      "name": "test_is_special_int_value",
+      "inputs": [
+        {
+          "value": -9999
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 100
+        },
+        {
+          "value": -10000
+        }
+      ],
+      "expected": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "metadata": {
+        "type": "nominal",
+        "description": "Test special integer value detection (ispval = -9999)",
+        "edge_cases": [
+          "zero_value"
+        ]
+      }
+    },
+    {
+      "name": "test_celsius_to_kelvin_nominal",
+      "inputs": {
+        "celsius": [
+          [
+            0.0,
+            25.0,
+            100.0
+          ],
+          [
+            -40.0,
+            15.5,
+            37.0
+          ]
+        ]
+      },
+      "expected": {
+        "kelvin": [
+          [
+            273.15,
+            298.15,
+            373.15
+          ],
+          [
+            233.15,
+            288.65,
+            310.15
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Test temperature conversion from Celsius to Kelvin with typical values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_celsius_to_kelvin_edge_cases",
+      "inputs": {
+        "celsius": [
+          [
+            -273.15,
+            -273.14,
+            -200.0
+          ],
+          [
+            0.0,
+            1e-10,
+            -1e-10
+          ]
+        ]
+      },
+      "expected": {
+        "kelvin": [
+          [
+            0.0,
+            0.01,
+            73.15
+          ],
+          [
+            273.15,
+            273.15,
+            273.15
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test absolute zero boundary and near-zero Celsius values",
+        "edge_cases": [
+          "absolute_zero",
+          "near_zero",
+          "boundary_condition"
+        ]
+      }
+    },
+    {
+      "name": "test_kelvin_to_celsius_nominal",
+      "inputs": {
+        "kelvin": [
+          [
+            273.15,
+            298.15,
+            373.15
+          ],
+          [
+            233.15,
+            288.65,
+            310.15
+          ]
+        ]
+      },
+      "expected": {
+        "celsius": [
+          [
+            0.0,
+            25.0,
+            100.0
+          ],
+          [
+            -40.0,
+            15.5,
+            37.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Test temperature conversion from Kelvin to Celsius with typical values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_kelvin_to_celsius_edge_cases",
+      "inputs": {
+        "kelvin": [
+          [
+            0.0,
+            1e-10,
+            1e-05
+          ],
+          [
+            273.15,
+            1000.0,
+            5778.0
+          ]
+        ]
+      },
+      "expected": {
+        "celsius": [
+          [
+            -273.15,
+            -273.15,
+            -273.15
+          ],
+          [
+            0.0,
+            726.85,
+            5504.85
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test absolute zero, near-zero Kelvin, and extreme temperatures (solar surface)",
+        "edge_cases": [
+          "absolute_zero",
+          "near_zero",
+          "extreme_temperature"
+        ]
+      }
+    },
+    {
+      "name": "test_stefan_boltzmann_flux_nominal",
+      "inputs": {
+        "temperature": [
+          [
+            273.15,
+            288.15,
+            300.0
+          ],
+          [
+            250.0,
+            273.15,
+            310.0
+          ]
+        ]
+      },
+      "expected": {
+        "flux": [
+          [
+            315.0,
+            390.1,
+            459.3
+          ],
+          [
+            221.5,
+            315.0,
+            524.4
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Test Stefan-Boltzmann radiation flux for typical Earth temperatures",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_stefan_boltzmann_flux_edge_cases",
+      "inputs": {
+        "temperature": [
+          [
+            1e-10,
+            1.0,
+            10.0
+          ],
+          [
+            5778.0,
+            1000.0,
+            100.0
+          ]
+        ]
+      },
+      "expected": {
+        "flux_order_of_magnitude": [
+          [
+            -40,
+            -8,
+            -5
+          ],
+          [
+            7,
+            4,
+            2
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test Stefan-Boltzmann flux at extreme temperatures: near-zero, solar surface (5778K), and intermediate",
+        "edge_cases": [
+          "near_zero_temperature",
+          "solar_surface_temperature",
+          "extreme_range"
+        ]
+      }
+    },
+    {
+      "name": "test_temperature_conversion_roundtrip",
+      "inputs": {
+        "celsius_original": [
+          [
+            -50.0,
+            0.0,
+            25.0,
+            100.0,
+            500.0
+          ]
+        ]
+      },
+      "expected": {
+        "celsius_roundtrip": [
+          [
+            -50.0,
+            0.0,
+            25.0,
+            100.0,
+            500.0
+          ]
+        ],
+        "max_error": 1e-10
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Test roundtrip conversion: Celsius -> Kelvin -> Celsius maintains precision",
+        "edge_cases": [
+          "numerical_precision"
+        ]
+      }
+    },
+    {
+      "name": "test_multidimensional_arrays",
+      "inputs": {
+        "celsius_3d": [
+          [
+            [
+              [
+                0.0,
+                10.0
+              ],
+              [
+                20.0,
+                30.0
+              ]
+            ],
+            [
+              [
+                5.0,
+                15.0
+              ],
+              [
+                25.0,
+                35.0
+              ]
+            ]
+          ]
+        ],
+        "kelvin_3d": [
+          [
+            [
+              [
+                273.15,
+                283.15
+              ],
+              [
+                293.15,
+                303.15
+              ]
+            ],
+            [
+              [
+                278.15,
+                288.15
+              ],
+              [
+                298.15,
+                308.15
+              ]
+            ]
+          ]
+        ]
+      },
+      "expected": {
+        "shape": [
+          1,
+          2,
+          2,
+          2
+        ],
+        "conversions_match": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Test temperature conversions with 3D arrays (e.g., spatial + temporal data)",
+        "edge_cases": [
+          "multidimensional_input"
+        ]
+      }
+    },
+    {
+      "name": "test_stefan_boltzmann_physical_limits",
+      "inputs": {
+        "temperature": [
+          [
+            2.725,
+            3.0,
+            10.0
+          ],
+          [
+            273.15,
+            5778.0,
+            10000.0
+          ]
+        ]
+      },
+      "expected": {
+        "flux": [
+          [
+            3.14e-06,
+            4.59e-06,
+            0.000567
+          ],
+          [
+            315.0,
+            63200000.0,
+            567000000.0
+          ]
+        ],
+        "physical_context": [
+          "CMB_temperature",
+          "room_temperature",
+          "solar_surface",
+          "hot_star"
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Test Stefan-Boltzmann flux across cosmic microwave background (2.725K) to hot stellar temperatures",
+        "edge_cases": [
+          "cosmic_microwave_background",
+          "stellar_temperatures"
+        ]
+      }
+    },
+    {
+      "name": "test_get_constant_invalid_name",
+      "inputs": {
+        "name": "nonexistent_constant",
+        "as_jax": false
+      },
+      "expected": {
+        "raises": "KeyError"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Test error handling for invalid constant name",
+        "edge_cases": [
+          "invalid_input"
+        ]
+      }
+    },
+    {
+      "name": "test_is_special_value_extreme_tolerance",
+      "inputs": [
+        {
+          "value": 1e+36,
+          "tolerance": 0.0
+        },
+        {
+          "value": 1e+36,
+          "tolerance": 1e+30
+        },
+        {
+          "value": 5e+35,
+          "tolerance": 6e+35
+        }
+      ],
+      "expected": [
+        true,
+        true,
+        true
+      ],
+      "metadata": {
+        "type": "edge",
+        "description": "Test special value detection with extreme tolerance values",
+        "edge_cases": [
+          "zero_tolerance",
+          "large_tolerance"
+        ]
+      }
+    },
+    {
+      "name": "test_scalar_vs_array_consistency",
+      "inputs": {
+        "celsius_scalar": 25.0,
+        "celsius_array": [
+          [
+            25.0
+          ]
+        ],
+        "kelvin_scalar": 298.15,
+        "kelvin_array": [
+          [
+            298.15
+          ]
+        ]
+      },
+      "expected": {
+        "scalar_result": 298.15,
+        "array_result": [
+          [
+            298.15
+          ]
+        ],
+        "values_match": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Test that scalar and single-element array inputs produce consistent results",
+        "edge_cases": [
+          "scalar_array_consistency"
+        ]
+      }
+    },
+    {
+      "name": "test_physical_constants_relationships",
+      "inputs": {
+        "check_relationships": [
+          {
+            "name": "hsub",
+            "equals": "hfus + hvap"
+          },
+          {
+            "name": "denh2o",
+            "greater_than": "denice"
+          },
+          {
+            "name": "tkice",
+            "greater_than": "tkwat"
+          },
+          {
+            "name": "cpliq",
+            "greater_than": "cpice"
+          }
+        ]
+      },
+      "expected": {
+        "hsub_check": true,
+        "density_check": true,
+        "thermal_conductivity_check": true,
+        "heat_capacity_check": true
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Verify physical relationships between constants (e.g., sublimation = fusion + vaporization)",
+        "edge_cases": [
+          "physical_consistency"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**: All temperatures in Kelvin are >= 0, with absolute zero (0K) as the lower bound. Celsius temperatures >= -273.15\u00b0C.\n\n2. **Temperature Ranges**:\n   - Nominal: -50\u00b0C to 500\u00b0C (typical Earth/engineering range)\n   - Edge: Absolute zero, cosmic microwave background (2.725K), solar surface (5778K)\n   - Special: Multi-dimensional arrays simulating spatial/temporal data\n\n3. **Stefan-Boltzmann Flux**: Calculated as \u03c3T\u2074 where \u03c3 = 5.67\u00d710\u207b\u2078 W/(m\u00b2\u00b7K\u2074). Expected values range from ~10\u207b\u2076 W/m\u00b2 (CMB) to ~10\u2078 W/m\u00b2 (hot stars).\n\n4. **Special Values**: \n   - spval = 1\u00d710\u00b3\u2076 (floating point sentinel)\n   - ispval = -9999 (integer sentinel)\n   - Tolerance testing covers numerical precision limits\n\n5. **Array Dimensions**: Tests include 1D, 2D, and 3D arrays to verify broadcasting and shape preservation.\n\n6. **Roundtrip Testing**: Ensures numerical precision is maintained through conversion chains.\n\n7. **Physical Constant Relationships**: Tests verify thermodynamic relationships (e.g., h_sublimation = h_fusion + h_vaporization = 2834700 J/kg).\n\n8. **Edge Cases Coverage**:\n   - Zero and near-zero values\n   - Boundary conditions (absolute zero)\n   - Extreme but valid physical conditions\n   - Tolerance boundaries\n   - Invalid inputs for error handling\n   - Numerical precision limits\n\n9. **JAX Compatibility**: All array operations assume JAX array inputs/outputs with appropriate dtype preservation (float32 for most, int32 for ispval).\n\n10. **Error Handling**: Includes tests for invalid constant names and constraint violations to ensure robust error reporting."
+}

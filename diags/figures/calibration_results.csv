@@ -1,0 +1,3 @@
+method,alpha_true,alpha_init,alpha_final,abs_error,final_loss,n_evaluations,wall_time_s
+Adam,1.0,0.7,1.000760,0.000760,6.9176e-08,100,1547.88
+Nelder-Mead,1.0,0.7,1.000000,0.000000,4.9405e-16,42,464.46

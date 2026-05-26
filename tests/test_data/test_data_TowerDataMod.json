@@ -1,0 +1,484 @@
+{
+  "function_name": "tower_data_functions",
+  "test_cases": [
+    {
+      "name": "test_create_tower_data_nominal",
+      "inputs": {},
+      "expected_properties": {
+        "num_towers": 15,
+        "all_fields_present": [
+          "tower_id",
+          "tower_lat",
+          "tower_lon",
+          "tower_pft",
+          "tower_tex",
+          "tower_sand",
+          "tower_clay",
+          "tower_organic",
+          "tower_isoicol",
+          "tower_zbed",
+          "tower_ht",
+          "tower_canht",
+          "tower_time"
+        ],
+        "array_shapes": {
+          "all": [
+            15
+          ]
+        },
+        "dtypes": {
+          "tower_id": "int32",
+          "tower_lat": "float64",
+          "tower_lon": "float64",
+          "tower_pft": "int32",
+          "tower_tex": "int32",
+          "tower_sand": "float64",
+          "tower_clay": "float64",
+          "tower_organic": "float64",
+          "tower_isoicol": "int32",
+          "tower_zbed": "float64",
+          "tower_ht": "float64",
+          "tower_canht": "float64",
+          "tower_time": "int32"
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that create_tower_data returns properly structured TowerData with 15 sites",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_tower_parameter_all_valid_parameters",
+      "inputs": {
+        "tower_num": 5,
+        "parameters_to_test": [
+          "tower_id",
+          "tower_lat",
+          "tower_lon",
+          "tower_pft",
+          "tower_tex",
+          "tower_sand",
+          "tower_clay",
+          "tower_organic",
+          "tower_isoicol",
+          "tower_zbed",
+          "tower_ht",
+          "tower_canht",
+          "tower_time"
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests retrieval of all valid parameters for a mid-range tower index",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_tower_parameter_boundary_tower_indices",
+      "inputs": {
+        "tower_nums": [
+          0,
+          14
+        ],
+        "parameter": "tower_lat"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests parameter retrieval at boundary tower indices (first and last)",
+        "edge_cases": [
+          "boundary_indices"
+        ]
+      }
+    },
+    {
+      "name": "test_get_tower_parameter_invalid_tower_index",
+      "inputs": {
+        "tower_nums": [
+          -1,
+          15,
+          100
+        ],
+        "parameter": "tower_lat"
+      },
+      "expected_behavior": "raises_exception",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests that invalid tower indices raise appropriate errors",
+        "edge_cases": [
+          "out_of_bounds"
+        ]
+      }
+    },
+    {
+      "name": "test_get_tower_parameter_invalid_parameter_name",
+      "inputs": {
+        "tower_num": 5,
+        "parameters": [
+          "invalid_param",
+          "tower_latitude",
+          "TOWER_LAT",
+          ""
+        ]
+      },
+      "expected_behavior": "raises_exception",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests that invalid parameter names raise appropriate errors",
+        "edge_cases": [
+          "invalid_string"
+        ]
+      }
+    },
+    {
+      "name": "test_get_tower_name_all_indices",
+      "inputs": {
+        "tower_nums": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ]
+      },
+      "expected_properties": {
+        "returns_string": true,
+        "non_empty": true,
+        "unique_names": true
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that all 15 tower indices return valid, unique names",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_tower_name_boundary_and_invalid",
+      "inputs": {
+        "valid_indices": [
+          0,
+          14
+        ],
+        "invalid_indices": [
+          -1,
+          15,
+          20
+        ]
+      },
+      "expected_behavior": {
+        "valid": "returns_string",
+        "invalid": "raises_exception"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary cases and invalid indices for tower name retrieval",
+        "edge_cases": [
+          "boundary_indices",
+          "out_of_bounds"
+        ]
+      }
+    },
+    {
+      "name": "test_get_texture_name_all_classes",
+      "inputs": {
+        "texture_nums": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "expected_properties": {
+        "returns_string": true,
+        "non_empty": true,
+        "unique_names": true,
+        "count": 7
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that all 7 texture classes return valid, unique names",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_texture_name_boundary_and_invalid",
+      "inputs": {
+        "valid_indices": [
+          0,
+          6
+        ],
+        "invalid_indices": [
+          -1,
+          7,
+          10
+        ]
+      },
+      "expected_behavior": {
+        "valid": "returns_string",
+        "invalid": "raises_exception"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary cases and invalid indices for texture name retrieval",
+        "edge_cases": [
+          "boundary_indices",
+          "out_of_bounds"
+        ]
+      }
+    },
+    {
+      "name": "test_get_tower_metadata_comprehensive",
+      "inputs": {
+        "tower_nums": [
+          0,
+          7,
+          14
+        ]
+      },
+      "expected_properties": {
+        "returns_dict": true,
+        "required_keys": [
+          "name",
+          "latitude",
+          "longitude",
+          "pft",
+          "texture_class",
+          "sand_percent",
+          "clay_percent",
+          "organic_matter_kg_m3",
+          "soil_color",
+          "bedrock_depth_m",
+          "tower_height_m",
+          "canopy_height_m",
+          "forcing_timestep_min"
+        ],
+        "key_count": 13,
+        "value_types": {
+          "name": "str",
+          "latitude": "float",
+          "longitude": "float",
+          "pft": "int",
+          "texture_class": "str",
+          "sand_percent": "float",
+          "clay_percent": "float",
+          "organic_matter_kg_m3": "float",
+          "soil_color": "int",
+          "bedrock_depth_m": "float",
+          "tower_height_m": "float",
+          "canopy_height_m": "float",
+          "forcing_timestep_min": "int"
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that metadata dictionary contains all required keys with correct types for multiple towers",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_tower_data_constraints_validation",
+      "inputs": {},
+      "expected_constraints": {
+        "tower_id": {
+          "min": 0,
+          "max": 14
+        },
+        "tower_lat": {
+          "min": -90.0,
+          "max": 90.0
+        },
+        "tower_lon": {
+          "min": -180.0,
+          "max": 180.0
+        },
+        "tower_pft": {
+          "valid_values": [
+            1,
+            2,
+            7,
+            13,
+            15
+          ]
+        },
+        "tower_tex": {
+          "min": 0,
+          "max": 6
+        },
+        "tower_sand": {
+          "min": -1.0,
+          "max": 100.0
+        },
+        "tower_clay": {
+          "min": -1.0,
+          "max": 100.0
+        },
+        "tower_organic": {
+          "min": 0.0
+        },
+        "tower_isoicol": {
+          "min": 1,
+          "max": 20
+        },
+        "tower_zbed": {
+          "min": 0.0
+        },
+        "tower_ht": {
+          "min": -999.0,
+          "note": "can be -999.0 for missing"
+        },
+        "tower_canht": {
+          "min": 0.0
+        },
+        "tower_time": {
+          "min": 1
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Validates that all tower data fields satisfy their documented constraints",
+        "edge_cases": [
+          "constraint_validation",
+          "missing_values"
+        ]
+      }
+    },
+    {
+      "name": "test_tower_data_physical_consistency",
+      "inputs": {},
+      "expected_consistency": {
+        "sand_clay_sum": {
+          "condition": "sand + clay <= 100 when both >= 0",
+          "description": "Sand and clay percentages should not exceed 100% total"
+        },
+        "latitude_range": {
+          "condition": "all latitudes in valid geographic range",
+          "description": "Latitudes must be between -90 and 90"
+        },
+        "longitude_range": {
+          "condition": "all longitudes in valid geographic range",
+          "description": "Longitudes must be between -180 and 180"
+        },
+        "canopy_tower_height": {
+          "condition": "tower_ht >= tower_canht or tower_ht == -999",
+          "description": "Tower height should be >= canopy height unless missing"
+        },
+        "bedrock_depth": {
+          "condition": "all positive",
+          "description": "Bedrock depth must be positive"
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests physical consistency and realism of tower data values",
+        "edge_cases": [
+          "physical_realism"
+        ]
+      }
+    },
+    {
+      "name": "test_parameter_retrieval_consistency",
+      "inputs": {
+        "tower_num": 8,
+        "cross_check_parameters": [
+          {
+            "param": "tower_lat",
+            "metadata_key": "latitude"
+          },
+          {
+            "param": "tower_lon",
+            "metadata_key": "longitude"
+          },
+          {
+            "param": "tower_pft",
+            "metadata_key": "pft"
+          },
+          {
+            "param": "tower_sand",
+            "metadata_key": "sand_percent"
+          },
+          {
+            "param": "tower_clay",
+            "metadata_key": "clay_percent"
+          },
+          {
+            "param": "tower_organic",
+            "metadata_key": "organic_matter_kg_m3"
+          },
+          {
+            "param": "tower_isoicol",
+            "metadata_key": "soil_color"
+          },
+          {
+            "param": "tower_zbed",
+            "metadata_key": "bedrock_depth_m"
+          },
+          {
+            "param": "tower_ht",
+            "metadata_key": "tower_height_m"
+          },
+          {
+            "param": "tower_canht",
+            "metadata_key": "canopy_height_m"
+          },
+          {
+            "param": "tower_time",
+            "metadata_key": "forcing_timestep_min"
+          }
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests that get_tower_parameter and get_tower_metadata return consistent values",
+        "edge_cases": [
+          "consistency_check"
+        ]
+      }
+    },
+    {
+      "name": "test_negative_sand_clay_texture_fallback",
+      "inputs": {},
+      "expected_behavior": {
+        "description": "When sand/clay are negative, texture class should be used",
+        "validation": "towers with negative sand/clay should have valid texture class (0-6)"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests the special case where negative sand/clay values indicate texture class usage",
+        "edge_cases": [
+          "negative_values",
+          "fallback_behavior"
+        ]
+      }
+    },
+    {
+      "name": "test_missing_tower_height_handling",
+      "inputs": {},
+      "expected_behavior": {
+        "description": "Tower height of -999.0 indicates missing value",
+        "validation": "towers with -999.0 height should be handled appropriately in metadata"
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests handling of missing tower height values (-999.0 sentinel)",
+        "edge_cases": [
+          "missing_values",
+          "sentinel_values"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Nominal cases (tests 1-2, 6, 8, 10)**: Test standard functionality with typical tower indices and parameters. Verify that all 15 towers and all parameters can be accessed correctly.\n\n2. **Edge cases (tests 3-5, 7, 9, 14-15)**: \n   - Boundary indices (0, 14) for tower access\n   - Invalid indices (-1, 15+) to test error handling\n   - Invalid parameter names to test validation\n   - Negative sand/clay values (special sentinel indicating texture class usage)\n   - Missing tower height (-999.0 sentinel value)\n\n3. **Special cases (tests 11-13)**:\n   - Constraint validation: Verify all fields satisfy documented constraints\n   - Physical consistency: Check that values make physical sense (sand+clay<=100, tower_ht>=canopy_ht, etc.)\n   - Cross-function consistency: Ensure get_tower_parameter and get_tower_metadata return matching values\n\n4. **Physical realism considerations**:\n   - Latitudes in [-90, 90] degrees\n   - Longitudes in [-180, 180] degrees\n   - Sand/clay percentages in [0, 100] or negative for texture class fallback\n   - Organic matter >= 0 kg/m\u00b3\n   - Bedrock depth > 0 m\n   - Canopy height >= 0 m\n   - Tower height >= canopy height (or -999.0 for missing)\n   - Time steps >= 1 minute\n   - Valid PFT indices: 1, 2, 7, 13, 15\n   - Soil color class in [1, 20]\n\n5. **Test coverage**:\n   - All 15 tower sites\n   - All 13 parameters\n   - All 7 texture classes\n   - Boundary conditions\n   - Error conditions\n   - Data consistency across functions\n   - Constraint validation\n\nThe tests are designed to be implementation-agnostic, focusing on the API contract and expected behavior rather than internal implementation details."
+}

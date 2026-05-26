@@ -1,0 +1,1722 @@
+{
+  "function_name": "soilstate_init_time_const",
+  "test_cases": [
+    {
+      "name": "test_nominal_single_patch_single_column",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            1
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0,
+            7.0,
+            6.0,
+            7.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962,
+            0.966,
+            0.961,
+            0.964
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            3
+          ],
+          "clay": [
+            0.25
+          ],
+          "sand": [
+            0.45
+          ],
+          "organic": [
+            15.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam",
+            "loam",
+            "silt_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1,
+            0.18,
+            0.15
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58,
+            0.42,
+            0.17
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434,
+            0.451,
+            0.485
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0,
+            -478.0,
+            -786.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072,
+            0.000367,
+            0.00019
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74,
+            5.25,
+            5.33
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single patch, single column with typical loam soil and standard configuration",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_multiple_patches_columns",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 4,
+          "begc": 0,
+          "endc": 2,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "itype": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0,
+            0
+          ],
+          "itype": [
+            1,
+            2
+          ],
+          "nbedrock": [
+            10,
+            8
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ],
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ],
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0,
+            7.0,
+            6.0,
+            7.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962,
+            0.966,
+            0.961,
+            0.964
+          ]
+        },
+        "tower_data": {
+          "num": 2,
+          "tex": [
+            3,
+            1
+          ],
+          "clay": [
+            0.25,
+            0.05
+          ],
+          "sand": [
+            0.45,
+            0.9
+          ],
+          "organic": [
+            15.0,
+            5.0
+          ],
+          "col_tower": [
+            0,
+            1
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam",
+            "loam",
+            "silt_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1,
+            0.18,
+            0.15
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58,
+            0.42,
+            0.17
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434,
+            0.451,
+            0.485
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0,
+            -478.0,
+            -786.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072,
+            0.000367,
+            0.00019
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74,
+            5.25,
+            5.33
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple patches and columns with varying soil types and PFTs",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_jackson_root_profile",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 2,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0,
+            0
+          ],
+          "itype": [
+            0,
+            2
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0,
+            7.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962,
+            0.966
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            2
+          ],
+          "clay": [
+            0.15
+          ],
+          "sand": [
+            0.6
+          ],
+          "organic": [
+            20.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam",
+            "loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1,
+            0.18
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58,
+            0.42
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434,
+            0.451
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0,
+            -478.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072,
+            0.000367
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74,
+            5.25
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 2
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests Jackson1996 root profile (root_type=2) with typical parameters",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_clm5_physics",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            1
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0,
+            7.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962,
+            0.966
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            4
+          ],
+          "clay": [
+            0.2
+          ],
+          "sand": [
+            0.3
+          ],
+          "organic": [
+            25.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam",
+            "loam",
+            "silt_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1,
+            0.18,
+            0.15
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58,
+            0.42,
+            0.17
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434,
+            0.451,
+            0.485
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0,
+            -478.0,
+            -786.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072,
+            0.000367,
+            0.00019
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74,
+            5.25,
+            5.33
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 1,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests CLM5 physics option (clm_phys=1) with silt loam soil",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_high_organic_matter",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            3
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0,
+            7.0,
+            6.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0,
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962,
+            0.966,
+            0.961
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            4
+          ],
+          "clay": [
+            0.3
+          ],
+          "sand": [
+            0.2
+          ],
+          "organic": [
+            85.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam",
+            "loam",
+            "silt_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1,
+            0.18,
+            0.15
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58,
+            0.42,
+            0.17
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434,
+            0.451,
+            0.485
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0,
+            -478.0,
+            -786.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072,
+            0.000367,
+            0.00019
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74,
+            5.25,
+            5.33
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests high organic matter content (85 kg/m2) typical of peatlands",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_shallow_bedrock",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            1
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            3
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            0
+          ],
+          "clay": [
+            0.05
+          ],
+          "sand": [
+            0.9
+          ],
+          "organic": [
+            2.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests shallow bedrock at layer 3, affecting soil properties below",
+        "edge_cases": [
+          "shallow_bedrock"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_zero_organic_matter",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            0
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0
+          ],
+          "rootb_par": [
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            0
+          ],
+          "clay": [
+            0.03
+          ],
+          "sand": [
+            0.92
+          ],
+          "organic": [
+            0.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand"
+          ],
+          "clay": [
+            0.03
+          ],
+          "sand": [
+            0.92
+          ],
+          "watsat": [
+            0.339
+          ],
+          "smpsat": [
+            -121.0
+          ],
+          "hksat": [
+            0.00583
+          ],
+          "bsw": [
+            2.79
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests pure mineral soil with zero organic matter content",
+        "edge_cases": [
+          "zero_organic"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_maximum_organic_matter",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            2
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0,
+            7.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962,
+            0.966
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            4
+          ],
+          "clay": [
+            0.4
+          ],
+          "sand": [
+            0.1
+          ],
+          "organic": [
+            130.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam",
+            "loam",
+            "silt_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1,
+            0.18,
+            0.15
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58,
+            0.42,
+            0.17
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434,
+            0.451,
+            0.485
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0,
+            -478.0,
+            -786.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072,
+            0.000367,
+            0.00019
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74,
+            5.25,
+            5.33
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests maximum organic matter content (130 kg/m2) at boundary",
+        "edge_cases": [
+          "max_organic"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_extreme_clay_content",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            1
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.02,
+              0.05,
+              0.1,
+              0.2,
+              0.35,
+              0.55,
+              0.8,
+              1.1,
+              1.5,
+              2.0,
+              2.5,
+              3.0,
+              3.5,
+              4.0,
+              4.5
+            ]
+          ],
+          "z": [
+            [
+              0.01,
+              0.035,
+              0.075,
+              0.15,
+              0.275,
+              0.45,
+              0.675,
+              0.95,
+              1.3,
+              1.75,
+              2.25,
+              2.75,
+              3.25,
+              3.75,
+              4.25
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            1
+          ],
+          "clay": [
+            0.6
+          ],
+          "sand": [
+            0.05
+          ],
+          "organic": [
+            10.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "clay"
+          ],
+          "clay": [
+            0.03,
+            0.6
+          ],
+          "sand": [
+            0.92,
+            0.05
+          ],
+          "watsat": [
+            0.339,
+            0.52
+          ],
+          "smpsat": [
+            -121.0,
+            -1500.0
+          ],
+          "hksat": [
+            0.00583,
+            1e-05
+          ],
+          "bsw": [
+            2.79,
+            11.4
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Tests heavy clay soil with 60% clay content and very low hydraulic conductivity",
+        "edge_cases": [
+          "high_clay",
+          "low_conductivity"
+        ]
+      }
+    },
+    {
+      "name": "test_special_variable_depth_layers",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 1,
+          "begc": 0,
+          "endc": 1,
+          "begg": 0,
+          "endg": 1
+        },
+        "patch": {
+          "column": [
+            0
+          ],
+          "itype": [
+            1
+          ]
+        },
+        "col": {
+          "gridcell": [
+            0
+          ],
+          "itype": [
+            1
+          ],
+          "nbedrock": [
+            10
+          ],
+          "zi": [
+            [
+              0.0,
+              0.01,
+              0.03,
+              0.07,
+              0.15,
+              0.3,
+              0.5,
+              0.75,
+              1.05,
+              1.45,
+              2.0,
+              2.7,
+              3.5,
+              4.5,
+              6.0,
+              8.0
+            ]
+          ],
+          "z": [
+            [
+              0.005,
+              0.02,
+              0.05,
+              0.11,
+              0.225,
+              0.4,
+              0.625,
+              0.9,
+              1.25,
+              1.725,
+              2.35,
+              3.1,
+              4.0,
+              5.25,
+              7.0
+            ]
+          ]
+        },
+        "pftcon": {
+          "roota_par": [
+            7.0,
+            6.0
+          ],
+          "rootb_par": [
+            2.0,
+            2.0
+          ],
+          "rootprof_beta": [
+            0.943,
+            0.962
+          ]
+        },
+        "tower_data": {
+          "num": 1,
+          "tex": [
+            2
+          ],
+          "clay": [
+            0.12
+          ],
+          "sand": [
+            0.55
+          ],
+          "organic": [
+            18.0
+          ],
+          "col_tower": [
+            0
+          ]
+        },
+        "soil_texture": {
+          "names": [
+            "sand",
+            "loamy_sand",
+            "sandy_loam"
+          ],
+          "clay": [
+            0.03,
+            0.05,
+            0.1
+          ],
+          "sand": [
+            0.92,
+            0.82,
+            0.58
+          ],
+          "watsat": [
+            0.339,
+            0.421,
+            0.434
+          ],
+          "smpsat": [
+            -121.0,
+            -90.0,
+            -218.0
+          ],
+          "hksat": [
+            0.00583,
+            0.0017,
+            0.00072
+          ],
+          "bsw": [
+            2.79,
+            4.26,
+            4.74
+          ]
+        },
+        "config": {
+          "csol_bedrock": 2000000.0,
+          "organic_max": 130.0,
+          "zsapric": 0.5,
+          "pcalpha": 0.5,
+          "pcbeta": 0.139,
+          "m_to_cm": 100.0,
+          "nlevsoi": 10,
+          "nlevgrnd": 15,
+          "clm_phys": 0,
+          "root_type": 1
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Tests non-standard depth discretization with variable layer thicknesses",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation approach:\n\n1. **Nominal cases (5 tests)**: Cover typical soil types (sand, loam, silt loam, clay), standard configurations, both root profile types (Zeng2001 and Jackson1996), both CLM physics versions (0 and 1), and varying organic matter levels (5-85 kg/m2).\n\n2. **Edge cases (4 tests)**: \n   - Shallow bedrock (nbedrock=3) to test bedrock property assignment\n   - Zero organic matter for pure mineral soils\n   - Maximum organic matter (130 kg/m2) at boundary\n   - Extreme clay content (60%) with very low hydraulic conductivity\n\n3. **Special case (1 test)**: Non-uniform depth discretization to test depth-dependent calculations\n\n**Physical realism ensured**:\n- All depths (z, zi) are monotonically increasing and >= 0\n- Clay and sand fractions sum to <= 1.0 (with implicit silt)\n- Organic matter in valid range [0, 130] kg/m2\n- Hydraulic conductivity > 0\n- Thermal properties > 0\n- Root parameters: roota_par, rootb_par > 0; rootprof_beta in [0, 1]\n- Watsat (porosity) in physically realistic range [0.339, 0.520]\n- Matric potential (smpsat) is negative (suction)\n- Clapp-Hornberger b parameter > 0\n\n**Dimension consistency**:\n- Each test maintains consistent array dimensions\n- npatch patches map to ncol columns via patch.column indices\n- ncol columns map to ntowers towers via tower_data.col_tower\n- PFT indices in patch.itype are valid for pftcon arrays\n- Texture indices in tower_data.tex are valid for soil_texture arrays\n- All soil layers use nlevgrnd=15, soil layers use nlevsoi=10\n\n**Coverage**:\n- Both root profile types (1=Zeng2001, 2=Jackson1996)\n- Both CLM physics versions (0=CLM4.5, 1=CLM5)\n- Range of soil textures from sand to clay\n- Organic matter from 0 to maximum (130 kg/m2)\n- Shallow to deep bedrock\n- Single and multiple patches/columns\n- Standard and non-standard depth discretizations"
+}

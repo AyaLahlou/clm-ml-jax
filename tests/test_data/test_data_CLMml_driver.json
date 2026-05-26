@@ -1,0 +1,1193 @@
+{
+  "function_name": "CLMml_driver_test_suite",
+  "test_cases": [
+    {
+      "name": "test_adjust_usme2_pft_parameters_nominal_usme2",
+      "function": "adjust_usme2_pft_parameters",
+      "inputs": {
+        "pft_params": {
+          "pbeta_lai": 0.5,
+          "qbeta_lai": 0.5,
+          "pbeta_sai": 0.5,
+          "qbeta_sai": 0.5
+        },
+        "patch_itype": 8,
+        "tower_id": "US-Me2"
+      },
+      "expected_behavior": "Should update parameters for US-Me2 tower",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests parameter adjustment for US-Me2 tower with typical PFT type",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_adjust_usme2_pft_parameters_non_usme2",
+      "function": "adjust_usme2_pft_parameters",
+      "inputs": {
+        "pft_params": {
+          "pbeta_lai": 0.3,
+          "qbeta_lai": 0.7,
+          "pbeta_sai": 0.4,
+          "qbeta_sai": 0.6
+        },
+        "patch_itype": 15,
+        "tower_id": "US-Ha1"
+      },
+      "expected_behavior": "Should return unchanged parameters",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests that non-US-Me2 towers don't modify parameters",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_construct_tower_file_path_nominal",
+      "function": "construct_tower_file_path",
+      "inputs": {
+        "tower_id": "US-Me2",
+        "yr": 2010,
+        "mon": 7,
+        "diratm": "/data/forcing/tower"
+      },
+      "expected_behavior": "Should construct valid file path",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests file path construction for mid-year typical case",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_construct_tower_file_path_edge_january",
+      "function": "construct_tower_file_path",
+      "inputs": {
+        "tower_id": "US-Ha1",
+        "yr": 2000,
+        "mon": 1,
+        "diratm": "/data/atm"
+      },
+      "expected_behavior": "Should handle January correctly",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary condition for first month of year",
+        "edge_cases": [
+          "boundary_month"
+        ]
+      }
+    },
+    {
+      "name": "test_construct_tower_file_path_edge_december",
+      "function": "construct_tower_file_path",
+      "inputs": {
+        "tower_id": "US-UMB",
+        "yr": 2099,
+        "mon": 12,
+        "diratm": "/climate/forcing"
+      },
+      "expected_behavior": "Should handle December correctly",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary condition for last month of year",
+        "edge_cases": [
+          "boundary_month",
+          "boundary_year"
+        ]
+      }
+    },
+    {
+      "name": "test_construct_clm_filename_nominal_no_wozniak",
+      "function": "construct_clm_filename",
+      "inputs": {
+        "tower_id": "US-Me2",
+        "tower_num": 5,
+        "yr": 2015,
+        "dirclm": "/output/clm",
+        "use_wozniak": false
+      },
+      "expected_behavior": "Should construct standard CLM filename",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests standard CLM filename construction without Wozniak naming",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_construct_clm_filename_wozniak",
+      "function": "construct_clm_filename",
+      "inputs": {
+        "tower_id": "US-Ha1",
+        "tower_num": 0,
+        "yr": 2020,
+        "dirclm": "/data/clm_output",
+        "use_wozniak": true
+      },
+      "expected_behavior": "Should construct Wozniak-style filename",
+      "metadata": {
+        "type": "special",
+        "description": "Tests Wozniak-specific naming convention with zero tower number",
+        "edge_cases": [
+          "zero_index"
+        ]
+      }
+    },
+    {
+      "name": "test_calculate_time_index_nominal",
+      "function": "calculate_time_index",
+      "inputs": {
+        "curr_calday": 150.5,
+        "start_calday_clm": 1.0,
+        "dtstep": 1800.0
+      },
+      "expected_behavior": "Should calculate correct 1-based time index",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests time index calculation for mid-year with 30-minute timestep",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_calculate_time_index_edge_start_of_year",
+      "function": "calculate_time_index",
+      "inputs": {
+        "curr_calday": 1.0,
+        "start_calday_clm": 1.0,
+        "dtstep": 3600.0
+      },
+      "expected_behavior": "Should return index 1 for start of year",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary condition at start of calendar year",
+        "edge_cases": [
+          "boundary_time",
+          "zero_offset"
+        ]
+      }
+    },
+    {
+      "name": "test_calculate_time_index_edge_end_of_year",
+      "function": "calculate_time_index",
+      "inputs": {
+        "curr_calday": 365.99,
+        "start_calday_clm": 1.0,
+        "dtstep": 900.0
+      },
+      "expected_behavior": "Should calculate index near end of year",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests boundary condition near end of calendar year with 15-minute timestep",
+        "edge_cases": [
+          "boundary_time"
+        ]
+      }
+    },
+    {
+      "name": "test_get_htop_pft_lookup_nominal",
+      "function": "get_htop_pft_lookup",
+      "inputs": {},
+      "expected_behavior": "Should return array of 79 canopy heights",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests retrieval of PFT canopy height lookup table",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_compute_upward_shortwave_nominal",
+      "function": "compute_upward_shortwave",
+      "inputs": {
+        "albcan_vis": [
+          0.15,
+          0.18,
+          0.12
+        ],
+        "albcan_nir": [
+          0.25,
+          0.28,
+          0.22
+        ],
+        "swskyb_vis": [
+          450.0,
+          480.0,
+          420.0
+        ],
+        "swskyd_vis": [
+          150.0,
+          160.0,
+          140.0
+        ],
+        "swskyb_nir": [
+          350.0,
+          370.0,
+          330.0
+        ],
+        "swskyd_nir": [
+          100.0,
+          110.0,
+          90.0
+        ]
+      },
+      "expected_behavior": "Should compute upward shortwave radiation",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests upward shortwave calculation with typical daytime conditions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_compute_upward_shortwave_edge_zero_radiation",
+      "function": "compute_upward_shortwave",
+      "inputs": {
+        "albcan_vis": [
+          0.15,
+          0.2
+        ],
+        "albcan_nir": [
+          0.25,
+          0.3
+        ],
+        "swskyb_vis": [
+          0.0,
+          0.0
+        ],
+        "swskyd_vis": [
+          0.0,
+          0.0
+        ],
+        "swskyb_nir": [
+          0.0,
+          0.0
+        ],
+        "swskyd_nir": [
+          0.0,
+          0.0
+        ]
+      },
+      "expected_behavior": "Should return zero upward radiation for nighttime",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests nighttime condition with zero incoming radiation",
+        "edge_cases": [
+          "zero_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_compute_upward_shortwave_edge_high_albedo",
+      "function": "compute_upward_shortwave",
+      "inputs": {
+        "albcan_vis": [
+          0.95,
+          0.98
+        ],
+        "albcan_nir": [
+          0.97,
+          0.99
+        ],
+        "swskyb_vis": [
+          500.0,
+          520.0
+        ],
+        "swskyd_vis": [
+          200.0,
+          210.0
+        ],
+        "swskyb_nir": [
+          400.0,
+          420.0
+        ],
+        "swskyd_nir": [
+          150.0,
+          160.0
+        ]
+      },
+      "expected_behavior": "Should handle very high albedo (snow/ice)",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests extreme albedo values near upper bound (snow-covered canopy)",
+        "edge_cases": [
+          "boundary_albedo"
+        ]
+      }
+    },
+    {
+      "name": "test_compute_upward_shortwave_special_single_patch",
+      "function": "compute_upward_shortwave",
+      "inputs": {
+        "albcan_vis": [
+          0.18
+        ],
+        "albcan_nir": [
+          0.28
+        ],
+        "swskyb_vis": [
+          600.0
+        ],
+        "swskyd_vis": [
+          180.0
+        ],
+        "swskyb_nir": [
+          450.0
+        ],
+        "swskyd_nir": [
+          120.0
+        ]
+      },
+      "expected_behavior": "Should handle single patch case",
+      "metadata": {
+        "type": "special",
+        "description": "Tests single patch configuration",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_convert_qair_to_eair_nominal",
+      "function": "convert_qair_to_eair",
+      "inputs": {
+        "qair": [
+          [
+            0.008,
+            0.01,
+            0.012
+          ],
+          [
+            0.007,
+            0.009,
+            0.011
+          ]
+        ],
+        "pref": [
+          101325.0,
+          101000.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should convert specific humidity to vapor pressure",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests humidity conversion with typical atmospheric conditions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_convert_qair_to_eair_edge_zero_humidity",
+      "function": "convert_qair_to_eair",
+      "inputs": {
+        "qair": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "pref": [
+          101325.0,
+          100000.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should handle zero humidity (extremely dry)",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests extreme dry condition with zero specific humidity",
+        "edge_cases": [
+          "zero_humidity"
+        ]
+      }
+    },
+    {
+      "name": "test_convert_qair_to_eair_edge_high_humidity",
+      "function": "convert_qair_to_eair",
+      "inputs": {
+        "qair": [
+          [
+            0.025,
+            0.028
+          ],
+          [
+            0.026,
+            0.029
+          ]
+        ],
+        "pref": [
+          101325.0,
+          101500.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should handle high humidity conditions",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests high humidity tropical conditions",
+        "edge_cases": [
+          "high_humidity"
+        ]
+      }
+    },
+    {
+      "name": "test_convert_qair_to_eair_special_low_pressure",
+      "function": "convert_qair_to_eair",
+      "inputs": {
+        "qair": [
+          [
+            0.01,
+            0.012
+          ],
+          [
+            0.009,
+            0.011
+          ]
+        ],
+        "pref": [
+          70000.0,
+          68000.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should handle high elevation low pressure",
+      "metadata": {
+        "type": "special",
+        "description": "Tests high elevation conditions with reduced atmospheric pressure",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_process_profile_data_nominal",
+      "function": "process_profile_data",
+      "inputs": {
+        "wind_raw": [
+          [
+            2.5,
+            3.0,
+            3.5
+          ],
+          [
+            2.8,
+            3.2,
+            3.6
+          ]
+        ],
+        "tair_raw": [
+          [
+            288.15,
+            289.15,
+            290.15
+          ],
+          [
+            287.15,
+            288.65,
+            289.85
+          ]
+        ],
+        "qair_raw": [
+          [
+            8.0,
+            9.0,
+            10.0
+          ],
+          [
+            7.5,
+            8.5,
+            9.5
+          ]
+        ],
+        "pref": [
+          101325.0,
+          101000.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should process and convert profile data correctly",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests profile data processing with typical atmospheric conditions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_process_profile_data_edge_calm_winds",
+      "function": "process_profile_data",
+      "inputs": {
+        "wind_raw": [
+          [
+            0.1,
+            0.2,
+            0.3
+          ],
+          [
+            0.15,
+            0.25,
+            0.35
+          ]
+        ],
+        "tair_raw": [
+          [
+            285.15,
+            286.15,
+            287.15
+          ],
+          [
+            284.65,
+            285.85,
+            286.95
+          ]
+        ],
+        "qair_raw": [
+          [
+            6.0,
+            7.0,
+            8.0
+          ],
+          [
+            5.5,
+            6.5,
+            7.5
+          ]
+        ],
+        "pref": [
+          101325.0,
+          101200.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should handle very low wind speeds",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests calm wind conditions near zero",
+        "edge_cases": [
+          "low_wind"
+        ]
+      }
+    },
+    {
+      "name": "test_process_profile_data_edge_cold_conditions",
+      "function": "process_profile_data",
+      "inputs": {
+        "wind_raw": [
+          [
+            4.0,
+            4.5,
+            5.0
+          ],
+          [
+            3.8,
+            4.3,
+            4.8
+          ]
+        ],
+        "tair_raw": [
+          [
+            253.15,
+            255.15,
+            257.15
+          ],
+          [
+            252.15,
+            254.15,
+            256.15
+          ]
+        ],
+        "qair_raw": [
+          [
+            1.0,
+            1.5,
+            2.0
+          ],
+          [
+            0.8,
+            1.3,
+            1.8
+          ]
+        ],
+        "pref": [
+          101325.0,
+          101400.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should handle cold winter conditions",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests cold winter conditions with low temperatures and humidity",
+        "edge_cases": [
+          "cold_temperature",
+          "low_humidity"
+        ]
+      }
+    },
+    {
+      "name": "test_process_profile_data_special_high_winds",
+      "function": "process_profile_data",
+      "inputs": {
+        "wind_raw": [
+          [
+            15.0,
+            18.0,
+            20.0
+          ],
+          [
+            14.5,
+            17.5,
+            19.5
+          ]
+        ],
+        "tair_raw": [
+          [
+            290.15,
+            291.15,
+            292.15
+          ],
+          [
+            289.65,
+            290.85,
+            291.95
+          ]
+        ],
+        "qair_raw": [
+          [
+            10.0,
+            11.0,
+            12.0
+          ],
+          [
+            9.5,
+            10.5,
+            11.5
+          ]
+        ],
+        "pref": [
+          101325.0,
+          101100.0
+        ],
+        "mmh2o": 18.016,
+        "mmdry": 28.966
+      },
+      "expected_behavior": "Should handle high wind storm conditions",
+      "metadata": {
+        "type": "special",
+        "description": "Tests storm conditions with high wind speeds",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_clmml_drv_cleanup_prescribed_turbulence",
+      "function": "clmml_drv_cleanup",
+      "inputs": {
+        "turb_type": -1
+      },
+      "expected_behavior": "Should indicate prescribed turbulence cleanup",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests cleanup state for prescribed turbulence mode",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_clmml_drv_cleanup_computed_turbulence",
+      "function": "clmml_drv_cleanup",
+      "inputs": {
+        "turb_type": 1
+      },
+      "expected_behavior": "Should indicate computed turbulence cleanup",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests cleanup state for computed turbulence mode",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_soil_init_vectorized_nominal_clm45",
+      "function": "soil_init_vectorized",
+      "inputs": {
+        "ncfilename": "/data/clm/history.nc",
+        "strt": 100,
+        "begc": 1,
+        "endc": 3,
+        "col": {
+          "dz": [
+            [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5
+            ],
+            [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5
+            ],
+            [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5
+            ]
+          ],
+          "nbedrock": [
+            5,
+            5,
+            5
+          ]
+        },
+        "soilstate_inst": {
+          "watsat_col": [
+            [
+              0.45,
+              0.43,
+              0.41,
+              0.39,
+              0.37
+            ],
+            [
+              0.46,
+              0.44,
+              0.42,
+              0.4,
+              0.38
+            ],
+            [
+              0.44,
+              0.42,
+              0.4,
+              0.38,
+              0.36
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_vol_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno_col": [
+            [
+              280.0,
+              280.0,
+              280.0,
+              280.0,
+              280.0
+            ],
+            [
+              280.0,
+              280.0,
+              280.0,
+              280.0,
+              280.0
+            ],
+            [
+              280.0,
+              280.0,
+              280.0,
+              280.0,
+              280.0
+            ]
+          ]
+        },
+        "clm_phys": "CLM4_5",
+        "nlevgrnd": 5,
+        "nlevsoi": 5,
+        "denh2o": 1000.0
+      },
+      "expected_behavior": "Should initialize soil state from CLM4.5 file",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests soil initialization for CLM4.5 physics with typical soil properties",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_soil_init_vectorized_nominal_clm50",
+      "function": "soil_init_vectorized",
+      "inputs": {
+        "ncfilename": "/data/clm5/history.nc",
+        "strt": 50,
+        "begc": 1,
+        "endc": 2,
+        "col": {
+          "dz": [
+            [
+              0.15,
+              0.25,
+              0.35,
+              0.45
+            ],
+            [
+              0.15,
+              0.25,
+              0.35,
+              0.45
+            ]
+          ],
+          "nbedrock": [
+            4,
+            4
+          ]
+        },
+        "soilstate_inst": {
+          "watsat_col": [
+            [
+              0.48,
+              0.46,
+              0.44,
+              0.42
+            ],
+            [
+              0.47,
+              0.45,
+              0.43,
+              0.41
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_vol_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno_col": [
+            [
+              285.0,
+              285.0,
+              285.0,
+              285.0
+            ],
+            [
+              285.0,
+              285.0,
+              285.0,
+              285.0
+            ]
+          ]
+        },
+        "clm_phys": "CLM5_0",
+        "nlevgrnd": 4,
+        "nlevsoi": 4,
+        "denh2o": 1000.0
+      },
+      "expected_behavior": "Should initialize soil state from CLM5.0 file",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests soil initialization for CLM5.0 physics",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_soil_init_vectorized_edge_frozen_soil",
+      "function": "soil_init_vectorized",
+      "inputs": {
+        "ncfilename": "/data/clm/winter.nc",
+        "strt": 1,
+        "begc": 1,
+        "endc": 2,
+        "col": {
+          "dz": [
+            [
+              0.1,
+              0.2,
+              0.3
+            ],
+            [
+              0.1,
+              0.2,
+              0.3
+            ]
+          ],
+          "nbedrock": [
+            3,
+            3
+          ]
+        },
+        "soilstate_inst": {
+          "watsat_col": [
+            [
+              0.45,
+              0.43,
+              0.41
+            ],
+            [
+              0.46,
+              0.44,
+              0.42
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_vol_col": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq_col": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno_col": [
+            [
+              270.0,
+              271.0,
+              272.0
+            ],
+            [
+              269.0,
+              270.5,
+              271.5
+            ]
+          ]
+        },
+        "clm_phys": "CLM5_0",
+        "nlevgrnd": 3,
+        "nlevsoi": 3,
+        "denh2o": 1000.0
+      },
+      "expected_behavior": "Should handle frozen soil conditions",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests initialization with frozen soil temperatures below freezing",
+        "edge_cases": [
+          "frozen_soil"
+        ]
+      }
+    },
+    {
+      "name": "test_soil_init_vectorized_special_single_column",
+      "function": "soil_init_vectorized",
+      "inputs": {
+        "ncfilename": "/data/clm/single.nc",
+        "strt": 10,
+        "begc": 1,
+        "endc": 1,
+        "col": {
+          "dz": [
+            [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5,
+              0.6
+            ]
+          ],
+          "nbedrock": [
+            6
+          ]
+        },
+        "soilstate_inst": {
+          "watsat_col": [
+            [
+              0.45,
+              0.43,
+              0.41,
+              0.39,
+              0.37,
+              0.35
+            ]
+          ]
+        },
+        "waterstate_inst": {
+          "h2osoi_vol_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_ice_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "h2osoi_liq_col": [
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        "temperature_inst": {
+          "t_soisno_col": [
+            [
+              290.0,
+              289.0,
+              288.0,
+              287.0,
+              286.0,
+              285.0
+            ]
+          ]
+        },
+        "clm_phys": "CLM4_5",
+        "nlevgrnd": 6,
+        "nlevsoi": 6,
+        "denh2o": 1000.0
+      },
+      "expected_behavior": "Should handle single column case",
+      "metadata": {
+        "type": "special",
+        "description": "Tests single column initialization with deeper soil profile",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Physical Realism**: All values respect physical constraints:\n   - Temperatures in Kelvin (> 0K, typically 250-320K for Earth)\n   - Fractions in [0, 1] (albedo, humidity ratios, soil saturation)\n   - Pressures positive (70000-101325 Pa for sea level to high elevation)\n   - Radiation fluxes non-negative (0-1000 W/m\u00b2)\n   - Calendar days in [1, 366]\n   - Months in [1, 12]\n\n2. **Dimensional Consistency**: Within each test case:\n   - Array dimensions match across related parameters\n   - Number of patches consistent across all patch-level arrays\n   - Number of layers consistent across profile arrays\n   - Column counts match between state variables\n\n3. **Coverage Strategy**:\n   - **Nominal (50%)**: Typical mid-latitude conditions, moderate values\n   - **Edge (30%)**: Boundary conditions (zero flux, extreme temperatures, high/low pressure)\n   - **Special (20%)**: Single element arrays, extreme but valid conditions\n\n4. **Scientific Scenarios**:\n   - Daytime/nighttime (radiation present/absent)\n   - Summer/winter (warm/cold temperatures)\n   - Dry/humid conditions (low/high specific humidity)\n   - Calm/stormy (low/high wind speeds)\n   - Sea level/high elevation (standard/reduced pressure)\n   - Frozen/unfrozen soil (below/above 273.15K)\n\n5. **Tower Sites**: Used realistic tower IDs (US-Me2, US-Ha1, US-UMB) from AmeriFlux network\n\n6. **Time Ranges**: Years 2000-2099, all months, calendar days throughout year\n\n7. **Soil Properties**: Typical values for mineral soils:\n   - Porosity (watsat): 0.35-0.48\n   - Layer thickness: 0.1-0.6 m\n   - Temperature gradients with depth\n\n8. **Atmospheric Properties**: Standard molecular weights (H2O: 18.016, dry air: 28.966 g/mol)\n\n9. **Array Shapes**: Varied to test different configurations:\n   - Single patch/column to multiple (1-3 elements)\n   - Soil layers: 3-6 levels\n   - Canopy layers: 2-3 levels\n\n10. **Edge Case Focus**:\n    - Zero values where physically meaningful (nighttime radiation, calm winds)\n    - Boundary values (month 1/12, high albedo 0.95-0.99)\n    - Extreme but valid (cold -20\u00b0C, high winds 20 m/s)\n    - Not testing invalid inputs (negative radiation, temps below 0K) as those should be caught by validation"
+}

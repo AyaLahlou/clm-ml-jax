@@ -1,0 +1,595 @@
+{
+  "function_name": "initGridCellsMod",
+  "test_cases": [
+    {
+      "name": "test_validate_patch_structure_nominal_single_patch",
+      "inputs": {
+        "patch_indices": [
+          0
+        ],
+        "landunit_types": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single patch with single landunit - simplest valid configuration",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_patch_structure_nominal_multiple_patches",
+      "inputs": {
+        "patch_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "landunit_types": [
+          1,
+          1,
+          2,
+          2,
+          3
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple patches across different landunit types - typical grid configuration",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_patch_structure_edge_zero_index",
+      "inputs": {
+        "patch_indices": [
+          0,
+          0,
+          0
+        ],
+        "landunit_types": [
+          1,
+          2,
+          3
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Multiple patches with zero indices - tests minimum valid index",
+        "edge_cases": [
+          "zero_index"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_patch_structure_edge_large_indices",
+      "inputs": {
+        "patch_indices": [
+          0,
+          100,
+          500,
+          999,
+          10000
+        ],
+        "landunit_types": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Large patch indices - tests upper boundary handling",
+        "edge_cases": [
+          "large_values"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_patch_structure_edge_negative_indices",
+      "inputs": {
+        "patch_indices": [
+          -1,
+          0,
+          1
+        ],
+        "landunit_types": [
+          1,
+          1,
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Negative patch indices - should fail validation",
+        "edge_cases": [
+          "negative_values"
+        ]
+      }
+    },
+    {
+      "name": "test_create_simple_grid_nominal_default",
+      "inputs": {
+        "num_patches": 1,
+        "pft_types": null
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Default single patch grid with default PFT",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_create_simple_grid_nominal_multiple_pfts",
+      "inputs": {
+        "num_patches": 5,
+        "pft_types": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple patches with different PFT types",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_create_simple_grid_edge_minimum_patches",
+      "inputs": {
+        "num_patches": 1,
+        "pft_types": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum valid number of patches (boundary condition)",
+        "edge_cases": [
+          "boundary_minimum"
+        ]
+      }
+    },
+    {
+      "name": "test_create_simple_grid_special_large_grid",
+      "inputs": {
+        "num_patches": 100,
+        "pft_types": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large grid with 100 patches - tests scalability",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_calculate_grid_statistics_nominal_sequential",
+      "inputs": {
+        "patch_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "expected_outputs": {
+        "mean_index": 4.5,
+        "max_index": 9.0,
+        "min_index": 0.0,
+        "num_patches": 10.0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Sequential patch indices - tests basic statistics calculation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_calculate_grid_statistics_edge_single_patch",
+      "inputs": {
+        "patch_indices": [
+          42
+        ]
+      },
+      "expected_outputs": {
+        "mean_index": 42.0,
+        "max_index": 42.0,
+        "min_index": 42.0,
+        "num_patches": 1.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Single patch - tests statistics with minimal data",
+        "edge_cases": [
+          "single_element"
+        ]
+      }
+    },
+    {
+      "name": "test_calculate_grid_statistics_edge_all_zeros",
+      "inputs": {
+        "patch_indices": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "expected_outputs": {
+        "mean_index": 0.0,
+        "max_index": 0.0,
+        "min_index": 0.0,
+        "num_patches": 5.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "All zero indices - tests statistics with uniform zero values",
+        "edge_cases": [
+          "zero_values"
+        ]
+      }
+    },
+    {
+      "name": "test_calculate_grid_statistics_special_sparse_indices",
+      "inputs": {
+        "patch_indices": [
+          0,
+          10,
+          100,
+          1000,
+          10000
+        ]
+      },
+      "expected_outputs": {
+        "mean_index": 2222.0,
+        "max_index": 10000.0,
+        "min_index": 0.0,
+        "num_patches": 5.0
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Sparse non-sequential indices - tests statistics with large gaps",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_initialize_single_patch_grid_nominal_default_pft",
+      "inputs": {
+        "pft": 1
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize single patch with default PFT type 1",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_initialize_single_patch_grid_nominal_different_pft",
+      "inputs": {
+        "pft": 7
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize single patch with different PFT type",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_initialize_multi_patch_grid_nominal_homogeneous",
+      "inputs": {
+        "pft_list": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple patches with same PFT type - homogeneous vegetation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_initialize_multi_patch_grid_nominal_heterogeneous",
+      "inputs": {
+        "pft_list": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple patches with diverse PFT types - heterogeneous vegetation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_initialize_multi_patch_grid_special_large_array",
+      "inputs": {
+        "pft_list": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large multi-patch grid with 50 patches - tests scalability",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_patch_structure_special_mismatched_sizes",
+      "inputs": {
+        "patch_indices": [
+          0,
+          1,
+          2
+        ],
+        "landunit_types": [
+          1,
+          1
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Mismatched array sizes - should fail validation",
+        "edge_cases": [
+          "dimension_mismatch"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_patch_structure_edge_empty_arrays",
+      "inputs": {
+        "patch_indices": [],
+        "landunit_types": []
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Empty arrays - tests handling of no patches",
+        "edge_cases": [
+          "empty_arrays"
+        ]
+      }
+    }
+  ],
+  "global_state_test_cases": [
+    {
+      "name": "test_grid_initialization_state_lifecycle",
+      "sequence": [
+        {
+          "action": "reset_grid_initialization",
+          "expected_state": {
+            "initialized": false,
+            "num_patches": 0,
+            "patch_indices": [],
+            "landunit_types": [],
+            "metadata": {}
+          }
+        },
+        {
+          "action": "initialize_single_patch_grid",
+          "inputs": {
+            "pft": 1
+          },
+          "expected_state": {
+            "initialized": true,
+            "num_patches": 1
+          }
+        },
+        {
+          "action": "get_grid_initialization_state",
+          "verify": "state is copied, not referenced"
+        }
+      ],
+      "metadata": {
+        "type": "integration",
+        "description": "Tests complete lifecycle of grid initialization state management"
+      }
+    },
+    {
+      "name": "test_validation_after_initialization",
+      "sequence": [
+        {
+          "action": "reset_grid_initialization"
+        },
+        {
+          "action": "validate_initialization",
+          "expected_result": [
+            false,
+            "Grid not initialized"
+          ]
+        },
+        {
+          "action": "initialize_single_patch_grid",
+          "inputs": {
+            "pft": 1
+          }
+        },
+        {
+          "action": "validate_initialization",
+          "expected_result": [
+            true,
+            ""
+          ]
+        }
+      ],
+      "metadata": {
+        "type": "integration",
+        "description": "Tests validation before and after initialization"
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Nominal cases (50%)**: Generated typical grid configurations with 1-10 patches, PFT types 1-10, and sequential or small-gap indices. These represent common use cases in land surface modeling.\n\n2. **Edge cases (30%)**: \n   - Zero indices: Tests minimum valid values\n   - Negative indices: Tests invalid input handling\n   - Large indices (up to 10000): Tests upper boundary handling\n   - Single element arrays: Tests minimal valid configurations\n   - Empty arrays: Tests handling of no-data scenarios\n   - Mismatched array dimensions: Tests validation of array consistency\n\n3. **Special cases (20%)**:\n   - Large grids (50-100 patches): Tests scalability and performance\n   - Sparse indices: Tests handling of non-sequential patch numbering\n   - Homogeneous vs heterogeneous PFT distributions: Tests different vegetation patterns\n\n4. **Integration tests**: Added test sequences for global state management, testing the lifecycle of initialization, validation, and reset operations.\n\n**Physical realism considerations**:\n- PFT types are positive integers (1-10 range typical for plant functional types)\n- Patch indices are non-negative integers (0-based indexing)\n- Array dimensions are consistent within each test case\n- No temperature or other physical quantities involved in this module\n\n**JAX/NumPy compatibility**:\n- All arrays can be converted to jnp.ndarray\n- Integer types used for indices and PFT types\n- Float types expected for statistics outputs\n\n**Assumptions**:\n- PFT types range from 1-10 (typical for land surface models)\n- Patch indices can be sparse (non-sequential)\n- Landunit types are positive integers\n- Grid initialization is stateful (global state management)\n- JIT-compiled functions (validate_patch_structure, calculate_grid_statistics) should handle edge cases gracefully"
+}

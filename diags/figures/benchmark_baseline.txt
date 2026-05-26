@@ -1,0 +1,27 @@
+CLM-ML-JAX  |  GPU Benchmark Baseline  |  CHATS7 site
+======================================================================
+JAX backend:           GPU  —  cuda:0
+JAX version:           0.9.2
+Site / forcing:        CHATS7  (2007-05.nc)
+dtstep:                1800 s
+num_ml_steps:          6  (dtime_ml = 300.0 s)
+RK inner steps:        5  (runge_kutta_type = 41)
+num_exposedvegp:       1
+
+Compile + first run (timestep 1):    342.563 s
+
+Steady-state (5 timesteps, jax.block_until_ready):
+  mean:                146.6029 s
+  std:                 1.1640 s
+  min:                 145.4735 s
+  max:                 148.1860 s
+  per-ml-substep est:  24433.81 ms
+
+Device memory:         0.9 MB in use, peak 2.1 MB
+======================================================================
+
+NOTE: Per-module breakdown requires manual instrumentation.
+Non-diff mode (grid=None) — standard forward pass, no gradient tracking.
+Timing via ModelAdvance (includes met I/O, output writing).
+Direct MLCanopyFluxes calls OOM on CUDA graph instantiation after
+ModelAdvance has already populated all CUDA graphs (14-graph limit).

@@ -1,0 +1,481 @@
+{
+  "function_name": "clump_management_functions",
+  "test_cases": [
+    {
+      "name": "test_single_clump_minimal_domain",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 1
+        },
+        "initialize_clump_config": {
+          "n_clumps": 1
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 1,
+            "begl": 1,
+            "endl": 1,
+            "begc": 1,
+            "endc": 1,
+            "begp": 1,
+            "endp": 1
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 1,
+            "begl": 1,
+            "endl": 1,
+            "begc": 1,
+            "endc": 1,
+            "begp": 1,
+            "endp": 1
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 1,
+          "n_landunits": 1,
+          "n_columns": 1,
+          "n_patches": 1
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single point domain with one clump - minimal valid configuration for offline testing",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_small_regional_domain",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 1
+        },
+        "initialize_clump_config": {
+          "n_clumps": 1
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 10,
+            "begl": 1,
+            "endl": 15,
+            "begc": 1,
+            "endc": 30,
+            "begp": 1,
+            "endp": 60
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 10,
+            "begl": 1,
+            "endl": 15,
+            "begc": 1,
+            "endc": 30,
+            "begp": 1,
+            "endp": 60
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 10,
+          "n_landunits": 15,
+          "n_columns": 30,
+          "n_patches": 60
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Small regional domain with realistic hierarchy: 10 gridcells, 1.5 landunits/gridcell, 2 columns/landunit, 2 patches/column",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_multi_clump_parallel_decomposition",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 3
+        },
+        "initialize_clump_config": {
+          "n_clumps": 8
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 21,
+            "endg": 30,
+            "begl": 31,
+            "endl": 45,
+            "begc": 46,
+            "endc": 75,
+            "begp": 76,
+            "endp": 135
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 21,
+            "endg": 30,
+            "begl": 31,
+            "endl": 45,
+            "begc": 46,
+            "endc": 75,
+            "begp": 76,
+            "endp": 135
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 10,
+          "n_landunits": 15,
+          "n_columns": 30,
+          "n_patches": 60
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multi-clump parallel decomposition - clump 3 of 8 with non-contiguous indices starting at 21",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_large_global_domain",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 1
+        },
+        "initialize_clump_config": {
+          "n_clumps": 1
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 64800,
+            "begl": 1,
+            "endl": 97200,
+            "begc": 1,
+            "endc": 194400,
+            "begp": 1,
+            "endp": 388800
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 64800,
+            "begl": 1,
+            "endl": 97200,
+            "begc": 1,
+            "endc": 194400,
+            "begp": 1,
+            "endp": 388800
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 64800,
+          "n_landunits": 97200,
+          "n_columns": 194400,
+          "n_patches": 388800
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Large global domain (~0.5 degree resolution, 360x180 grid) with typical hierarchy ratios",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_maximum_clump_id",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 128
+        },
+        "initialize_clump_config": {
+          "n_clumps": 128
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 100,
+            "begl": 1,
+            "endl": 150,
+            "begc": 1,
+            "endc": 300,
+            "begp": 1,
+            "endp": 600
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 100,
+            "begl": 1,
+            "endl": 150,
+            "begc": 1,
+            "endc": 300,
+            "begp": 1,
+            "endp": 600
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 100,
+          "n_landunits": 150,
+          "n_columns": 300,
+          "n_patches": 600
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Maximum realistic clump count (128 for large HPC systems) with clump_id at boundary",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_equal_begin_end_indices",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 1
+        },
+        "initialize_clump_config": {
+          "n_clumps": 1
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 5,
+            "endg": 5,
+            "begl": 10,
+            "endl": 10,
+            "begc": 20,
+            "endc": 20,
+            "begp": 40,
+            "endp": 40
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 5,
+            "endg": 5,
+            "begl": 10,
+            "endl": 10,
+            "begc": 20,
+            "endc": 20,
+            "begp": 40,
+            "endp": 40
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 1,
+          "n_landunits": 1,
+          "n_columns": 1,
+          "n_patches": 1
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case where begin equals end for all hierarchy levels (single element at each level)",
+        "edge_cases": [
+          "equal_begin_end",
+          "non_zero_start"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_minimal_clump_id",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 1
+        },
+        "initialize_clump_config": {
+          "n_clumps": 1
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 5,
+            "begl": 1,
+            "endl": 8,
+            "begc": 1,
+            "endc": 16,
+            "begp": 1,
+            "endp": 32
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 5,
+            "begl": 1,
+            "endl": 8,
+            "begc": 1,
+            "endc": 16,
+            "begp": 1,
+            "endp": 32
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 5,
+          "n_landunits": 8,
+          "n_columns": 16,
+          "n_patches": 32
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Edge case with minimum valid clump_id (1) and 1-based indexing starting point",
+        "edge_cases": [
+          "minimum_clump_id",
+          "one_based_indexing"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_invalid_bounds_end_before_begin",
+      "inputs": {
+        "validate_bounds": {
+          "bounds": {
+            "begg": 10,
+            "endg": 5,
+            "begl": 1,
+            "endl": 8,
+            "begc": 1,
+            "endc": 16,
+            "begp": 1,
+            "endp": 32
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": false
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Invalid bounds where endg < begg - should fail validation",
+        "edge_cases": [
+          "invalid_bounds",
+          "end_before_begin"
+        ]
+      }
+    },
+    {
+      "name": "test_special_sparse_hierarchy",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 1
+        },
+        "initialize_clump_config": {
+          "n_clumps": 1
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 100,
+            "begl": 1,
+            "endl": 100,
+            "begc": 1,
+            "endc": 100,
+            "begp": 1,
+            "endp": 100
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 100,
+            "begl": 1,
+            "endl": 100,
+            "begc": 1,
+            "endc": 100,
+            "begp": 1,
+            "endp": 100
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 100,
+          "n_landunits": 100,
+          "n_columns": 100,
+          "n_patches": 100
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Sparse hierarchy where each gridcell has exactly one landunit, column, and patch (1:1:1:1 ratio)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_special_dense_hierarchy",
+      "inputs": {
+        "get_clump_bounds": {
+          "clump_id": 2
+        },
+        "initialize_clump_config": {
+          "n_clumps": 4
+        },
+        "validate_bounds": {
+          "bounds": {
+            "begg": 1,
+            "endg": 10,
+            "begl": 1,
+            "endl": 50,
+            "begc": 1,
+            "endc": 250,
+            "begp": 1,
+            "endp": 1250
+          }
+        },
+        "get_domain_size": {
+          "bounds": {
+            "begg": 1,
+            "endg": 10,
+            "begl": 1,
+            "endl": 50,
+            "begc": 1,
+            "endc": 250,
+            "begp": 1,
+            "endp": 1250
+          }
+        }
+      },
+      "expected_outputs": {
+        "validate_bounds": true,
+        "get_domain_size": {
+          "n_gridcells": 10,
+          "n_landunits": 50,
+          "n_columns": 250,
+          "n_patches": 1250
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Dense hierarchy with high branching factors (5 landunits/gridcell, 5 columns/landunit, 5 patches/column) representing complex heterogeneous landscape",
+        "edge_cases": []
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Indexing Convention**: All indices use 1-based indexing (Fortran convention) with minimum value of 1.\n\n2. **Hierarchy Constraints**: The spatial hierarchy follows gridcell >= landunit >= column >= patch, meaning:\n   - Number of landunits >= number of gridcells\n   - Number of columns >= number of landunits\n   - Number of patches >= number of columns\n   - Typical ratios: 1.5 landunits/gridcell, 2 columns/landunit, 2 patches/column\n\n3. **Clump Configuration**: \n   - clump_id must be in range [1, n_clumps]\n   - n_clumps typically ranges from 1 (serial) to 128 (large parallel systems)\n   - Each clump represents a domain decomposition for parallel processing\n\n4. **Domain Sizes**:\n   - Minimal: Single point (1,1,1,1) for offline testing\n   - Small regional: 10-100 gridcells\n   - Global: ~64,800 gridcells (0.5 degree resolution)\n\n5. **Edge Cases Covered**:\n   - Equal begin/end indices (single element domains)\n   - Minimum valid clump_id (1)\n   - Invalid bounds (end < begin) for validation testing\n   - Non-contiguous index ranges for multi-clump scenarios\n\n6. **Special Cases**:\n   - Sparse hierarchy (1:1:1:1 ratio) - ocean/lake dominated domains\n   - Dense hierarchy (1:5:25:125 ratio) - highly heterogeneous landscapes\n   - Large-scale domains for performance testing\n\n7. **Physical Realism**: All test cases represent valid CLM domain configurations that could occur in real simulations, from single-point tower sites to global climate runs.\n\n8. **Validation**: The validate_bounds function should check:\n   - All indices >= 1\n   - end >= begin for each hierarchy level\n   - Proper ordering of hierarchy levels\n\n9. **Domain Size Calculation**: n_elements = end - begin + 1 (inclusive range with 1-based indexing)"
+}

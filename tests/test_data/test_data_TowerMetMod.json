@@ -1,0 +1,1119 @@
+{
+  "test_data_suite": {
+    "metadata": {
+      "generator": "Python/JAX Testing Agent",
+      "version": "1.0",
+      "generation_date": "2024",
+      "total_test_cases": 10,
+      "coverage": {
+        "nominal": 5,
+        "edge": 3,
+        "special": 2
+      }
+    },
+    "functions": [
+      {
+        "function_name": "partition_solar_radiation",
+        "test_cases": [
+          {
+            "name": "test_nominal_midday_clear_sky",
+            "inputs": {
+              "fsds": 800.0,
+              "params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "ivis": 0,
+              "inir": 1
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Typical midday clear sky conditions with strong solar radiation",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_morning_conditions",
+            "inputs": {
+              "fsds": 300.0,
+              "params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "ivis": 0,
+              "inir": 1
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Morning or late afternoon with moderate solar radiation",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_zero_radiation",
+            "inputs": {
+              "fsds": 0.0,
+              "params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "ivis": 0,
+              "inir": 1
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Nighttime conditions with zero solar radiation",
+              "edge_cases": [
+                "zero_flux"
+              ]
+            }
+          },
+          {
+            "name": "test_edge_very_low_radiation",
+            "inputs": {
+              "fsds": 1.0,
+              "params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "ivis": 0,
+              "inir": 1
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Dawn/dusk with minimal solar radiation",
+              "edge_cases": [
+                "near_zero"
+              ]
+            }
+          },
+          {
+            "name": "test_special_extreme_high_radiation",
+            "inputs": {
+              "fsds": 1400.0,
+              "params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "ivis": 0,
+              "inir": 1
+            },
+            "metadata": {
+              "type": "special",
+              "description": "Extreme high radiation (high altitude, clear sky, solar noon)",
+              "edge_cases": []
+            }
+          }
+        ]
+      },
+      {
+        "function_name": "relative_humidity_to_specific_humidity",
+        "test_cases": [
+          {
+            "name": "test_nominal_standard_conditions",
+            "inputs": {
+              "rh": 60.0,
+              "temperature": [
+                288.15,
+                290.15,
+                285.15
+              ],
+              "pressure": [
+                101325.0,
+                101325.0,
+                101325.0
+              ],
+              "esat": [
+                1705.0,
+                1937.0,
+                1402.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Standard atmospheric conditions with moderate humidity",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_cold_dry_conditions",
+            "inputs": {
+              "rh": 30.0,
+              "temperature": [
+                263.15,
+                268.15,
+                273.15
+              ],
+              "pressure": [
+                95000.0,
+                96000.0,
+                97000.0
+              ],
+              "esat": [
+                259.9,
+                389.8,
+                611.2
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Cold winter conditions with low humidity",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_hot_humid_conditions",
+            "inputs": {
+              "rh": 85.0,
+              "temperature": [
+                303.15,
+                305.15,
+                308.15
+              ],
+              "pressure": [
+                101325.0,
+                101000.0,
+                100500.0
+              ],
+              "esat": [
+                4242.0,
+                4758.0,
+                5622.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Tropical conditions with high temperature and humidity",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_zero_humidity",
+            "inputs": {
+              "rh": 0.0,
+              "temperature": [
+                288.15,
+                290.15
+              ],
+              "pressure": [
+                101325.0,
+                101325.0
+              ],
+              "esat": [
+                1705.0,
+                1937.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Completely dry air (theoretical limit)",
+              "edge_cases": [
+                "zero_humidity"
+              ]
+            }
+          },
+          {
+            "name": "test_edge_saturated_air",
+            "inputs": {
+              "rh": 100.0,
+              "temperature": [
+                288.15,
+                290.15,
+                293.15
+              ],
+              "pressure": [
+                101325.0,
+                101325.0,
+                101325.0
+              ],
+              "esat": [
+                1705.0,
+                1937.0,
+                2339.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Saturated air at 100% relative humidity",
+              "edge_cases": [
+                "saturation"
+              ]
+            }
+          },
+          {
+            "name": "test_special_high_altitude",
+            "inputs": {
+              "rh": 40.0,
+              "temperature": [
+                253.15,
+                258.15,
+                263.15,
+                268.15
+              ],
+              "pressure": [
+                70000.0,
+                72000.0,
+                74000.0,
+                76000.0
+              ],
+              "esat": [
+                103.3,
+                168.1,
+                259.9,
+                389.8
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "special",
+              "description": "High altitude conditions with low pressure and temperature",
+              "edge_cases": []
+            }
+          }
+        ]
+      },
+      {
+        "function_name": "specific_humidity_to_vapor_pressure",
+        "test_cases": [
+          {
+            "name": "test_nominal_moderate_humidity",
+            "inputs": {
+              "q": [
+                0.008,
+                0.01,
+                0.012
+              ],
+              "pressure": [
+                101325.0,
+                101325.0,
+                101325.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Typical specific humidity values for temperate climate",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_dry_conditions",
+            "inputs": {
+              "q": [
+                0.001,
+                0.002,
+                0.003
+              ],
+              "pressure": [
+                95000.0,
+                96000.0,
+                97000.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Dry atmospheric conditions with low specific humidity",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_zero_humidity",
+            "inputs": {
+              "q": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "pressure": [
+                101325.0,
+                101325.0,
+                101325.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Zero specific humidity (completely dry air)",
+              "edge_cases": [
+                "zero_humidity"
+              ]
+            }
+          },
+          {
+            "name": "test_special_very_humid_tropical",
+            "inputs": {
+              "q": [
+                0.02,
+                0.022,
+                0.024,
+                0.026
+              ],
+              "pressure": [
+                101325.0,
+                101000.0,
+                100500.0,
+                100000.0
+              ],
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966
+              }
+            },
+            "metadata": {
+              "type": "special",
+              "description": "Very high specific humidity in tropical conditions",
+              "edge_cases": []
+            }
+          }
+        ]
+      },
+      {
+        "function_name": "calculate_longwave_radiation",
+        "test_cases": [
+          {
+            "name": "test_nominal_standard_atmosphere",
+            "inputs": {
+              "temperature": [
+                288.15,
+                290.15,
+                285.15
+              ],
+              "vapor_pressure": [
+                1200.0,
+                1400.0,
+                1000.0
+              ],
+              "constants": {
+                "sb": 5.67e-08
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Standard atmospheric conditions for longwave calculation",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_cold_winter",
+            "inputs": {
+              "temperature": [
+                253.15,
+                258.15,
+                263.15
+              ],
+              "vapor_pressure": [
+                100.0,
+                150.0,
+                250.0
+              ],
+              "constants": {
+                "sb": 5.67e-08
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Cold winter conditions with low vapor pressure",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_hot_summer",
+            "inputs": {
+              "temperature": [
+                303.15,
+                305.15,
+                308.15
+              ],
+              "vapor_pressure": [
+                3000.0,
+                3500.0,
+                4200.0
+              ],
+              "constants": {
+                "sb": 5.67e-08
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Hot summer conditions with high vapor pressure",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_zero_vapor_pressure",
+            "inputs": {
+              "temperature": [
+                288.15,
+                290.15
+              ],
+              "vapor_pressure": [
+                0.0,
+                0.0
+              ],
+              "constants": {
+                "sb": 5.67e-08
+              }
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Theoretical dry atmosphere with zero vapor pressure",
+              "edge_cases": [
+                "zero_vapor"
+              ]
+            }
+          },
+          {
+            "name": "test_special_extreme_cold",
+            "inputs": {
+              "temperature": [
+                223.15,
+                233.15,
+                243.15,
+                253.15
+              ],
+              "vapor_pressure": [
+                10.0,
+                25.0,
+                50.0,
+                100.0
+              ],
+              "constants": {
+                "sb": 5.67e-08
+              }
+            },
+            "metadata": {
+              "type": "special",
+              "description": "Extreme cold conditions (polar winter)",
+              "edge_cases": []
+            }
+          }
+        ]
+      },
+      {
+        "function_name": "assign_co2_o2_coordinates",
+        "test_cases": [
+          {
+            "name": "test_nominal_single_gridcell",
+            "inputs": {
+              "forc_pbot": [
+                101325.0,
+                101325.0,
+                101325.0
+              ],
+              "tower_lat": 45.5,
+              "tower_lon": -93.2,
+              "col_to_gridcell": [
+                0,
+                0,
+                0
+              ],
+              "n_gridcells": 1,
+              "constants": {
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Single gridcell with multiple columns at mid-latitude",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_multiple_gridcells",
+            "inputs": {
+              "forc_pbot": [
+                101325.0,
+                99000.0,
+                95000.0,
+                101000.0,
+                98000.0
+              ],
+              "tower_lat": 40.0,
+              "tower_lon": -105.5,
+              "col_to_gridcell": [
+                0,
+                0,
+                1,
+                1,
+                2
+              ],
+              "n_gridcells": 3,
+              "constants": {
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209
+              }
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Multiple gridcells with varying pressure (elevation)",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_equator_location",
+            "inputs": {
+              "forc_pbot": [
+                101325.0,
+                101325.0
+              ],
+              "tower_lat": 0.0,
+              "tower_lon": 0.0,
+              "col_to_gridcell": [
+                0,
+                0
+              ],
+              "n_gridcells": 1,
+              "constants": {
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209
+              }
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Tower at equator (0,0) coordinates",
+              "edge_cases": [
+                "zero_coordinates"
+              ]
+            }
+          },
+          {
+            "name": "test_edge_polar_location",
+            "inputs": {
+              "forc_pbot": [
+                101325.0,
+                101325.0,
+                101325.0
+              ],
+              "tower_lat": 89.5,
+              "tower_lon": 45.0,
+              "col_to_gridcell": [
+                0,
+                0,
+                0
+              ],
+              "n_gridcells": 1,
+              "constants": {
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209
+              }
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Near north pole location",
+              "edge_cases": [
+                "boundary_latitude"
+              ]
+            }
+          },
+          {
+            "name": "test_special_high_altitude_low_pressure",
+            "inputs": {
+              "forc_pbot": [
+                70000.0,
+                72000.0,
+                68000.0,
+                71000.0
+              ],
+              "tower_lat": -15.5,
+              "tower_lon": -68.0,
+              "col_to_gridcell": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "n_gridcells": 2,
+              "constants": {
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209
+              }
+            },
+            "metadata": {
+              "type": "special",
+              "description": "High altitude location (Andes) with low pressure",
+              "edge_cases": []
+            }
+          }
+        ]
+      },
+      {
+        "function_name": "process_tower_met_forcing",
+        "test_cases": [
+          {
+            "name": "test_nominal_standard_tower",
+            "inputs": {
+              "raw_data": {
+                "zbot": 30.0,
+                "tbot": 288.15,
+                "rhbot": 60.0,
+                "qbot": 0.008,
+                "ubot": 3.5,
+                "fsdsbot": 600.0,
+                "fldsbot": 350.0,
+                "pbot": 101325.0,
+                "prect": 0.0
+              },
+              "tower_ht": 30.0,
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "default_pressure": 101325.0
+              },
+              "n_columns": 3,
+              "n_patches": 5,
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Standard 30m tower with typical daytime conditions",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_tall_tower",
+            "inputs": {
+              "raw_data": {
+                "zbot": 100.0,
+                "tbot": 285.15,
+                "rhbot": 70.0,
+                "qbot": 0.009,
+                "ubot": 5.2,
+                "fsdsbot": 450.0,
+                "fldsbot": 320.0,
+                "pbot": 99500.0,
+                "prect": 0.0002
+              },
+              "tower_ht": 100.0,
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "default_pressure": 101325.0
+              },
+              "n_columns": 4,
+              "n_patches": 8,
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Tall 100m tower with light precipitation",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_nighttime_calm",
+            "inputs": {
+              "raw_data": {
+                "zbot": 30.0,
+                "tbot": 278.15,
+                "rhbot": 85.0,
+                "qbot": 0.006,
+                "ubot": 0.5,
+                "fsdsbot": 0.0,
+                "fldsbot": 280.0,
+                "pbot": 101325.0,
+                "prect": 0.0
+              },
+              "tower_ht": 30.0,
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "default_pressure": 101325.0
+              },
+              "n_columns": 2,
+              "n_patches": 3,
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Nighttime with zero solar radiation and calm winds",
+              "edge_cases": [
+                "zero_solar",
+                "low_wind"
+              ]
+            }
+          },
+          {
+            "name": "test_special_storm_conditions",
+            "inputs": {
+              "raw_data": {
+                "zbot": 50.0,
+                "tbot": 283.15,
+                "rhbot": 95.0,
+                "qbot": 0.011,
+                "ubot": 12.0,
+                "fsdsbot": 100.0,
+                "fldsbot": 340.0,
+                "pbot": 98000.0,
+                "prect": 0.005
+              },
+              "tower_ht": 50.0,
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "default_pressure": 101325.0
+              },
+              "n_columns": 5,
+              "n_patches": 10,
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "special",
+              "description": "Storm conditions with high winds, precipitation, and low pressure",
+              "edge_cases": []
+            }
+          }
+        ]
+      },
+      {
+        "function_name": "process_tower_met",
+        "test_cases": [
+          {
+            "name": "test_nominal_complete_processing",
+            "inputs": {
+              "inputs": {
+                "raw_data": {
+                  "zbot": 30.0,
+                  "tbot": 288.15,
+                  "rhbot": 60.0,
+                  "qbot": 0.008,
+                  "ubot": 3.5,
+                  "fsdsbot": 600.0,
+                  "fldsbot": 350.0,
+                  "pbot": 101325.0,
+                  "prect": 0.0
+                },
+                "tower_ht": 30.0,
+                "tower_lat": 45.5,
+                "tower_lon": -93.2,
+                "n_gridcells": 1,
+                "n_columns": 3,
+                "n_patches": 5,
+                "col_to_gridcell": [
+                  0,
+                  0,
+                  0
+                ],
+                "col_to_tower": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "solar_params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209,
+                "default_pressure": 101325.0,
+                "default_height": 30.0
+              },
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Complete end-to-end processing of tower met data",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_nominal_multi_gridcell",
+            "inputs": {
+              "inputs": {
+                "raw_data": {
+                  "zbot": 50.0,
+                  "tbot": 290.15,
+                  "rhbot": 55.0,
+                  "qbot": 0.009,
+                  "ubot": 4.2,
+                  "fsdsbot": 750.0,
+                  "fldsbot": 360.0,
+                  "pbot": 100000.0,
+                  "prect": 0.0001
+                },
+                "tower_ht": 50.0,
+                "tower_lat": 35.0,
+                "tower_lon": -110.0,
+                "n_gridcells": 2,
+                "n_columns": 6,
+                "n_patches": 12,
+                "col_to_gridcell": [
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1
+                ],
+                "col_to_tower": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "solar_params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209,
+                "default_pressure": 101325.0,
+                "default_height": 30.0
+              },
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "nominal",
+              "description": "Processing with multiple gridcells and columns",
+              "edge_cases": []
+            }
+          },
+          {
+            "name": "test_edge_winter_arctic",
+            "inputs": {
+              "inputs": {
+                "raw_data": {
+                  "zbot": 20.0,
+                  "tbot": 253.15,
+                  "rhbot": 75.0,
+                  "qbot": 0.001,
+                  "ubot": 8.0,
+                  "fsdsbot": 50.0,
+                  "fldsbot": 180.0,
+                  "pbot": 101325.0,
+                  "prect": 0.0003
+                },
+                "tower_ht": 20.0,
+                "tower_lat": 70.0,
+                "tower_lon": 25.0,
+                "n_gridcells": 1,
+                "n_columns": 2,
+                "n_patches": 4,
+                "col_to_gridcell": [
+                  0,
+                  0
+                ],
+                "col_to_tower": [
+                  0,
+                  0
+                ]
+              },
+              "solar_params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209,
+                "default_pressure": 101325.0,
+                "default_height": 30.0
+              },
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "edge",
+              "description": "Arctic winter conditions with extreme cold and low solar",
+              "edge_cases": [
+                "extreme_cold",
+                "low_solar"
+              ]
+            }
+          },
+          {
+            "name": "test_special_tropical_rainforest",
+            "inputs": {
+              "inputs": {
+                "raw_data": {
+                  "zbot": 40.0,
+                  "tbot": 301.15,
+                  "rhbot": 90.0,
+                  "qbot": 0.02,
+                  "ubot": 2.0,
+                  "fsdsbot": 500.0,
+                  "fldsbot": 420.0,
+                  "pbot": 101325.0,
+                  "prect": 0.008
+                },
+                "tower_ht": 40.0,
+                "tower_lat": -3.0,
+                "tower_lon": -60.0,
+                "n_gridcells": 1,
+                "n_columns": 4,
+                "n_patches": 8,
+                "col_to_gridcell": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "col_to_tower": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "solar_params": {
+                "a0": 0.17639,
+                "a1": 0.0038,
+                "a2": -9.0039e-06,
+                "a3": 8.1351e-09,
+                "b0": 0.29548,
+                "b1": 0.00504,
+                "b2": -1.4957e-05,
+                "b3": 1.4881e-08
+              },
+              "constants": {
+                "mmh2o": 18.016,
+                "mmdry": 28.966,
+                "sb": 5.67e-08,
+                "co2_ppm": 367.0,
+                "o2_frac": 0.209,
+                "default_pressure": 101325.0,
+                "default_height": 30.0
+              },
+              "sat_vap_func": "qsat_function"
+            },
+            "metadata": {
+              "type": "special",
+              "description": "Tropical rainforest with high temperature, humidity, and precipitation",
+              "edge_cases": []
+            }
+          }
+        ]
+      }
+    ],
+    "notes": {
+      "generation_methodology": "Test data generated using physical principles and realistic atmospheric conditions",
+      "assumptions": [
+        "Temperature values in Kelvin, always > 0K (physical constraint)",
+        "Pressure values positive, typical range 70000-101325 Pa (sea level to high altitude)",
+        "Relative humidity in range [0, 100]%",
+        "Specific humidity in range [0, 1] kg/kg, typically < 0.03",
+        "Solar radiation non-negative, typical range 0-1400 W/m\u00b2",
+        "Wind speeds non-negative, typical range 0-15 m/s (calm to strong)",
+        "Latitude in [-90, 90] degrees, longitude in [-180, 180] degrees",
+        "Array dimensions consistent within each test case",
+        "Physical constants based on standard atmospheric values"
+      ],
+      "edge_case_coverage": [
+        "Zero values (nighttime solar, dry air, calm winds)",
+        "Boundary conditions (saturation, coordinate limits)",
+        "Extreme but valid conditions (arctic cold, tropical heat, high altitude)",
+        "Near-zero values (dawn/dusk, minimal humidity)"
+      ],
+      "physical_realism": [
+        "Temperature-pressure relationships follow atmospheric lapse rate",
+        "Saturation vapor pressure increases exponentially with temperature",
+        "Specific humidity consistent with temperature and pressure",
+        "Solar radiation values realistic for time of day and latitude",
+        "Precipitation rates typical for different climate zones"
+      ],
+      "test_distribution": {
+        "nominal_cases": "Cover typical operating conditions across climate zones",
+        "edge_cases": "Test boundary conditions and zero/minimal values",
+        "special_cases": "Extreme but physically valid scenarios (polar, tropical, high altitude)"
+      }
+    }
+  }
+}

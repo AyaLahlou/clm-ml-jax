@@ -1,0 +1,667 @@
+{
+  "function_name": "initVerticalMod",
+  "test_cases": [
+    {
+      "name": "test_clm50_single_column_nominal",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "nlevsoi": 20,
+        "nlevgrnd": 50,
+        "bedrock_depth": 10.0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single column with CLM5.0 physics, typical bedrock depth",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_clm45_single_column_nominal",
+      "inputs": {
+        "physics_version": "CLM4_5",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "scalez": 0.025,
+        "nlevgrnd": 50,
+        "bedrock_depth": 15.0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Single column with CLM4.5 physics, typical scalez parameter",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_multiple_columns_nominal",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 9
+        },
+        "nlevsoi": 20,
+        "nlevgrnd": 50,
+        "bedrock_depths": [
+          8.0,
+          12.0,
+          10.0,
+          15.0,
+          20.0,
+          5.0,
+          25.0,
+          30.0,
+          18.0,
+          22.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Multiple columns with varying bedrock depths",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_shallow_bedrock_edge",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "nlevsoi": 20,
+        "nlevgrnd": 50,
+        "bedrock_depth": 3.0,
+        "min_bedrock_depth": 3.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum allowed bedrock depth at boundary condition",
+        "edge_cases": [
+          "minimum_bedrock_depth"
+        ]
+      }
+    },
+    {
+      "name": "test_deep_bedrock_edge",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "nlevsoi": 20,
+        "nlevgrnd": 50,
+        "bedrock_depth": 50.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very deep bedrock approaching maximum layer depth",
+        "edge_cases": [
+          "maximum_bedrock_depth"
+        ]
+      }
+    },
+    {
+      "name": "test_minimal_layers_edge",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "nlevsoi": 1,
+        "nlevgrnd": 2,
+        "bedrock_depth": 5.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum number of soil and ground layers",
+        "edge_cases": [
+          "minimal_layers"
+        ]
+      }
+    },
+    {
+      "name": "test_small_scalez_clm45_edge",
+      "inputs": {
+        "physics_version": "CLM4_5",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "scalez": 0.001,
+        "nlevgrnd": 50,
+        "bedrock_depth": 10.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very small scalez parameter for fine layer discretization",
+        "edge_cases": [
+          "small_scalez"
+        ]
+      }
+    },
+    {
+      "name": "test_large_scalez_clm45_edge",
+      "inputs": {
+        "physics_version": "CLM4_5",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "scalez": 0.5,
+        "nlevgrnd": 50,
+        "bedrock_depth": 10.0
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Large scalez parameter for coarse layer discretization",
+        "edge_cases": [
+          "large_scalez"
+        ]
+      }
+    },
+    {
+      "name": "test_many_layers_special",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 0
+        },
+        "nlevsoi": 50,
+        "nlevgrnd": 100,
+        "bedrock_depth": 25.0
+      },
+      "metadata": {
+        "type": "special",
+        "description": "High resolution vertical discretization with many layers",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_large_column_range_special",
+      "inputs": {
+        "physics_version": "CLM5_0",
+        "bounds": {
+          "begc": 0,
+          "endc": 99
+        },
+        "nlevsoi": 20,
+        "nlevgrnd": 50,
+        "bedrock_depths": [
+          10.0,
+          12.0,
+          8.0,
+          15.0,
+          20.0,
+          5.0,
+          25.0,
+          30.0,
+          18.0,
+          22.0,
+          9.0,
+          11.0,
+          13.0,
+          14.0,
+          16.0,
+          17.0,
+          19.0,
+          21.0,
+          23.0,
+          24.0,
+          26.0,
+          27.0,
+          28.0,
+          29.0,
+          31.0,
+          32.0,
+          33.0,
+          34.0,
+          35.0,
+          36.0,
+          7.0,
+          8.5,
+          9.5,
+          10.5,
+          11.5,
+          12.5,
+          13.5,
+          14.5,
+          15.5,
+          16.5,
+          17.5,
+          18.5,
+          19.5,
+          20.5,
+          21.5,
+          22.5,
+          23.5,
+          24.5,
+          25.5,
+          26.5,
+          27.5,
+          28.5,
+          29.5,
+          30.5,
+          31.5,
+          32.5,
+          33.5,
+          34.5,
+          35.5,
+          36.5,
+          6.0,
+          6.5,
+          7.5,
+          8.0,
+          8.5,
+          9.0,
+          9.5,
+          10.0,
+          10.5,
+          11.0,
+          11.5,
+          12.0,
+          12.5,
+          13.0,
+          13.5,
+          14.0,
+          14.5,
+          15.0,
+          15.5,
+          16.0,
+          16.5,
+          17.0,
+          17.5,
+          18.0,
+          18.5,
+          19.0,
+          19.5,
+          20.0,
+          20.5,
+          21.0,
+          21.5,
+          22.0,
+          22.5,
+          23.0,
+          23.5,
+          24.0,
+          24.5,
+          25.0,
+          25.5,
+          26.0
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Large number of columns (100) with diverse bedrock depths",
+        "edge_cases": []
+      }
+    }
+  ],
+  "test_data_for_helper_functions": {
+    "_calculate_clm45_depths": [
+      {
+        "name": "test_clm45_depths_nominal",
+        "inputs": {
+          "scalez": 0.025,
+          "nlevgrnd": 50
+        },
+        "expected_properties": {
+          "shape": [
+            50
+          ],
+          "monotonic": "increasing",
+          "min_value": ">0",
+          "first_layer_approx": 0.01
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Standard CLM4.5 depth calculation"
+        }
+      },
+      {
+        "name": "test_clm45_depths_small_scalez",
+        "inputs": {
+          "scalez": 0.001,
+          "nlevgrnd": 30
+        },
+        "expected_properties": {
+          "shape": [
+            30
+          ],
+          "monotonic": "increasing",
+          "first_layer_approx": 0.0005
+        },
+        "metadata": {
+          "type": "edge",
+          "description": "Fine discretization with small scalez"
+        }
+      }
+    ],
+    "_calculate_clm45_thicknesses": [
+      {
+        "name": "test_clm45_thicknesses_nominal",
+        "inputs": {
+          "depths": [
+            0.01,
+            0.04,
+            0.09,
+            0.16,
+            0.26,
+            0.4,
+            0.58,
+            0.8,
+            1.06,
+            1.36
+          ]
+        },
+        "expected_properties": {
+          "shape": [
+            10
+          ],
+          "all_positive": true,
+          "sum_approx_max_depth": true
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Calculate thicknesses from typical depth array"
+        }
+      }
+    ],
+    "_calculate_clm45_interfaces": [
+      {
+        "name": "test_clm45_interfaces_nominal",
+        "inputs": {
+          "depths": [
+            0.01,
+            0.04,
+            0.09,
+            0.16,
+            0.26
+          ],
+          "thicknesses": [
+            0.02,
+            0.04,
+            0.06,
+            0.08,
+            0.1
+          ]
+        },
+        "expected_properties": {
+          "shape": [
+            6
+          ],
+          "first_value": 0.0,
+          "monotonic": "increasing"
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Calculate interfaces from depths and thicknesses"
+        }
+      }
+    ],
+    "_calculate_clm50_thicknesses": [
+      {
+        "name": "test_clm50_thicknesses_nominal",
+        "inputs": {
+          "nlevsoi": 20,
+          "nlevgrnd": 50
+        },
+        "expected_properties": {
+          "shape": [
+            50
+          ],
+          "all_positive": true,
+          "soil_layers_smaller": true
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Standard CLM5.0 thickness calculation"
+        }
+      },
+      {
+        "name": "test_clm50_thicknesses_minimal",
+        "inputs": {
+          "nlevsoi": 1,
+          "nlevgrnd": 2
+        },
+        "expected_properties": {
+          "shape": [
+            2
+          ],
+          "all_positive": true
+        },
+        "metadata": {
+          "type": "edge",
+          "description": "Minimal layer configuration"
+        }
+      }
+    ],
+    "_calculate_clm50_interfaces": [
+      {
+        "name": "test_clm50_interfaces_nominal",
+        "inputs": {
+          "thicknesses": [
+            0.02,
+            0.04,
+            0.06,
+            0.08,
+            0.1,
+            0.12,
+            0.14,
+            0.16,
+            0.18,
+            0.2
+          ]
+        },
+        "expected_properties": {
+          "shape": [
+            11
+          ],
+          "first_value": 0.0,
+          "last_value_is_sum": true,
+          "monotonic": "increasing"
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Cumulative sum for interface calculation"
+        }
+      }
+    ],
+    "_calculate_clm50_depths": [
+      {
+        "name": "test_clm50_depths_nominal",
+        "inputs": {
+          "interfaces": [
+            0.0,
+            0.02,
+            0.06,
+            0.12,
+            0.2,
+            0.3,
+            0.42,
+            0.56,
+            0.72,
+            0.9,
+            1.1
+          ]
+        },
+        "expected_properties": {
+          "shape": [
+            10
+          ],
+          "all_positive": true,
+          "midpoint_calculation": true
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Calculate layer centers from interfaces"
+        }
+      }
+    ],
+    "_find_bedrock_index": [
+      {
+        "name": "test_find_bedrock_nominal",
+        "inputs": {
+          "col_idx": 0,
+          "zbedrock": 10.0,
+          "jmin_bedrock": 5,
+          "layer_interfaces": [
+            0.0,
+            0.5,
+            1.5,
+            3.0,
+            5.0,
+            7.5,
+            10.5,
+            14.0,
+            18.0,
+            22.5,
+            27.5
+          ]
+        },
+        "expected_properties": {
+          "result_gte_jmin": true,
+          "interface_straddles_zbedrock": true
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Find bedrock index for typical depth"
+        }
+      },
+      {
+        "name": "test_find_bedrock_shallow",
+        "inputs": {
+          "col_idx": 0,
+          "zbedrock": 3.0,
+          "jmin_bedrock": 1,
+          "layer_interfaces": [
+            0.0,
+            0.5,
+            1.5,
+            3.0,
+            5.0,
+            7.5,
+            10.5,
+            14.0,
+            18.0,
+            22.5,
+            27.5
+          ]
+        },
+        "expected_properties": {
+          "result_gte_jmin": true,
+          "exact_match_possible": true
+        },
+        "metadata": {
+          "type": "edge",
+          "description": "Bedrock at exact interface depth"
+        }
+      }
+    ],
+    "calculate_layer_statistics": [
+      {
+        "name": "test_layer_stats_nominal",
+        "inputs": {
+          "depths": [
+            0.01,
+            0.04,
+            0.09,
+            0.16,
+            0.26,
+            0.4,
+            0.58,
+            0.8,
+            1.06,
+            1.36
+          ],
+          "thicknesses": [
+            0.02,
+            0.04,
+            0.06,
+            0.08,
+            0.1,
+            0.12,
+            0.14,
+            0.16,
+            0.18,
+            0.2
+          ]
+        },
+        "expected_properties": {
+          "mean_depth_positive": true,
+          "max_depth_equals_last": true,
+          "total_depth_is_sum": true,
+          "min_thickness_positive": true
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Calculate statistics for typical layer structure"
+        }
+      }
+    ],
+    "validate_vertical_structure": [
+      {
+        "name": "test_validate_valid_structure",
+        "inputs": {
+          "structure": {
+            "physics_version": "CLM5_0",
+            "num_soil_layers": 20,
+            "num_ground_layers": 50,
+            "min_bedrock_depth": 3.0,
+            "layer_depths_shape": [
+              1,
+              50
+            ],
+            "layer_thicknesses_shape": [
+              1,
+              50
+            ],
+            "interface_depths_shape": [
+              1,
+              51
+            ],
+            "bedrock_indices_shape": [
+              1
+            ]
+          }
+        },
+        "expected_properties": {
+          "is_valid": true,
+          "error_message_empty": true
+        },
+        "metadata": {
+          "type": "nominal",
+          "description": "Validate correct vertical structure"
+        }
+      },
+      {
+        "name": "test_validate_invalid_layer_count",
+        "inputs": {
+          "structure": {
+            "physics_version": "CLM5_0",
+            "num_soil_layers": 50,
+            "num_ground_layers": 20,
+            "min_bedrock_depth": 3.0
+          }
+        },
+        "expected_properties": {
+          "is_valid": false,
+          "error_message_contains": "ground_layers"
+        },
+        "metadata": {
+          "type": "edge",
+          "description": "Invalid configuration with soil layers > ground layers"
+        }
+      }
+    ]
+  },
+  "notes": "Test data generation strategy:\n\n1. **Nominal cases (50%)**: Used typical CLM parameter values - scalez=0.025, nlevsoi=20, nlevgrnd=50, bedrock depths 5-30m. These represent standard Earth system model configurations.\n\n2. **Edge cases (30%)**: \n   - Minimum bedrock depth (3.0m) at boundary\n   - Maximum bedrock depth (50m) approaching layer limit\n   - Minimal layer counts (1 soil, 2 ground)\n   - Extreme scalez values (0.001 for fine, 0.5 for coarse discretization)\n   - Single column (begc=endc=0)\n\n3. **Special cases (20%)**:\n   - High resolution (100 layers) for detailed simulations\n   - Large column arrays (100 columns) for spatial heterogeneity\n   - Diverse bedrock depth distributions\n\n**Physical constraints enforced**:\n- All depths >= 0 (no negative depths)\n- Bedrock depth >= min_bedrock_depth (3.0m default)\n- nlevgrnd >= nlevsoi (ground includes soil + bedrock)\n- scalez > 0 (positive discretization parameter)\n- begc <= endc (valid column ranges)\n- Monotonically increasing depths and interfaces\n\n**Array dimensions**: All arrays within a test case have consistent dimensions. For multi-column tests, bedrock_depths array length matches (endc - begc + 1).\n\n**Helper function tests**: Included separate test specifications for internal calculation functions with expected properties rather than exact values, since these are deterministic calculations that should be verified through property-based testing.\n\n**Assumptions**:\n- CLM4.5 uses exponential depth discretization with scalez parameter\n- CLM5.0 uses predefined thickness arrays\n- Bedrock indices are 1-based (Fortran convention)\n- Column indices are 0-based (Python convention)\n- Global state modifications require careful test isolation"
+}

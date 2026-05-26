@@ -1,0 +1,310 @@
+{
+  "function_name": "WaterFluxType",
+  "test_cases": [
+    {
+      "name": "test_init_waterflux_type_single_patch",
+      "function": "init_waterflux_type",
+      "inputs": {
+        "n_patches": 1
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize water flux for single patch domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_waterflux_type_typical_domain",
+      "function": "init_waterflux_type",
+      "inputs": {
+        "n_patches": 100
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize water flux for typical 100-patch domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_waterflux_type_large_domain",
+      "function": "init_waterflux_type",
+      "inputs": {
+        "n_patches": 10000
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Initialize water flux for large-scale simulation with 10k patches",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_small_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "waterflux_state": {
+          "qflx_evap_tot_patch": null
+        },
+        "bounds": {
+          "begp": 1,
+          "endp": 5
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Allocate arrays for small domain with 5 patches",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_init_allocate_single_patch_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "waterflux_state": {
+          "qflx_evap_tot_patch": null
+        },
+        "bounds": {
+          "begp": 1,
+          "endp": 1
+        }
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Allocate for minimum valid domain (single patch)",
+        "edge_cases": [
+          "minimum_domain"
+        ]
+      }
+    },
+    {
+      "name": "test_init_allocate_offset_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "waterflux_state": {
+          "qflx_evap_tot_patch": null
+        },
+        "bounds": {
+          "begp": 50,
+          "endp": 150
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Allocate with non-zero starting index (Fortran 1-based convention)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_qflx_typical_evaporation",
+      "function": "update_qflx_evap_tot_patch",
+      "inputs": {
+        "waterflux": {
+          "qflx_evap_tot_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "qflx_evap_tot_patch": [
+          0.0001,
+          0.0025,
+          0.005,
+          0.0015,
+          0.0008
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update with typical positive evaporation fluxes during daytime",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_qflx_condensation",
+      "function": "update_qflx_evap_tot_patch",
+      "inputs": {
+        "waterflux": {
+          "qflx_evap_tot_patch": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "qflx_evap_tot_patch": [
+          -0.0005,
+          -0.0012,
+          -0.0003
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update with negative fluxes representing condensation/dew formation",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_qflx_zero_flux",
+      "function": "update_qflx_evap_tot_patch",
+      "inputs": {
+        "waterflux": {
+          "qflx_evap_tot_patch": [
+            0.0025,
+            0.003,
+            0.0015,
+            0.002
+          ]
+        },
+        "qflx_evap_tot_patch": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Update with zero flux (no evaporation or condensation)",
+        "edge_cases": [
+          "zero_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_update_qflx_extreme_conditions",
+      "function": "update_qflx_evap_tot_patch",
+      "inputs": {
+        "waterflux": {
+          "qflx_evap_tot_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "qflx_evap_tot_patch": [
+          0.0095,
+          -0.0098,
+          0.0,
+          0.0001,
+          -0.0001,
+          0.005
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Update with extreme but physically valid fluxes near typical bounds, mixed evap/condensation",
+        "edge_cases": [
+          "extreme_values",
+          "mixed_signs",
+          "boundary_values"
+        ]
+      }
+    },
+    {
+      "name": "test_init_with_bounds_typical",
+      "function": "init",
+      "inputs": {
+        "waterflux_state": {
+          "qflx_evap_tot_patch": null
+        },
+        "bounds": {
+          "begp": 1,
+          "endp": 50
+        }
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Initialize complete state with typical 50-patch domain",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_qflx_mixed_magnitudes",
+      "function": "update_qflx_evap_tot_patch",
+      "inputs": {
+        "waterflux": {
+          "qflx_evap_tot_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "qflx_evap_tot_patch": [
+          1e-06,
+          0.001,
+          0.005,
+          -1e-06,
+          -0.001,
+          0.0,
+          0.009,
+          -0.007
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Update with wide range of magnitudes from micro-scale to near-maximum fluxes",
+        "edge_cases": [
+          "small_values",
+          "large_values"
+        ]
+      }
+    },
+    {
+      "name": "test_init_allocate_large_bounds",
+      "function": "init_allocate",
+      "inputs": {
+        "waterflux_state": {
+          "qflx_evap_tot_patch": null
+        },
+        "bounds": {
+          "begp": 1,
+          "endp": 5000
+        }
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Allocate for large-scale regional simulation with 5000 patches",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_update_qflx_very_small_fluxes",
+      "function": "update_qflx_evap_tot_patch",
+      "inputs": {
+        "waterflux": {
+          "qflx_evap_tot_patch": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "qflx_evap_tot_patch": [
+          1e-10,
+          -1e-10,
+          5e-11,
+          -3e-11,
+          0.0
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Update with extremely small fluxes near numerical precision limits",
+        "edge_cases": [
+          "numerical_precision",
+          "small_values"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation assumptions:\n\n1. **Physical Realism**: \n   - qflx_evap_tot_patch values are in kg H2O/m\u00b2/s, typical range [-0.01, 0.01]\n   - Positive values = evaporation (water leaving surface)\n   - Negative values = condensation/dew formation (water arriving at surface)\n   - Zero values = equilibrium conditions\n\n2. **Bounds Convention**:\n   - Using Fortran 1-based indexing (begp >= 1)\n   - endp >= begp always maintained\n   - Array size = endp - begp + 1\n\n3. **Test Coverage**:\n   - Nominal cases (50%): Tests 1, 2, 4, 7, 8, 11 - typical operational conditions\n   - Edge cases (30%): Tests 5, 9, 10, 14 - boundaries, zeros, extremes\n   - Special cases (20%): Tests 3, 6, 12, 13 - large domains, mixed magnitudes, offset indices\n\n4. **Array Dimensions**:\n   - All arrays within a test case have consistent dimensions\n   - Patch counts range from 1 (minimum) to 10,000 (large-scale)\n\n5. **Flux Magnitudes**:\n   - Typical evaporation: 0.0001-0.005 kg/m\u00b2/s (light to moderate)\n   - Strong evaporation: 0.005-0.01 kg/m\u00b2/s (hot, dry conditions)\n   - Condensation: -0.001 to -0.01 kg/m\u00b2/s (dew formation)\n   - Micro-scale: 1e-10 to 1e-6 kg/m\u00b2/s (numerical precision testing)\n\n6. **Initialization States**:\n   - null values represent uninitialized/unallocated arrays\n   - Zero-filled arrays represent freshly allocated state\n   - Mixed values represent ongoing simulation state updates"
+}

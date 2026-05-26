@@ -1,0 +1,980 @@
+{
+  "function_name": "soil_fluxes",
+  "test_cases": [
+    {
+      "name": "test_nominal_temperate_conditions",
+      "inputs": {
+        "tref": [
+          293.15,
+          295.15,
+          290.15
+        ],
+        "pref": [
+          101325.0,
+          101000.0,
+          101500.0
+        ],
+        "rhomol": [
+          41.6,
+          41.4,
+          41.8
+        ],
+        "cpair": [
+          29.3,
+          29.3,
+          29.3
+        ],
+        "rnsoi": [
+          150.0,
+          200.0,
+          100.0
+        ],
+        "rhg": [
+          0.7,
+          0.8,
+          0.6
+        ],
+        "soilres": [
+          50.0,
+          100.0,
+          75.0
+        ],
+        "gac0": [
+          0.5,
+          0.6,
+          0.4
+        ],
+        "soil_t": [
+          288.15,
+          290.15,
+          287.15
+        ],
+        "soil_dz": [
+          0.05,
+          0.05,
+          0.05
+        ],
+        "soil_tk": [
+          1.5,
+          1.8,
+          1.2
+        ],
+        "tg_bef": [
+          289.15,
+          291.15,
+          288.15
+        ],
+        "tair": [
+          [
+            293.15,
+            292.15,
+            291.15,
+            290.15
+          ],
+          [
+            295.15,
+            294.15,
+            293.15,
+            292.15
+          ],
+          [
+            290.15,
+            289.15,
+            288.15,
+            287.15
+          ]
+        ],
+        "eair": [
+          [
+            1500.0,
+            1450.0,
+            1400.0,
+            1350.0
+          ],
+          [
+            1600.0,
+            1550.0,
+            1500.0,
+            1450.0
+          ],
+          [
+            1400.0,
+            1350.0,
+            1300.0,
+            1250.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Typical temperate climate conditions with moderate radiation and humidity",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_hot_dry_conditions",
+      "inputs": {
+        "tref": [
+          308.15,
+          310.15,
+          305.15,
+          312.15
+        ],
+        "pref": [
+          95000.0,
+          94500.0,
+          95500.0,
+          94000.0
+        ],
+        "rhomol": [
+          38.5,
+          38.2,
+          38.8,
+          37.9
+        ],
+        "cpair": [
+          29.5,
+          29.5,
+          29.5,
+          29.5
+        ],
+        "rnsoi": [
+          400.0,
+          450.0,
+          380.0,
+          420.0
+        ],
+        "rhg": [
+          0.2,
+          0.15,
+          0.25,
+          0.18
+        ],
+        "soilres": [
+          200.0,
+          250.0,
+          180.0,
+          220.0
+        ],
+        "gac0": [
+          0.8,
+          0.9,
+          0.7,
+          0.85
+        ],
+        "soil_t": [
+          305.15,
+          307.15,
+          303.15,
+          308.15
+        ],
+        "soil_dz": [
+          0.08,
+          0.08,
+          0.08,
+          0.08
+        ],
+        "soil_tk": [
+          0.8,
+          0.7,
+          0.9,
+          0.75
+        ],
+        "tg_bef": [
+          306.15,
+          308.15,
+          304.15,
+          309.15
+        ],
+        "tair": [
+          [
+            308.15,
+            307.15,
+            306.15,
+            305.15,
+            304.15
+          ],
+          [
+            310.15,
+            309.15,
+            308.15,
+            307.15,
+            306.15
+          ],
+          [
+            305.15,
+            304.15,
+            303.15,
+            302.15,
+            301.15
+          ],
+          [
+            312.15,
+            311.15,
+            310.15,
+            309.15,
+            308.15
+          ]
+        ],
+        "eair": [
+          [
+            800.0,
+            780.0,
+            760.0,
+            740.0,
+            720.0
+          ],
+          [
+            850.0,
+            830.0,
+            810.0,
+            790.0,
+            770.0
+          ],
+          [
+            750.0,
+            730.0,
+            710.0,
+            690.0,
+            670.0
+          ],
+          [
+            900.0,
+            880.0,
+            860.0,
+            840.0,
+            820.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Hot, arid desert conditions with high radiation, low humidity, and high soil resistance",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_nominal_cold_wet_conditions",
+      "inputs": {
+        "tref": [
+          278.15,
+          280.15
+        ],
+        "pref": [
+          102000.0,
+          102500.0
+        ],
+        "rhomol": [
+          44.2,
+          44.5
+        ],
+        "cpair": [
+          29.1,
+          29.1
+        ],
+        "rnsoi": [
+          50.0,
+          75.0
+        ],
+        "rhg": [
+          0.95,
+          0.98
+        ],
+        "soilres": [
+          10.0,
+          5.0
+        ],
+        "gac0": [
+          0.3,
+          0.35
+        ],
+        "soil_t": [
+          275.15,
+          276.15
+        ],
+        "soil_dz": [
+          0.03,
+          0.03
+        ],
+        "soil_tk": [
+          2.5,
+          2.8
+        ],
+        "tg_bef": [
+          276.15,
+          277.15
+        ],
+        "tair": [
+          [
+            278.15,
+            277.65,
+            277.15
+          ],
+          [
+            280.15,
+            279.65,
+            279.15
+          ]
+        ],
+        "eair": [
+          [
+            600.0,
+            590.0,
+            580.0
+          ],
+          [
+            650.0,
+            640.0,
+            630.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Cold, wet conditions near freezing with high humidity and low soil resistance",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_edge_zero_net_radiation",
+      "inputs": {
+        "tref": [
+          288.15,
+          290.15,
+          292.15
+        ],
+        "pref": [
+          101325.0,
+          101325.0,
+          101325.0
+        ],
+        "rhomol": [
+          41.6,
+          41.6,
+          41.6
+        ],
+        "cpair": [
+          29.3,
+          29.3,
+          29.3
+        ],
+        "rnsoi": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rhg": [
+          0.5,
+          0.6,
+          0.7
+        ],
+        "soilres": [
+          50.0,
+          50.0,
+          50.0
+        ],
+        "gac0": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "soil_t": [
+          288.15,
+          290.15,
+          292.15
+        ],
+        "soil_dz": [
+          0.05,
+          0.05,
+          0.05
+        ],
+        "soil_tk": [
+          1.5,
+          1.5,
+          1.5
+        ],
+        "tg_bef": [
+          288.15,
+          290.15,
+          292.15
+        ],
+        "tair": [
+          [
+            288.15,
+            288.15,
+            288.15
+          ],
+          [
+            290.15,
+            290.15,
+            290.15
+          ],
+          [
+            292.15,
+            292.15,
+            292.15
+          ]
+        ],
+        "eair": [
+          [
+            1200.0,
+            1200.0,
+            1200.0
+          ],
+          [
+            1400.0,
+            1400.0,
+            1400.0
+          ],
+          [
+            1600.0,
+            1600.0,
+            1600.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Zero net radiation at surface - tests nighttime or balanced radiation conditions",
+        "edge_cases": [
+          "zero_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_negative_net_radiation",
+      "inputs": {
+        "tref": [
+          285.15,
+          283.15
+        ],
+        "pref": [
+          101325.0,
+          101325.0
+        ],
+        "rhomol": [
+          41.8,
+          42.0
+        ],
+        "cpair": [
+          29.2,
+          29.2
+        ],
+        "rnsoi": [
+          -50.0,
+          -75.0
+        ],
+        "rhg": [
+          0.8,
+          0.85
+        ],
+        "soilres": [
+          30.0,
+          25.0
+        ],
+        "gac0": [
+          0.4,
+          0.45
+        ],
+        "soil_t": [
+          286.15,
+          284.15
+        ],
+        "soil_dz": [
+          0.05,
+          0.05
+        ],
+        "soil_tk": [
+          1.8,
+          1.9
+        ],
+        "tg_bef": [
+          287.15,
+          285.15
+        ],
+        "tair": [
+          [
+            285.15,
+            285.65,
+            286.15,
+            286.65
+          ],
+          [
+            283.15,
+            283.65,
+            284.15,
+            284.65
+          ]
+        ],
+        "eair": [
+          [
+            1100.0,
+            1120.0,
+            1140.0,
+            1160.0
+          ],
+          [
+            1000.0,
+            1020.0,
+            1040.0,
+            1060.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Negative net radiation - nighttime cooling with surface losing energy",
+        "edge_cases": [
+          "negative_flux"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_saturated_humidity",
+      "inputs": {
+        "tref": [
+          298.15,
+          300.15,
+          295.15
+        ],
+        "pref": [
+          101325.0,
+          101000.0,
+          101500.0
+        ],
+        "rhomol": [
+          41.4,
+          41.2,
+          41.6
+        ],
+        "cpair": [
+          29.4,
+          29.4,
+          29.4
+        ],
+        "rnsoi": [
+          100.0,
+          120.0,
+          90.0
+        ],
+        "rhg": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "soilres": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "gac0": [
+          0.6,
+          0.65,
+          0.55
+        ],
+        "soil_t": [
+          298.15,
+          300.15,
+          295.15
+        ],
+        "soil_dz": [
+          0.04,
+          0.04,
+          0.04
+        ],
+        "soil_tk": [
+          2.0,
+          2.1,
+          1.9
+        ],
+        "tg_bef": [
+          298.15,
+          300.15,
+          295.15
+        ],
+        "tair": [
+          [
+            298.15,
+            297.65,
+            297.15,
+            296.65,
+            296.15
+          ],
+          [
+            300.15,
+            299.65,
+            299.15,
+            298.65,
+            298.15
+          ],
+          [
+            295.15,
+            294.65,
+            294.15,
+            293.65,
+            293.15
+          ]
+        ],
+        "eair": [
+          [
+            2500.0,
+            2480.0,
+            2460.0,
+            2440.0,
+            2420.0
+          ],
+          [
+            2700.0,
+            2680.0,
+            2660.0,
+            2640.0,
+            2620.0
+          ],
+          [
+            2300.0,
+            2280.0,
+            2260.0,
+            2240.0,
+            2220.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Saturated soil surface (rhg=1.0) with zero soil resistance - maximum evaporation potential",
+        "edge_cases": [
+          "boundary",
+          "zero_resistance"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_very_dry_soil",
+      "inputs": {
+        "tref": [
+          303.15,
+          305.15
+        ],
+        "pref": [
+          98000.0,
+          97500.0
+        ],
+        "rhomol": [
+          39.5,
+          39.2
+        ],
+        "cpair": [
+          29.5,
+          29.5
+        ],
+        "rnsoi": [
+          350.0,
+          380.0
+        ],
+        "rhg": [
+          0.0,
+          0.0
+        ],
+        "soilres": [
+          1000.0,
+          1500.0
+        ],
+        "gac0": [
+          0.7,
+          0.75
+        ],
+        "soil_t": [
+          308.15,
+          310.15
+        ],
+        "soil_dz": [
+          0.1,
+          0.1
+        ],
+        "soil_tk": [
+          0.5,
+          0.45
+        ],
+        "tg_bef": [
+          309.15,
+          311.15
+        ],
+        "tair": [
+          [
+            303.15,
+            304.15,
+            305.15,
+            306.15
+          ],
+          [
+            305.15,
+            306.15,
+            307.15,
+            308.15
+          ]
+        ],
+        "eair": [
+          [
+            500.0,
+            520.0,
+            540.0,
+            560.0
+          ],
+          [
+            550.0,
+            570.0,
+            590.0,
+            610.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Completely dry soil surface (rhg=0.0) with very high resistance - minimal evaporation",
+        "edge_cases": [
+          "boundary",
+          "zero_humidity"
+        ]
+      }
+    },
+    {
+      "name": "test_edge_extreme_temperature_gradient",
+      "inputs": {
+        "tref": [
+          320.15
+        ],
+        "pref": [
+          90000.0
+        ],
+        "rhomol": [
+          36.5
+        ],
+        "cpair": [
+          29.6
+        ],
+        "rnsoi": [
+          600.0
+        ],
+        "rhg": [
+          0.1
+        ],
+        "soilres": [
+          300.0
+        ],
+        "gac0": [
+          1.2
+        ],
+        "soil_t": [
+          280.15
+        ],
+        "soil_dz": [
+          0.02
+        ],
+        "soil_tk": [
+          3.0
+        ],
+        "tg_bef": [
+          300.15
+        ],
+        "tair": [
+          [
+            320.15,
+            318.15,
+            316.15,
+            314.15,
+            312.15,
+            310.15
+          ]
+        ],
+        "eair": [
+          [
+            400.0,
+            420.0,
+            440.0,
+            460.0,
+            480.0,
+            500.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Extreme temperature gradient between hot air and cold subsurface - tests large heat flux",
+        "edge_cases": [
+          "extreme_gradient"
+        ]
+      }
+    },
+    {
+      "name": "test_special_single_patch",
+      "inputs": {
+        "tref": [
+          290.15
+        ],
+        "pref": [
+          101325.0
+        ],
+        "rhomol": [
+          41.6
+        ],
+        "cpair": [
+          29.3
+        ],
+        "rnsoi": [
+          150.0
+        ],
+        "rhg": [
+          0.65
+        ],
+        "soilres": [
+          60.0
+        ],
+        "gac0": [
+          0.5
+        ],
+        "soil_t": [
+          288.15
+        ],
+        "soil_dz": [
+          0.05
+        ],
+        "soil_tk": [
+          1.5
+        ],
+        "tg_bef": [
+          289.15
+        ],
+        "tair": [
+          [
+            290.15
+          ]
+        ],
+        "eair": [
+          [
+            1300.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Single patch with single canopy layer - minimal array dimensions",
+        "edge_cases": [
+          "minimal_dimensions"
+        ]
+      }
+    },
+    {
+      "name": "test_special_many_canopy_layers",
+      "inputs": {
+        "tref": [
+          295.15,
+          293.15
+        ],
+        "pref": [
+          101325.0,
+          101500.0
+        ],
+        "rhomol": [
+          41.5,
+          41.7
+        ],
+        "cpair": [
+          29.3,
+          29.3
+        ],
+        "rnsoi": [
+          180.0,
+          160.0
+        ],
+        "rhg": [
+          0.7,
+          0.75
+        ],
+        "soilres": [
+          70.0,
+          65.0
+        ],
+        "gac0": [
+          0.55,
+          0.52
+        ],
+        "soil_t": [
+          290.15,
+          289.15
+        ],
+        "soil_dz": [
+          0.05,
+          0.05
+        ],
+        "soil_tk": [
+          1.6,
+          1.7
+        ],
+        "tg_bef": [
+          291.15,
+          290.15
+        ],
+        "tair": [
+          [
+            295.15,
+            294.65,
+            294.15,
+            293.65,
+            293.15,
+            292.65,
+            292.15,
+            291.65,
+            291.15,
+            290.65
+          ],
+          [
+            293.15,
+            292.65,
+            292.15,
+            291.65,
+            291.15,
+            290.65,
+            290.15,
+            289.65,
+            289.15,
+            288.65
+          ]
+        ],
+        "eair": [
+          [
+            1500.0,
+            1490.0,
+            1480.0,
+            1470.0,
+            1460.0,
+            1450.0,
+            1440.0,
+            1430.0,
+            1420.0,
+            1410.0
+          ],
+          [
+            1400.0,
+            1390.0,
+            1380.0,
+            1370.0,
+            1360.0,
+            1350.0,
+            1340.0,
+            1330.0,
+            1320.0,
+            1310.0
+          ]
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Multiple patches with many canopy layers - tests vertical resolution",
+        "edge_cases": [
+          "high_vertical_resolution"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation approach:\n\n1. **Physical Realism**: All temperatures are in Kelvin (>0K), with realistic ranges: cold (273-283K), temperate (283-303K), hot (303-323K). Pressures range from sea level (~101325 Pa) to high altitude (~90000 Pa). Molar densities calculated approximately as P/(R*T) where R\u22488.314 J/mol/K.\n\n2. **Nominal Cases** (tests 1-3): Cover three climate regimes - temperate (moderate everything), hot/dry (high temps, low humidity, high soil resistance), and cold/wet (low temps, high humidity, low resistance). These represent typical operating conditions.\n\n3. **Edge Cases** (tests 4-8): \n   - Zero net radiation (nighttime equilibrium)\n   - Negative net radiation (nighttime cooling)\n   - Saturated soil (rhg=1.0, soilres=0)\n   - Completely dry soil (rhg=0.0, very high resistance)\n   - Extreme temperature gradient (40K difference between air and subsurface)\n\n4. **Special Cases** (tests 9-10):\n   - Single patch, single layer (minimal dimensions)\n   - Multiple patches with 10 canopy layers (high vertical resolution)\n\n5. **Array Dimensions**: Each test has consistent dimensions within itself. n_patches varies from 1-4, n_layers varies from 1-10. The tair and eair arrays always have shape [n_patches, n_layers].\n\n6. **Physical Constraints Honored**:\n   - All temperatures > 0K\n   - rhg \u2208 [0, 1]\n   - All conductances, resistances, densities, pressures > 0\n   - Vapor pressures \u2265 0\n   - Realistic atmospheric conditions (cpair \u2248 29 J/mol/K for air)\n\n7. **Flux Conventions**: Net radiation can be positive (daytime) or negative (nighttime). Output fluxes will be positive upward from surface.\n\n8. **Energy Balance**: The function should produce energy_error < 0.001 W/m2 for all cases, which will be verified in assertions."
+}

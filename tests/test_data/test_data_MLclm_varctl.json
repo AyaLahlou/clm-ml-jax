@@ -1,0 +1,572 @@
+{
+  "function_name": "MLclm_varctl",
+  "test_cases": [
+    {
+      "name": "test_default_config_creation",
+      "inputs": {},
+      "expected_output": {
+        "clm_phys": "CLM4_5",
+        "gs_type": 2,
+        "gspot_type": 1,
+        "colim_type": 1,
+        "acclim_type": 1,
+        "kn_val": -999.0,
+        "turb_type": 1,
+        "gb_type": 3,
+        "light_type": 2,
+        "longwave_type": 1,
+        "fpi_type": 2,
+        "root_type": 2,
+        "fracdir": -999.0,
+        "mlcan_to_clm": 0,
+        "ml_vert_init": -9999,
+        "dz_tall": 0.5,
+        "dz_short": 0.1,
+        "dz_param": 2.0,
+        "dpai_min": 0.01,
+        "nlayer_above": 0,
+        "nlayer_within": 0,
+        "rslfile": "../rsl_lookup_tables/psihat.nc",
+        "dtime_substep": 300.0
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests creation of default configuration with all standard values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_clm5_config_creation",
+      "inputs": {},
+      "expected_output": {
+        "clm_phys": "CLM5_0",
+        "fpi_type": 2,
+        "root_type": 2
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests CLM5 physics configuration with appropriate fpi and root types",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_clm45_config_creation",
+      "inputs": {},
+      "expected_output": {
+        "clm_phys": "CLM4_5",
+        "fpi_type": 1,
+        "root_type": 1
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests CLM4.5 physics configuration with legacy fpi and root types",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_config_all_valid_options",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM5_0",
+          "gs_type": 0,
+          "gspot_type": 0,
+          "colim_type": 0,
+          "acclim_type": 0,
+          "kn_val": 0.5,
+          "turb_type": -1,
+          "gb_type": 0,
+          "light_type": 1,
+          "longwave_type": 1,
+          "fpi_type": 1,
+          "root_type": 1,
+          "fracdir": 0.7,
+          "mlcan_to_clm": 1,
+          "ml_vert_init": 1,
+          "dz_tall": 1.0,
+          "dz_short": 0.05,
+          "dz_param": 5.0,
+          "dpai_min": 0.001,
+          "nlayer_above": 5,
+          "nlayer_within": 20,
+          "rslfile": "/custom/path/psihat.nc",
+          "dtime_substep": 60.0
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests validation with all valid but non-default parameter choices",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_config_invalid_clm_phys",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM3_0",
+          "gs_type": 2,
+          "gspot_type": 1,
+          "colim_type": 1,
+          "acclim_type": 1,
+          "kn_val": -999.0,
+          "turb_type": 1,
+          "gb_type": 3,
+          "light_type": 2,
+          "longwave_type": 1,
+          "fpi_type": 2,
+          "root_type": 2,
+          "fracdir": -999.0,
+          "mlcan_to_clm": 0,
+          "ml_vert_init": -9999,
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0,
+          "dpai_min": 0.01,
+          "nlayer_above": 0,
+          "nlayer_within": 0,
+          "rslfile": "../rsl_lookup_tables/psihat.nc",
+          "dtime_substep": 300.0
+        }
+      },
+      "expected_output": "ValueError",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests validation failure with invalid clm_phys value",
+        "edge_cases": [
+          "invalid_enum"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_config_boundary_values",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM4_5",
+          "gs_type": 2,
+          "gspot_type": 1,
+          "colim_type": 1,
+          "acclim_type": 1,
+          "kn_val": 0.0,
+          "turb_type": 1,
+          "gb_type": 3,
+          "light_type": 2,
+          "longwave_type": 1,
+          "fpi_type": 2,
+          "root_type": 2,
+          "fracdir": 0.0,
+          "mlcan_to_clm": 0,
+          "ml_vert_init": -9999,
+          "dz_tall": 0.001,
+          "dz_short": 0.001,
+          "dz_param": 0.001,
+          "dpai_min": 0.0001,
+          "nlayer_above": 0,
+          "nlayer_within": 0,
+          "rslfile": "",
+          "dtime_substep": 1.0
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "edge",
+        "description": "Tests validation with minimum valid boundary values for continuous parameters",
+        "edge_cases": [
+          "minimum_values",
+          "boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_get_canopy_dz_tall_canopy",
+      "inputs": {
+        "config": {
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0
+        },
+        "canopy_height": 15.0
+      },
+      "expected_output": 0.5,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests dz selection for tall canopy (height > dz_param)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_canopy_dz_short_canopy",
+      "inputs": {
+        "config": {
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0
+        },
+        "canopy_height": 0.5
+      },
+      "expected_output": 0.1,
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests dz selection for short canopy (height <= dz_param)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_canopy_dz_boundary_height",
+      "inputs": {
+        "config": {
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0
+        },
+        "canopy_height": 2.0
+      },
+      "expected_output": 0.1,
+      "metadata": {
+        "type": "edge",
+        "description": "Tests dz selection at exact boundary (height == dz_param, should use dz_short)",
+        "edge_cases": [
+          "boundary"
+        ]
+      }
+    },
+    {
+      "name": "test_uses_rsl_turbulence_combinations",
+      "inputs": {
+        "configs": [
+          {
+            "turb_type": -1
+          },
+          {
+            "turb_type": 0
+          },
+          {
+            "turb_type": 1
+          }
+        ]
+      },
+      "expected_output": [
+        false,
+        false,
+        true
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests RSL turbulence detection across all valid turb_type values",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_uses_auto_layers_combinations",
+      "inputs": {
+        "configs": [
+          {
+            "nlayer_above": 0,
+            "nlayer_within": 0
+          },
+          {
+            "nlayer_above": 5,
+            "nlayer_within": 0
+          },
+          {
+            "nlayer_above": 0,
+            "nlayer_within": 10
+          },
+          {
+            "nlayer_above": 5,
+            "nlayer_within": 10
+          }
+        ]
+      },
+      "expected_output": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests auto-layer detection for all combinations of nlayer settings",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_config_negative_dz_values",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM4_5",
+          "gs_type": 2,
+          "gspot_type": 1,
+          "colim_type": 1,
+          "acclim_type": 1,
+          "kn_val": -999.0,
+          "turb_type": 1,
+          "gb_type": 3,
+          "light_type": 2,
+          "longwave_type": 1,
+          "fpi_type": 2,
+          "root_type": 2,
+          "fracdir": -999.0,
+          "mlcan_to_clm": 0,
+          "ml_vert_init": -9999,
+          "dz_tall": -0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0,
+          "dpai_min": 0.01,
+          "nlayer_above": 0,
+          "nlayer_within": 0,
+          "rslfile": "../rsl_lookup_tables/psihat.nc",
+          "dtime_substep": 300.0
+        }
+      },
+      "expected_output": "ValueError",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests validation failure with negative dz_tall (must be > 0)",
+        "edge_cases": [
+          "negative_value",
+          "constraint_violation"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_config_zero_dtime_substep",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM4_5",
+          "gs_type": 2,
+          "gspot_type": 1,
+          "colim_type": 1,
+          "acclim_type": 1,
+          "kn_val": -999.0,
+          "turb_type": 1,
+          "gb_type": 3,
+          "light_type": 2,
+          "longwave_type": 1,
+          "fpi_type": 2,
+          "root_type": 2,
+          "fracdir": -999.0,
+          "mlcan_to_clm": 0,
+          "ml_vert_init": -9999,
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0,
+          "dpai_min": 0.01,
+          "nlayer_above": 0,
+          "nlayer_within": 0,
+          "rslfile": "../rsl_lookup_tables/psihat.nc",
+          "dtime_substep": 0.0
+        }
+      },
+      "expected_output": "ValueError",
+      "metadata": {
+        "type": "edge",
+        "description": "Tests validation failure with zero dtime_substep (must be > 0)",
+        "edge_cases": [
+          "zero_value",
+          "constraint_violation"
+        ]
+      }
+    },
+    {
+      "name": "test_config_summary_format",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM5_0",
+          "gs_type": 0,
+          "gspot_type": 1,
+          "colim_type": 1,
+          "acclim_type": 1,
+          "kn_val": 0.3,
+          "turb_type": 1,
+          "gb_type": 2,
+          "light_type": 2,
+          "longwave_type": 1,
+          "fpi_type": 2,
+          "root_type": 2,
+          "fracdir": 0.6,
+          "mlcan_to_clm": 1,
+          "ml_vert_init": 1,
+          "dz_tall": 0.8,
+          "dz_short": 0.15,
+          "dz_param": 3.0,
+          "dpai_min": 0.02,
+          "nlayer_above": 3,
+          "nlayer_within": 15,
+          "rslfile": "/data/rsl/psihat.nc",
+          "dtime_substep": 180.0
+        }
+      },
+      "expected_output": "string",
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests config_summary returns properly formatted multi-line string with all parameters",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_get_canopy_dz_extreme_heights",
+      "inputs": {
+        "config": {
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0
+        },
+        "canopy_heights": [
+          0.01,
+          0.1,
+          1.0,
+          10.0,
+          50.0,
+          100.0
+        ]
+      },
+      "expected_output": [
+        0.1,
+        0.1,
+        0.1,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests dz selection across wide range of canopy heights from very short grass to tall forest",
+        "edge_cases": [
+          "extreme_values"
+        ]
+      }
+    },
+    {
+      "name": "test_validate_config_large_layer_counts",
+      "inputs": {
+        "config": {
+          "clm_phys": "CLM5_0",
+          "gs_type": 2,
+          "gspot_type": 1,
+          "colim_type": 1,
+          "acclim_type": 1,
+          "kn_val": -999.0,
+          "turb_type": 1,
+          "gb_type": 3,
+          "light_type": 2,
+          "longwave_type": 1,
+          "fpi_type": 2,
+          "root_type": 2,
+          "fracdir": -999.0,
+          "mlcan_to_clm": 0,
+          "ml_vert_init": -9999,
+          "dz_tall": 0.5,
+          "dz_short": 0.1,
+          "dz_param": 2.0,
+          "dpai_min": 0.01,
+          "nlayer_above": 100,
+          "nlayer_within": 500,
+          "rslfile": "../rsl_lookup_tables/psihat.nc",
+          "dtime_substep": 300.0
+        }
+      },
+      "expected_output": true,
+      "metadata": {
+        "type": "special",
+        "description": "Tests validation with very large but valid layer counts for high-resolution simulations",
+        "edge_cases": [
+          "extreme_values"
+        ]
+      }
+    },
+    {
+      "name": "test_is_clm5_physics_both_versions",
+      "inputs": {
+        "configs": [
+          {
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "clm_phys": "CLM5_0"
+          }
+        ]
+      },
+      "expected_output": [
+        false,
+        true
+      ],
+      "metadata": {
+        "type": "nominal",
+        "description": "Tests CLM5 physics detection for both CLM versions",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_config_all_stomatal_schemes",
+      "inputs": {
+        "configs": [
+          {
+            "gs_type": 0,
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "gs_type": 1,
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "gs_type": 2,
+            "clm_phys": "CLM4_5"
+          }
+        ]
+      },
+      "expected_output": [
+        true,
+        true,
+        true
+      ],
+      "metadata": {
+        "type": "special",
+        "description": "Tests validation of all three stomatal conductance schemes (Medlyn, Ball-Berry, WUE)",
+        "edge_cases": []
+      }
+    },
+    {
+      "name": "test_validate_config_fracdir_range",
+      "inputs": {
+        "configs": [
+          {
+            "fracdir": -999.0,
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "fracdir": -1.0,
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "fracdir": 0.0,
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "fracdir": 0.5,
+            "clm_phys": "CLM4_5"
+          },
+          {
+            "fracdir": 1.0,
+            "clm_phys": "CLM4_5"
+          }
+        ]
+      },
+      "expected_output": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "metadata": {
+        "type": "edge",
+        "description": "Tests validation of fracdir across full valid range including auto-compute flag and physical bounds",
+        "edge_cases": [
+          "boundary",
+          "special_values"
+        ]
+      }
+    }
+  ],
+  "notes": "Test data generation strategy:\n\n1. **Nominal cases (50%)**: Tests 1-4, 7-8, 14, 16-17 cover typical usage patterns including default configs, CLM version variants, and standard parameter queries.\n\n2. **Edge cases (30%)**: Tests 5-6, 9, 11-13, 18 examine boundary conditions including:\n   - Invalid enum values (CLM3_0)\n   - Minimum valid continuous values (0.001 for dz parameters)\n   - Exact boundary conditions (canopy_height == dz_param)\n   - Zero and negative values that violate exclusive_min constraints\n   - Special sentinel values (-999.0, -9999)\n\n3. **Special cases (20%)**: Tests 10, 15, 17 explore:\n   - Multiple configuration combinations for boolean logic tests\n   - Extreme but valid values (100+ layers, 100m canopy heights)\n   - Wide parameter ranges (0.01m to 100m canopy heights)\n\n**Physical realism considerations**:\n- All height/length parameters are positive (exclusive_min: true)\n- Canopy heights range from 0.01m (moss) to 100m (tall forest)\n- Time steps range from 1s to 300s (typical model timesteps)\n- Fraction values (fracdir) bounded [0, 1] or use -999 sentinel\n- Layer counts from 0 (auto) to 500 (high-resolution)\n\n**Constraint validation**:\n- Enum fields tested with valid and invalid values\n- Exclusive minimum constraints tested with zero and negative values\n- Sentinel values (-999.0, -9999) tested as special cases\n- Boolean logic functions tested across all valid enum combinations\n\n**Array handling**: No arrays in this API - all parameters are scalars or namedtuple configs. Multiple configs tested via lists in metadata for batch validation scenarios."
+}

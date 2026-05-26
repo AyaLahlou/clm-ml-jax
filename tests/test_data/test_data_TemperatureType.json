@@ -1,0 +1,697 @@
+{
+  "function_name": "temperature_state_functions",
+  "test_cases": [
+    {
+      "name": "test_init_temperature_state_nominal_small_domain",
+      "function": "init_temperature_state",
+      "inputs": {
+        "n_columns": 5,
+        "n_patches": 8,
+        "n_levtot": 15,
+        "initial_temp": 273.15
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          5,
+          15
+        ],
+        "t_a10_patch": [
+          8
+        ],
+        "t_ref2m_patch": [
+          8
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Small domain with default freezing point temperature (0\u00b0C)",
+        "edge_cases": [],
+        "physical_context": "Typical initialization for small test domain"
+      }
+    },
+    {
+      "name": "test_init_temperature_state_nominal_large_domain",
+      "function": "init_temperature_state",
+      "inputs": {
+        "n_columns": 100,
+        "n_patches": 250,
+        "n_levtot": 20,
+        "initial_temp": 288.15
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          100,
+          20
+        ],
+        "t_a10_patch": [
+          250
+        ],
+        "t_ref2m_patch": [
+          250
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Large domain with moderate temperature (15\u00b0C)",
+        "edge_cases": [],
+        "physical_context": "Typical temperate climate initialization"
+      }
+    },
+    {
+      "name": "test_init_temperature_state_edge_minimum_dimensions",
+      "function": "init_temperature_state",
+      "inputs": {
+        "n_columns": 1,
+        "n_patches": 1,
+        "n_levtot": 1,
+        "initial_temp": 273.15
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          1,
+          1
+        ],
+        "t_a10_patch": [
+          1
+        ],
+        "t_ref2m_patch": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Minimum possible domain size (single column, patch, layer)",
+        "edge_cases": [
+          "minimum_dimensions"
+        ],
+        "physical_context": "Boundary test for smallest valid domain"
+      }
+    },
+    {
+      "name": "test_init_temperature_state_edge_cold_temperature",
+      "function": "init_temperature_state",
+      "inputs": {
+        "n_columns": 10,
+        "n_patches": 15,
+        "n_levtot": 18,
+        "initial_temp": 200.0
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          10,
+          18
+        ],
+        "t_a10_patch": [
+          15
+        ],
+        "t_ref2m_patch": [
+          15
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very cold initialization temperature (-73\u00b0C), near lower typical range",
+        "edge_cases": [
+          "extreme_cold"
+        ],
+        "physical_context": "Antarctic or extreme winter conditions"
+      }
+    },
+    {
+      "name": "test_init_temperature_state_edge_hot_temperature",
+      "function": "init_temperature_state",
+      "inputs": {
+        "n_columns": 12,
+        "n_patches": 20,
+        "n_levtot": 16,
+        "initial_temp": 350.0
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          12,
+          16
+        ],
+        "t_a10_patch": [
+          20
+        ],
+        "t_ref2m_patch": [
+          20
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Very hot initialization temperature (77\u00b0C), near upper typical range",
+        "edge_cases": [
+          "extreme_heat"
+        ],
+        "physical_context": "Desert or extreme heat conditions"
+      }
+    },
+    {
+      "name": "test_init_temperature_bounds_nominal",
+      "function": "init_temperature",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 49,
+          "begc": 0,
+          "endc": 29,
+          "begg": 0,
+          "endg": 9
+        },
+        "nlevsno": 5,
+        "nlevgrnd": 15
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          30,
+          20
+        ],
+        "t_a10_patch": [
+          50
+        ],
+        "t_ref2m_patch": [
+          50
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Standard domain decomposition with typical snow and soil layers",
+        "edge_cases": [],
+        "physical_context": "n_columns=30 (endc-begc+1), n_patches=50, n_levtot=20 (5+15)"
+      }
+    },
+    {
+      "name": "test_init_temperature_bounds_edge_single_elements",
+      "function": "init_temperature",
+      "inputs": {
+        "bounds": {
+          "begp": 5,
+          "endp": 5,
+          "begc": 3,
+          "endc": 3,
+          "begg": 1,
+          "endg": 1
+        },
+        "nlevsno": 1,
+        "nlevgrnd": 10
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          1,
+          11
+        ],
+        "t_a10_patch": [
+          1
+        ],
+        "t_ref2m_patch": [
+          1
+        ]
+      },
+      "metadata": {
+        "type": "edge",
+        "description": "Single element in each dimension (beg==end for all bounds)",
+        "edge_cases": [
+          "minimum_bounds",
+          "single_element"
+        ],
+        "physical_context": "Minimal domain with single snow layer"
+      }
+    },
+    {
+      "name": "test_init_temperature_special_many_snow_layers",
+      "function": "init_temperature",
+      "inputs": {
+        "bounds": {
+          "begp": 10,
+          "endp": 59,
+          "begc": 5,
+          "endc": 34,
+          "begg": 0,
+          "endg": 4
+        },
+        "nlevsno": 12,
+        "nlevgrnd": 25
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          30,
+          37
+        ],
+        "t_a10_patch": [
+          50
+        ],
+        "t_ref2m_patch": [
+          50
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Maximum typical snow layers (12) with many soil layers (25)",
+        "edge_cases": [],
+        "physical_context": "Deep snowpack scenario with detailed soil profile"
+      }
+    },
+    {
+      "name": "test_get_update_soil_temperature_nominal",
+      "function": "get_soil_temperature",
+      "inputs": {
+        "state": {
+          "t_soisno_col": [
+            [
+              250.0,
+              255.0,
+              260.0,
+              265.0,
+              270.0,
+              273.15,
+              275.0,
+              278.0,
+              280.0,
+              282.0
+            ],
+            [
+              248.0,
+              253.0,
+              258.0,
+              263.0,
+              268.0,
+              271.0,
+              274.0,
+              277.0,
+              279.0,
+              281.0
+            ],
+            [
+              252.0,
+              257.0,
+              262.0,
+              267.0,
+              272.0,
+              275.0,
+              277.0,
+              279.0,
+              281.0,
+              283.0
+            ]
+          ],
+          "t_a10_patch": [
+            285.0,
+            286.0,
+            284.0,
+            287.0,
+            285.5
+          ],
+          "t_ref2m_patch": [
+            283.0,
+            284.0,
+            282.0,
+            285.0,
+            283.5
+          ]
+        },
+        "col_idx": 1,
+        "layer_idx": 3,
+        "nlevsno": 3
+      },
+      "expected_output": 268.0,
+      "metadata": {
+        "type": "nominal",
+        "description": "Get temperature from middle column, soil layer (Fortran index 3 = Python index 5)",
+        "edge_cases": [],
+        "physical_context": "Temperature profile with snow layers (indices -2,-1,0) and soil layers (1+)"
+      }
+    },
+    {
+      "name": "test_get_surface_temperature_with_snow",
+      "function": "get_surface_temperature",
+      "inputs": {
+        "state": {
+          "t_soisno_col": [
+            [
+              260.0,
+              265.0,
+              268.0,
+              270.0,
+              273.15,
+              275.0,
+              278.0,
+              280.0,
+              282.0,
+              284.0
+            ],
+            [
+              255.0,
+              262.0,
+              267.0,
+              271.0,
+              274.0,
+              276.0,
+              279.0,
+              281.0,
+              283.0,
+              285.0
+            ]
+          ],
+          "t_a10_patch": [
+            280.0,
+            282.0
+          ],
+          "t_ref2m_patch": [
+            278.0,
+            280.0
+          ]
+        },
+        "col_idx": 0,
+        "nlevsno": 5,
+        "snl": -3
+      },
+      "expected_output": 268.0,
+      "metadata": {
+        "type": "nominal",
+        "description": "Get surface temperature with 3 active snow layers (snl=-3), should return top snow layer",
+        "edge_cases": [],
+        "physical_context": "Snow-covered surface, returns temperature at snow-atmosphere interface (layer index nlevsno+snl = 5-3 = 2)"
+      }
+    },
+    {
+      "name": "test_get_surface_temperature_no_snow",
+      "function": "get_surface_temperature",
+      "inputs": {
+        "state": {
+          "t_soisno_col": [
+            [
+              245.0,
+              250.0,
+              255.0,
+              260.0,
+              265.0,
+              273.15,
+              278.0,
+              282.0,
+              285.0,
+              288.0
+            ],
+            [
+              248.0,
+              253.0,
+              258.0,
+              263.0,
+              268.0,
+              275.0,
+              280.0,
+              284.0,
+              287.0,
+              290.0
+            ]
+          ],
+          "t_a10_patch": [
+            290.0,
+            292.0
+          ],
+          "t_ref2m_patch": [
+            288.0,
+            290.0
+          ]
+        },
+        "col_idx": 1,
+        "nlevsno": 5,
+        "snl": 0
+      },
+      "expected_output": 275.0,
+      "metadata": {
+        "type": "edge",
+        "description": "Get surface temperature with no snow (snl=0), should return top soil layer",
+        "edge_cases": [
+          "no_snow"
+        ],
+        "physical_context": "Bare soil surface, returns temperature at soil-atmosphere interface (layer index nlevsno = 5)"
+      }
+    },
+    {
+      "name": "test_update_soil_temperature_snow_layer",
+      "function": "update_soil_temperature",
+      "inputs": {
+        "state": {
+          "t_soisno_col": [
+            [
+              260.0,
+              265.0,
+              270.0,
+              273.15,
+              275.0,
+              278.0
+            ],
+            [
+              258.0,
+              263.0,
+              268.0,
+              271.0,
+              274.0,
+              277.0
+            ]
+          ],
+          "t_a10_patch": [
+            280.0,
+            282.0,
+            281.0
+          ],
+          "t_ref2m_patch": [
+            278.0,
+            280.0,
+            279.0
+          ]
+        },
+        "col_idx": 0,
+        "layer_idx": -1,
+        "nlevsno": 3,
+        "new_temp": 262.5
+      },
+      "expected_output": {
+        "t_soisno_col": [
+          [
+            260.0,
+            262.5,
+            270.0,
+            273.15,
+            275.0,
+            278.0
+          ],
+          [
+            258.0,
+            263.0,
+            268.0,
+            271.0,
+            274.0,
+            277.0
+          ]
+        ],
+        "t_a10_patch": [
+          280.0,
+          282.0,
+          281.0
+        ],
+        "t_ref2m_patch": [
+          278.0,
+          280.0,
+          279.0
+        ]
+      },
+      "metadata": {
+        "type": "nominal",
+        "description": "Update temperature in snow layer (Fortran index -1 = Python index 2)",
+        "edge_cases": [],
+        "physical_context": "Updating snow layer temperature during thermal calculation"
+      }
+    },
+    {
+      "name": "test_update_soil_temperature_deep_soil",
+      "function": "update_soil_temperature",
+      "inputs": {
+        "state": {
+          "t_soisno_col": [
+            [
+              255.0,
+              260.0,
+              265.0,
+              270.0,
+              273.15,
+              276.0,
+              278.0,
+              280.0,
+              282.0,
+              284.0,
+              285.0,
+              286.0
+            ]
+          ],
+          "t_a10_patch": [
+            285.0
+          ],
+          "t_ref2m_patch": [
+            283.0
+          ]
+        },
+        "col_idx": 0,
+        "layer_idx": 8,
+        "nlevsno": 4,
+        "new_temp": 283.5
+      },
+      "expected_output": {
+        "t_soisno_col": [
+          [
+            255.0,
+            260.0,
+            265.0,
+            270.0,
+            273.15,
+            276.0,
+            278.0,
+            280.0,
+            282.0,
+            284.0,
+            285.0,
+            283.5
+          ]
+        ],
+        "t_a10_patch": [
+          285.0
+        ],
+        "t_ref2m_patch": [
+          283.0
+        ]
+      },
+      "metadata": {
+        "type": "special",
+        "description": "Update temperature in deep soil layer (Fortran index 8 = Python index 11)",
+        "edge_cases": [],
+        "physical_context": "Updating deep soil temperature, typically more stable than surface"
+      }
+    },
+    {
+      "name": "test_fortran_indexing_edge_cases",
+      "function": "get_soil_temperature",
+      "inputs": {
+        "state": {
+          "t_soisno_col": [
+            [
+              240.0,
+              245.0,
+              250.0,
+              255.0,
+              260.0,
+              265.0,
+              270.0,
+              273.15,
+              275.0,
+              278.0,
+              280.0,
+              282.0
+            ]
+          ],
+          "t_a10_patch": [
+            280.0
+          ],
+          "t_ref2m_patch": [
+            278.0
+          ]
+        },
+        "col_idx": 0,
+        "layer_idx": -4,
+        "nlevsno": 5
+      },
+      "expected_output": 245.0,
+      "metadata": {
+        "type": "edge",
+        "description": "Access deepest snow layer using negative Fortran indexing (layer_idx = -nlevsno+1)",
+        "edge_cases": [
+          "fortran_negative_indexing",
+          "deepest_snow_layer"
+        ],
+        "physical_context": "Bottom of snowpack, interface with soil or previous snow"
+      }
+    },
+    {
+      "name": "test_init_allocate_with_nan",
+      "function": "init_allocate",
+      "inputs": {
+        "bounds": {
+          "begp": 0,
+          "endp": 9,
+          "begc": 0,
+          "endc": 4,
+          "begg": 0,
+          "endg": 1
+        },
+        "nlevsno": 3,
+        "nlevgrnd": 12
+      },
+      "expected_shapes": {
+        "t_soisno_col": [
+          5,
+          15
+        ],
+        "t_a10_patch": [
+          10
+        ],
+        "t_ref2m_patch": [
+          10
+        ]
+      },
+      "expected_fill": "nan",
+      "metadata": {
+        "type": "special",
+        "description": "Allocate arrays initialized to NaN for uninitialized state detection",
+        "edge_cases": [
+          "nan_initialization"
+        ],
+        "physical_context": "Arrays should be filled with NaN to catch uninitialized access"
+      }
+    }
+  ],
+  "notes": {
+    "generation_strategy": "Test cases generated to cover nominal operations, edge cases, and special scenarios",
+    "physical_constraints": [
+      "All temperatures >= 0 K (absolute zero)",
+      "Typical Earth surface temperatures: 200-350 K",
+      "Snow layer count (snl) is non-positive (0 or negative)",
+      "Fortran indexing: snow layers have negative indices (-nlevsno+1 to 0), soil layers positive (1 to nlevgrnd)",
+      "Python array indexing: 0-based, so Fortran layer_idx maps to Python index (layer_idx + nlevsno - 1)"
+    ],
+    "dimension_calculations": [
+      "n_columns = endc - begc + 1",
+      "n_patches = endp - begp + 1",
+      "n_levtot = nlevsno + nlevgrnd",
+      "Surface layer Python index = nlevsno + snl (when snl < 0) or nlevsno (when snl = 0)"
+    ],
+    "test_coverage": {
+      "nominal_cases": 5,
+      "edge_cases": 5,
+      "special_cases": 5,
+      "functions_covered": [
+        "init_temperature_state (5 tests)",
+        "init_temperature (3 tests)",
+        "get_soil_temperature (2 tests)",
+        "update_soil_temperature (2 tests)",
+        "get_surface_temperature (2 tests)",
+        "init_allocate (1 test)"
+      ]
+    },
+    "edge_case_coverage": [
+      "Minimum dimensions (1x1x1)",
+      "Extreme temperatures (200K cold, 350K hot)",
+      "Single element bounds (beg==end)",
+      "No snow conditions (snl=0)",
+      "Maximum snow layers (12)",
+      "Fortran negative indexing boundaries",
+      "NaN initialization"
+    ],
+    "assumptions": [
+      "TemperatureState is a namedtuple or similar structure with fields t_soisno_col, t_a10_patch, t_ref2m_patch",
+      "Arrays use JAX/NumPy conventions (0-based indexing)",
+      "Fortran-to-Python index conversion: python_idx = fortran_idx + nlevsno - 1",
+      "Temperature values are in Kelvin",
+      "All test data is physically realistic for Earth surface conditions"
+    ]
+  }
+}
