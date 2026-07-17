@@ -1,0 +1,16 @@
+include LICENSE
+include README.md
+
+# Ship the RSL psihat look-up table (required at runtime).
+include src/multilayer_canopy/data/*.nc
+
+# Keep large research/validation artifacts and tower-forcing inputs out of the
+# distribution — they are not needed by the importable library and would bloat
+# the sdist by ~90 MB.
+prune src/output_files
+prune src/input_files
+recursive-exclude src/offline_executable nl.*
+global-exclude *.pyc
+global-exclude *.out
+prune src/**/__pycache__
+prune **/*.egg-info
