@@ -754,18 +754,22 @@ def MLCanopyFluxes(
     # ------------------------------------------------------------------
     # Canopy-level diagnostics — Fortran line 346
     # ------------------------------------------------------------------
-    if not _diff_mode:
-        mlcanopy_inst = _CanopyFluxesDiagnostics(num_mlcan, filter_mlcan, mlcanopy_inst)
+    # Runs in BOTH modes: this routine populates the canopy-integrated flux
+    # outputs (shflx/lhflx/etflx/gpp/rnet/swveg/albcan/taveg/stflx_air/stflx_veg
+    # …) that downstream consumers read.  In diff mode it takes ``grid=`` so its
+    # structural ints and energy-balance ``endrun`` checks stay trace-safe.
+    mlcanopy_inst = _CanopyFluxesDiagnostics(
+        num_mlcan, filter_mlcan, mlcanopy_inst, grid=grid
+    )
 
     # ------------------------------------------------------------------
     # Merge sun/shade leaf temperature and water potential — Fortran lines 355-375
     # State is prognostic; sun/shade fraction changes between CLM steps,
-    # so merge to a layer-mean before the next timestep.
-    # Skipped in differentiable mode (not needed for loss computation).
+    # so merge to a layer-mean before the next timestep.  Runs in both modes:
+    # the merge is pure JAX (``ncan_vals`` slices + ``jnp.where``) so it stays on
+    # the grad tape, and it keeps the prognostic ``tleaf``/``lwp`` state correct
+    # for a differentiable multi-step warm-start carry.
     # ------------------------------------------------------------------
-    if _diff_mode:
-        return mlcanopy_inst
-
     tleaf = mlcanopy_inst.tleaf_leaf
     tleaf_hist = mlcanopy_inst.tleaf_hist_leaf
     lwp = mlcanopy_inst.lwp_leaf
@@ -1506,11 +1510,22 @@ def _CanopyFluxesDiagnostics(
     num_filter: int,
     filter: List[int],
     mlcanopy_inst: mlcanopy_type,
+    grid: "GridInfo | None" = None,
 ) -> mlcanopy_type:
     """
     Compute canopy-integrated fluxes, diagnostics, and energy balance checks.
 
     Mirrors Fortran subroutine ``CanopyFluxesDiagnostics`` (lines 1-270).
+
+    Differentiable mode
+    -------------------
+    When ``grid`` is not ``None`` the routine runs on the ``jax.grad`` tape:
+    structural ints (``ncan``/``ntop``) are read from ``grid`` (concrete Python
+    ints extracted before tracing) instead of ``int(mlcanopy_inst.*)`` (which
+    would raise ``ConcretizationTypeError`` on a tracer), and the host-syncing
+    ``abs(err)`` energy-balance ``endrun`` checks are skipped (they force a
+    device→host read of a traced scalar). The flux arithmetic is identical in
+    both modes, so the populated output fields match to floating-point.
 
     **Algorithm** (one pass per patch ``p``):
 
@@ -1577,6 +1592,8 @@ def _CanopyFluxesDiagnostics(
     from clm_src_main.clm_varpar import inir, ivis, numrad  # noqa: F401
     from multilayer_canopy.MLclm_varctl import flux_profile_type  # noqa: F401
     from multilayer_canopy.MLclm_varpar import isha, isun  # noqa: F401
+
+    _diff_mode = grid is not None
 
     # ------------------------------------------------------------------
     # Extract mutable arrays (all output fields)
@@ -1656,8 +1673,10 @@ def _CanopyFluxesDiagnostics(
     # ==================================================================
     for fp in range(1, num_filter + 1):
         p = int(filter[fp - 1])
-        _ncan = int(mlcanopy_inst.ncan_canopy[p])
-        _ntop = int(mlcanopy_inst.ntop_canopy[p])
+        # Structural ints: from grid (concrete, pre-traced) in diff mode; from a
+        # host read otherwise. Single-site diff mode uses one shared (ncan, ntop).
+        _ncan = grid.ncan if _diff_mode else int(mlcanopy_inst.ncan_canopy[p])
+        _ntop = grid.ntop if _diff_mode else int(mlcanopy_inst.ntop_canopy[p])
         _sl = slice(1, _ncan + 1)
 
         # ----------------------------------------------------------------
@@ -1799,9 +1818,11 @@ def _CanopyFluxesDiagnostics(
         gsveg = gsveg.at[p].set(gsveg_p)
 
         # --- 3. Vegetation energy balance check ---
-        err = swveg_vis + swveg_nir + lwveg_p - shveg_p - lhveg_p - stflx_veg_p
-        if abs(err) >= 1.0e-3:
-            endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (1)")
+        # (host-syncing abs() on a traced scalar — skip on the grad tape)
+        if not _diff_mode:
+            err = swveg_vis + swveg_nir + lwveg_p - shveg_p - lhveg_p - stflx_veg_p
+            if abs(err) >= 1.0e-3:
+                endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (1)")
 
         # --- 4. Albedo ---
         _inc_vis = _swskyb[ivis] + _swskyd[ivis]
@@ -1819,7 +1840,9 @@ def _CanopyFluxesDiagnostics(
         elif flux_profile_type == 1:
             shflx_val = mlcanopy_inst.shair_profile[p, _ncan]
             etflx_val = mlcanopy_inst.etair_profile[p, _ncan]
-            lhflx_val = etflx_val * LatVap(float(mlcanopy_inst.tref_forcing[p]))
+            # LatVap accepts a traced jnp scalar (jnp.where internally); the
+            # former float() cast broke the tape and is unnecessary in both modes.
+            lhflx_val = etflx_val * LatVap(mlcanopy_inst.tref_forcing[p])
         else:
             endrun(msg=" ERROR: CanopyFluxesDiagnostics: turbulence type not valid")
             shflx_val = etflx_val = lhflx_val = 0.0  # Unreachable
@@ -1831,38 +1854,42 @@ def _CanopyFluxesDiagnostics(
         stflx_air_p = jnp.sum(_stair[ics])
         stflx_air = stflx_air.at[p].set(stflx_air_p)
 
-        # --- 7. Energy balance checks ---
+        # --- 7. Net radiation (output) + energy balance checks (diagnostic) ---
         rnet_p = swveg_vis + swveg_nir + _swsoi_vis + _swsoi_nir + lwveg_p + _lwsoi_p
         rnet = rnet.at[p].set(rnet_p)
 
-        radin = _swskyb[ivis] + _swskyd[ivis] + _swskyb[inir] + _swskyd[inir] + _lwsky_p
-        radout = (
-            _alb_vis * (_swskyb[ivis] + _swskyd[ivis])
-            + _alb_nir * (_swskyb[inir] + _swskyd[inir])
-            + _lwup_p
-        )
+        # The three closure checks below only read state to form host-syncing
+        # abs(err) comparisons; they produce no output field, so they are skipped
+        # on the grad tape (concretising a traced scalar would raise).
+        if not _diff_mode:
+            radin = _swskyb[ivis] + _swskyd[ivis] + _swskyb[inir] + _swskyd[inir] + _lwsky_p
+            radout = (
+                _alb_vis * (_swskyb[ivis] + _swskyd[ivis])
+                + _alb_nir * (_swskyb[inir] + _swskyd[inir])
+                + _lwup_p
+            )
 
-        err = rnet_p - (radin - radout)
-        if abs(err) > 0.001:
-            endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (2)")
+            err = rnet_p - (radin - radout)
+            if abs(err) > 0.001:
+                endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (2)")
 
-        avail = radin - radout - _gsoi_p
-        flux_p = shflx_val + lhflx_val + stflx_air_p + stflx_veg_p
-        err = avail - flux_p
-        if abs(err) > 0.01:
-            endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (3)")
+            avail = radin - radout - _gsoi_p
+            flux_p = shflx_val + lhflx_val + stflx_air_p + stflx_veg_p
+            err = avail - flux_p
+            if abs(err) > 0.01:
+                endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (3)")
 
-        radin_top = (
-            _swbeam_ntop[ivis]
-            + _swbeam_ntop[inir]
-            + _swdwn_ntop[ivis]
-            + _swdwn_ntop[inir]
-            + _lwdwn_ntop
-        )
-        radout_top = _swupw_ntop[ivis] + _swupw_ntop[inir] + _lwupw_ntop
-        err = (radin_top - radout_top) - rnet_p
-        if abs(err) > 0.001:
-            endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (4)")
+            radin_top = (
+                _swbeam_ntop[ivis]
+                + _swbeam_ntop[inir]
+                + _swdwn_ntop[ivis]
+                + _swdwn_ntop[inir]
+                + _lwdwn_ntop
+            )
+            radout_top = _swupw_ntop[ivis] + _swupw_ntop[inir] + _lwupw_ntop
+            err = (radin_top - radout_top) - rnet_p
+            if abs(err) > 0.001:
+                endrun(msg=" ERROR: CanopyFluxesDiagnostics: energy conservation error (4)")
 
         # --- 8. Sun/shade canopy totals ---
         laisun_p = jnp.sum(fs_v * dpai_s)
