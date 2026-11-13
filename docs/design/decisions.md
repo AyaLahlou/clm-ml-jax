@@ -1100,6 +1100,21 @@ allowed for speed (no fewer solver iterations, fewer sub-steps or another integr
 Reason: the science must not change for performance; structure first makes optimization easier.
 Source: plan Phase 6 step 1c; Phase 6b step 7; "After Phase 8: GPU performance".
 
+**113. GPU optimization targets global forward runs; round-off changes allowed**
+2026-11-13 · GPU optimization (O55) · maintainer · in force · Departure from Fortran: no
+The GPU effort (`gpu_optimization_plan.md`) optimizes global 1° forward runs on one A100.
+Target: a 2× speed-up, 1.0 s per 30-min step (2.0 s on 2026-11-05; to be confirmed after the
+plan's measuring step). Custom CUDA kernels are ruled out for now (the science would be
+written twice; the package would no longer be pure Python). Timing jobs run on the `develop` queue. Gradients use the same code: they must keep working, and their time and
+memory are reported at each step. Changes that alter only round-off (order of additions,
+library solvers, fusion) are part of the effort under the regression policy (noise twin,
+reference regenerated). This refines 87: "arithmetic-preserving" there means no
+science-adjacent changes (no fewer solver iterations, sub-steps or another integrator), which
+still holds. Still open: the compile-time and code-size budget for unrolling, and how padded
+steps are skipped (plan §7).
+Reason: global runs are the main use; calibration needs gradients.
+Source: maintainer, 2026-11-13.
+
 ## K. Scope deferred
 
 **88. Work deferred to after Phase 8**

@@ -722,6 +722,8 @@ Kernel count per step (Phase 6 step 1c), C3/C4 groups traced twice in mixed batc
 (decision 22, D10), the decision-33 GPU check, a full-year global run; a chunk is 11 %
 slower than in Phase 6b (program 2.32 GB → 4 MB, compile 840 s → 61 s in Phase 7).
 **Source:** plan "After Phase 8: GPU performance"; D10; `phase7_progress.md` timing.
+Plan (2026-11-13, branch `gpu_opt`): `gpu_optimization_plan.md`; target and scope in
+decision 113; open there: unrolling budget, padded-step skipping.
 
 ### O56. Unsupported variants
 Well-mixed flux profile and dataset profiles (fail on traced layer counts), Norman solar
