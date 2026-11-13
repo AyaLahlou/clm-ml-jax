@@ -311,6 +311,16 @@ class TowerReader:
         return xg, xp
 
 
+def table_search(choice: str) -> str:
+    """The psihat table search of a run (model.yaml ``numerics.table_search``; decision 114):
+    ``auto`` is ``unrolled`` on a GPU (1.9x faster for the 1 degree globe: a loop costs one
+    command per iteration there) and ``loop`` on the CPU (faster there, and the arithmetic of
+    the regression reference)."""
+    if choice != "auto":
+        return choice
+    return "unrolled" if jax.default_backend() == "gpu" else "loop"
+
+
 def step_options(run):
     """The time step's static choices (``clm_ml.step.StepOptions``) of a run."""
     from clm_ml.options import MLOptions, substep_options
@@ -326,7 +336,9 @@ def step_options(run):
     eccen, _obliq, _mvelp, obliqr, lambm0, mvelpp = shr_orb_params(run.start.year)
     return (
         StepOptions(
-            substep=substep_options(opts.step_options()),
+            substep=substep_options(
+                opts.step_options(), table_search(run.config.numerics.table_search)
+            ),
             step_seconds=int(run.step_seconds),
             layer_pai_floor=float(opts.layer_pai_floor),
             flux_profile_type=int(opts.flux_profile_type),

@@ -115,6 +115,27 @@ def test_lookup_psihat_on_nodes_and_outside():
     )
 
 
+@pytest.mark.parametrize("search", ["unrolled", "compare_all"])
+def test_lookup_psihat_search_methods_agree(search):
+    """Every table search (numerics.table_search, decision 114) finds the same grid cell:
+    the lookup is identical inside the grid, on its nodes, on its edges and outside."""
+    m = default_rsl_tables().momentum
+    rng = np.random.default_rng(0)
+    zdt = np.concatenate([rng.uniform(-1.0, 52.0, 500), m.zdt, m.zdt[:1] + 1.0, [0.0]])
+    dtl = np.concatenate([rng.uniform(-3.0, 3.0, 500), m.dtl, m.dtl[-1:] + 1.0, [0.0]])
+    zz, ll = (jnp.asarray(a) for a in np.meshgrid(zdt, dtl, indexing="ij"))
+    lookup = jax.vmap(jax.vmap(turb.lookup_psihat, (0, 0, None, None)), (0, 0, None, None))
+    np.testing.assert_array_equal(lookup(zz, ll, m, search), lookup(zz, ll, m, "loop"))
+
+
+def test_table_search_follows_the_device():
+    from clm_ml import driver
+
+    assert driver.table_search("compare_all") == "compare_all"
+    expected = "unrolled" if jax.default_backend() == "gpu" else "loop"
+    assert driver.table_search("auto") == expected
+
+
 def test_obukhov_gradient_is_the_implicit_one():
     """d obu / d thref by jax.grad (implicit-function correction) vs central differences of
     the solver's forward value."""

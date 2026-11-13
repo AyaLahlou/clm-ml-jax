@@ -55,7 +55,12 @@ def main() -> None:
     first, n, npatch = 1, args.steps, args.patches
     # the CHATS7 patch and N - 1 padded copies of it (execution.patch_count; weight 0 for the
     # copies, which compute everything all the same): one batched program, as a domain runs
-    extra = [f"run.execution.patch_count={npatch}"] if npatch > 1 else []
+    # (with one padding gridcell for the copies, as execution.patch_count requires)
+    extra = (
+        [f"run.execution.patch_count={npatch}", "run.execution.gridcell_count=2"]
+        if npatch > 1
+        else []
+    )
     if args.devices > 1:
         extra.append(f"run.execution.devices={args.devices}")
     model = Model.from_experiment(load_experiment(tmp, extra))

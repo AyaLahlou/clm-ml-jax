@@ -517,6 +517,7 @@ class SubstepOptions(NamedTuple):
     wue_solver: str  # stomatal optimization solver
     dtime: float  # sub-step length, s
     integrator: str  # processes.integrators.TABLEAUS
+    table_search: str = "loop"  # psihat table search: processes.turbulence.TABLE_SEARCH
 
 
 class SubstepInputs(NamedTuple):
@@ -777,6 +778,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         c.uref_forcing, c.thref_forcing, c.thvref_forcing, c.qref_forcing, c.rhomol_forcing,
         tables,
         sparse_canopy=opt.sparse_canopy, ground_conductance=opt.ground_conductance,
+        table_search=opt.table_search,
     )  # fmt: skip
     c = c._replace(
         obu_canopy=t.obu,

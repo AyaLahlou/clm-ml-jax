@@ -95,8 +95,9 @@ _STOMATAL = {0: "medlyn", 1: "ball_berry", 2: "wue"}
 _WUE_SOLVER = {1: "brent", 2: "bisection"}
 
 
-def substep_options(opts) -> canopy.SubstepOptions:
-    """The sub-step's choices from the legacy options (``MLOptions``), with the legacy
+def substep_options(opts, table_search: str = "loop") -> canopy.SubstepOptions:
+    """The sub-step's choices from the legacy options (``MLOptions``) and ``table_search``
+    (how the psihat tables are searched; not a Fortran option), with the legacy
     routines' checks: Norman solar radiation and the well-mixed flux-profile solution are
     registered but not supported (Phase 7 decision D8: ``clm_ml.run`` refuses them), the other codes must be
     valid."""
@@ -130,4 +131,5 @@ def substep_options(opts) -> canopy.SubstepOptions:
         wue_solver=_WUE_SOLVER[opts.gs_solver],
         dtime=float(opts.dtime_ml),
         integrator=INTEGRATOR[opts.runge_kutta_type],
+        table_search=table_search,
     )

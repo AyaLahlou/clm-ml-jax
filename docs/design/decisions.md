@@ -1115,6 +1115,22 @@ steps are skipped (plan §7).
 Reason: global runs are the main use; calibration needs gradients.
 Source: maintainer, 2026-11-13.
 
+**114. The psihat table search is a setting chosen by device**
+2026-11-13 · GPU optimization step 1 (O55) · maintainer · in force · Departure from Fortran: no
+`numerics.table_search` (hidden; `auto`, `loop`, `unrolled`, `compare_all`): how
+`turbulence.py::lookup_psihat` finds its place in the psihat tables. `auto` (the default) is
+`unrolled` on a GPU (the binary search written out, no loop) and `loop` on the CPU
+(`jnp.searchsorted`'s default, a compiled loop). Every method returns the same table indices
+(unit test). Reason: on a GPU each loop iteration is a separate command, and these searches
+were 89 % of a step's loop iterations and 94 % of its GPU commands: the 1 degree globe ran at
+1.98 s per step with the loop and 1.06 s without (`gpu_progress.md`). On the CPU the loop is
+faster (the unrolled search is 24 % slower), and keeping it there keeps the regression
+reference bit for bit. With `unrolled` the CPU regression case differs from the reference at
+round-off level (largest relative difference 2.8e-11; one field, `stflx_air_canopy`, at 1.2
+times the noise-twin allowance), because the compiler arranges the surrounding arithmetic
+differently.
+Source: maintainer, 2026-11-13; `gpu_progress.md` step 0.
+
 ## K. Scope deferred
 
 **88. Work deferred to after Phase 8**
