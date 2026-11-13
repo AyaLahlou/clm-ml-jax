@@ -14,6 +14,109 @@ Where things are:
 (target 2×, 0.99 s); padded steps cost nothing. Stopped for the maintainer before step 2
 (see the end of this file).
 
+## Resume here (paused 2026-11-13 by the maintainer)
+
+**State.** Branch `gpu_opt` (made from `feature/latlon_output`, not merged anywhere), pushed.
+Steps 0 and 1 of the plan are done, tested and committed. Nothing is half-finished: no
+uncommitted model changes, no jobs running.
+
+| Commit | What |
+|---|---|
+| `8f44da5` | the plan (decision 113) |
+| `644e3be` | step 0: measurements |
+| `8af77c8` | table search without a loop on GPUs (decision 114) |
+| `a191453` | one search per grid in `psi_rsl` (decision 115) |
+| `9c8a741` | padded steps not computed; regression reference regenerated (decision 116) |
+| `2143fbb` | step-1 gradient timings, GPU gradient tier, 10-day reference |
+
+**Numbers to beat** (1° globe, 72 575 patches, one A100, JAX 0.10.2):
+- 1-day chunk: **1057–1065 ms per step** (68 200–68 700 patch-steps/s); before: 1975–1985.
+- 10-day chunk (`timing/time_program.py`): 508.5 s, 68 510 patch-steps/s; before: 935.5 s.
+- 21-patch box (the fixed cost): 175 ms per step; before: 1212.
+- Gradient (`timing/time_vmap.py --grad`, CHATS7 copies): 1037 ms per step for 1 patch,
+  1690 for 4 096 patches (8.2 GB); compile ~105–115 s.
+- Target: 2× = 0.99 s per step. Reached: 1.87×. Missing: ~0.07 s per step.
+- Measurement spread: 0.2 % within a job, 0.6 % between jobs. Believe changes above ~2 %.
+
+**Next step, when resumed** (nothing below is started; each needs the maintainer's go-ahead):
+1. **A fresh profile of the current code** (`MODE=prof`, twice: with the default flags, and
+   with `XF=nocb`, which makes every kernel visible). It decides between 2 and 3.
+2. **Unroll the remaining loops** (plan step 2a). About 15 000 loop iterations per step are
+   left (census table below, without the table-search row): longwave tridiagonal solve
+   (`math.py::tridiag`, 4 980), flux-profile solves (`math.py::_tridiag_2eq_solve`, 4 680),
+   Obukhov (`turbulence.py::obukhov_length`, 1 500), the two bisections
+   (`photosynthesis.py::solve_gs_bisection`, `math.py::bisection_traceable`, 1 200 each).
+   `lax.scan` and `lax.fori_loop` take `unroll=`. Make the factor a setting like
+   `numerics.table_search` (decision 114 is the pattern: a hidden `numerics` option, `auto` by
+   device, passed down as a static keyword). Expect last-bit changes on whichever device
+   unrolls (the unrolled table search was not bit for bit on the CPU). Watch code size and
+   compile time (today: 0.01 MB, 35–40 s forward; ~110 s gradient).
+3. **The stomatal bisection** (0.23 s per step, one fused kernel of 357 µs run 600 times):
+   its 5 extra function evaluations stacked into fewer passes. Round-off-level.
+
+**Open decisions**
+- The compile-time and code-size budget for unrolling (plan §7 item 6; proposal there).
+- Whether to keep change 2 (shared searches, decision 115): 0.7 % at the global size, 9 % of
+  a small domain's fixed cost. Kept for now.
+- Whether the round-off amplification counted in "GPU results against the baseline" below
+  (5.8 % of patches more than 1e-6 apart after a day between two compiles of the same code)
+  gets its own investigation (O27; issue 10 of decision 88).
+- Merging: `gpu_opt` holds `feature/latlon_output` plus this work. Not merged to `main`.
+
+**How to measure** (probe scripts are in the repository: `jobs/gpu_probes/`; they are not
+linted and not part of the package):
+
+```bash
+# 1. a fixed snapshot of the code to time (never time the working tree: jobs wait in the queue)
+git worktree add --detach $SCRATCH/clm-ml-jax/trees/NAME COMMIT
+# 2. submit from scratch (PBS drops its own .o file where qsub is run)
+cd $SCRATCH/clm-ml-jax/probe_gpu0
+J=/glade/work/linnia/clm-ml-jax/jobs/gpu_probes/gpu0.pbs
+T=$SCRATCH/clm-ml-jax/trees/NAME
+qsub -v MODE=base,TAG=name,TREE=$T $J                    # yardstick: globe, 1 day, 3 repeats
+qsub -v MODE=save,TAG=name_2,TREE=$T,STEPS=2 $J          # saved output after 2 steps (fresh compile)
+qsub -v MODE=save,TAG=name_48,TREE=$T,REP=3,SMALL=1,REAL=24 $J   # 1 day saved + small box + padded chunk
+qsub -v MODE=grad,TAG=name,TREE=$T $J                    # gradient timing, 1 and 4 096 patches
+qsub -v MODE=prof,TAG=name,TREE=$T[,XF=nocb] $J          # nsys profile + XLA dump (globe and small box)
+qsub -v MODE=scale,TAG=name,TREE=$T $J                   # step time against number of patches
+qsub -v REV=COMMIT,TAG=name jobs/program_gpu.pbs         # the 10-day reference chunk
+qsub -v REV=COMMIT,TAG=name jobs/grad_gpu.pbs            # GPU gradient tier (12 min)
+# 3. read the results (in $SCRATCH/clm-ml-jax/probe_gpu0: results_gpu0.jsonl, log_TAG.txt)
+python jobs/gpu_probes/compare.py save_A.npz save_B.npz                 # two saved outputs
+python jobs/gpu_probes/attribute.py $SCRATCH/clm-ml-jax/prof0/TAG_global $SCRATCH/clm-ml-jax/prof0/hlo_TAG_global
+JAX_PLATFORMS=cpu python jobs/gpu_probes/census.py TREE                 # loops per step (CPU)
+JAX_PLATFORMS=cpu python jobs/gpu_probes/noise_cpu.py unrolled          # a table search on the CPU against the noise twins
+```
+
+Queue `develop`, account `UCLB0069`; jobs started within minutes on 2026-11-13. The copies
+of the scripts in `jobs/gpu_probes/` were smoke-tested on the CPU (`gpu0.py`) and syntax-checked
+(`gpu0.pbs`) after being moved there; the jobs of this log ran the same scripts from scratch.
+
+**Things learned that are easy to trip over**
+- **Compare GPU outputs after 2 steps, and against a baseline of the same compile variant.**
+  Fresh compiles of unchanged code come in two variants (O27), 5e-14 apart after 2 steps and
+  far apart in some patches after a day. A change is fine if it is ~1e-16 from *one* of the two
+  baselines after 2 steps (`save_base_a2.npz`, `save_base_b2.npz`). A fresh compile needs an
+  empty cache directory (the `save` and `prof` modes set one).
+- **nsys does not show kernels inside XLA's command buffers** (on by default). For a profile
+  with every kernel, use `XF=nocb`; it runs ~7 % slower, so time with the defaults.
+- **Kernel names map to the source** through the `op_name` metadata in
+  `*gpu_after_optimizations.txt` of the XLA dump (`attribute.py`).
+- **`jax.checkpoint` costs nothing in forward runs** (JAX adds its barrier only when
+  differentiating), and no XLA flag helped. Do not retry these.
+- **Unrolling is not bit for bit on the CPU** even when the operations are the same (the
+  unrolled table search: last bits; one field at 1.2 times the noise-twin allowance). So is
+  moving code into a `lax.cond` branch (decision 116).
+- **`qsub -v` splits on commas:** flag sets with commas are presets in `gpu0.pbs` (`XF=`).
+- One step is 6 sub-steps × **5** physics evaluations (the plan's §2 says 4).
+- `timing/time_vmap.py` needed `gridcell_count` for padded patches (fixed in `8af77c8`).
+
+**Scratch** (Derecho purges unused scratch files; everything needed to resume is in the
+repository, the rest is evidence): `$SCRATCH/clm-ml-jax/probe_gpu0/` (results, logs, saved
+outputs, ~500 MB), `prof0/` (profiles, XLA dumps, per-tag caches; several GB, can be deleted),
+`trees/gpu0_base`, `gpu1_search`, `gpu1_shared`, `gpu1_cond`, `gpu1_done` (git worktrees: remove
+with `git worktree remove PATH`, or `git worktree prune` after a purge).
+
 ## Step 0: measurements (2026-11-13). No change to the model
 
 The maintainer agreed to the three proposals at the end of this section (decisions 114-116).

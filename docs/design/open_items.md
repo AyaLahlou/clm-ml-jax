@@ -725,6 +725,10 @@ slower than in Phase 6b (program 2.32 GB → 4 MB, compile 840 s → 61 s in Pha
 Plan (2026-11-13, branch `gpu_opt`): `gpu_optimization_plan.md`; target and scope in
 decision 113; open there: unrolling budget, padded-step skipping. Step 0 measured (2026-11-13,
 `gpu_progress.md`): the psihat table search is 94 % of the GPU commands; a prototype reaches 1.86×.
+Step 1 done (decisions 114-116): 1.87× (1.06 s per step, 68 500 patch-steps/s), padded steps
+free. **Paused 2026-11-13 by the maintainer**; to resume: `gpu_progress.md` "Resume here"
+(next: a fresh profile, then unrolling the remaining loops or the stomatal bisection; open:
+the unrolling budget, the round-off amplification between GPU compiles).
 
 ### O56. Unsupported variants
 Well-mixed flux profile and dataset profiles (fail on traced layer counts), Norman solar
