@@ -1,6 +1,7 @@
 # GPU optimization plan (open item O55)
 
-Status: **step 0 (measurements) done 2026-11-13; stopped for the maintainer before step 1**
+Status: **steps 0 and 1 done 2026-11-13 (1.87x steady; padded steps free); stopped for the
+maintainer before the next step**
 (branch `gpu_opt`). Results and the revised order of work: [`gpu_progress.md`](gpu_progress.md).
 In short: the fixed cost is 1.2 s of the 2.0 s step (not 0.4 s), 94 % of the GPU commands
 come from the psihat table search, and a prototype that removes that loop reaches 1.86×. §2
@@ -327,11 +328,8 @@ Open (the maintainer has no preference yet; proposals, to be settled with the st
    The reason for a limit: a large program costs time at the start of every run that misses
    the cache, and above 2 GB it can never be cached at all. Because the unroll factors are
    settings (step 2a), the budget can be met separately for forward and gradient programs.
-7. **Padded chunks (1a).** Proposal: `lax.cond` inside the one program. It keeps decision 33
-   (one program per run, nothing new to compile or cache); padded steps do no work; real
-   steps give identical results. The alternative, a second program for a short last chunk,
-   costs a second compile and its memory, which decision 33 avoided. Step 1a measures the
-   `lax.cond` version before this is settled.
+7. **Padded chunks: settled** (decision 116): `lax.cond` inside the one program.
+
 Also to note:
 
 8. **Base branch:** `gpu_opt` was made from `feature/latlon_output` (it has the lat-lon output

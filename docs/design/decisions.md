@@ -1110,8 +1110,8 @@ memory are reported at each step. Changes that alter only round-off (order of ad
 library solvers, fusion) are part of the effort under the regression policy (noise twin,
 reference regenerated). This refines 87: "arithmetic-preserving" there means no
 science-adjacent changes (no fewer solver iterations, sub-steps or another integrator), which
-still holds. Still open: the compile-time and code-size budget for unrolling, and how padded
-steps are skipped (plan §7).
+still holds. Still open: the compile-time and code-size budget for unrolling (plan §7);
+padded steps: decision 116.
 Reason: global runs are the main use; calibration needs gradients.
 Source: maintainer, 2026-11-13.
 
@@ -1142,6 +1142,21 @@ the same: bit for bit on the CPU). A user-supplied table must therefore have one
 grids, as CLM-ml v2's `psihat.nc` has.
 Reason: fewer GPU commands and less work (`gpu_progress.md`); no change of results.
 Source: maintainer, 2026-11-13.
+
+**116. Padded steps are not computed**
+2026-11-13 · GPU optimization step 1 (O55) · maintainer · in force · Departure from Fortran: n/a
+The padded steps of a short last chunk (decision 33: one program per run) are skipped with
+`lax.cond` on the step's `active` flag (`driver.py`), where `jnp.where` computed the whole
+step and discarded it. Still one program per run. A chunk that is half padding takes half
+the time (GPU, 1 degree globe: 25.4 s instead of 50.6 s for 48 steps with 24 real); a full
+chunk costs the same (1.061 against 1.057 s per step). The compiler arranges the step
+inside the branch differently, so results change in the last bits (CPU regression case: 73 of
+96 fields, largest relative difference 2.9e-11; noise twin passes): **the regression reference
+and its twins were regenerated** (`record_run.py --update-reference`). A run in padded chunks
+still equals the same run in one chunk bit for bit (`test_restart.py`). `Model` gradients do
+not use the flag.
+Reason: padding cost 25 % of a 31-day global run with 10-day chunks.
+Source: maintainer, 2026-11-13 (the reference regeneration approved the same day).
 
 ## K. Scope deferred
 

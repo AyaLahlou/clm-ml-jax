@@ -570,27 +570,32 @@ def make_runner(sim: Simulation, streams, gridcell_vars):
         return jnp.take(a, gidx, 0) if a.ndim >= 1 else jnp.broadcast_to(a, (n_p,))
 
     def step(constants, land, consts, carry, x):
-        state, buffers, errors = carry
         params, weight, alive, gidx, tables = consts
         xg, xp, slots, *active = x
-        met = jax.tree.map(lambda a: to_patches(a, gidx), xg)
-        if land_fn is not None:  # grid runs: the step's land data from the monthly records
-            xp = land_fn(xp, land, gidx)
-        state, values, step_errors = batched_step(
-            constants, state, combine_inputs(met, xp), params, tables
-        )
-        new_buffers = []
-        for spec, b, slot, gvars in zip(streams, buffers, slots, gridcell_vars):
-            vals = {n: values[n] for n in spec.variables}
-            vals.update(
-                {f"gridcell:{n}": gridcell_sum(values[n], weight, alive, gidx) for n in gvars}
+
+        def advance(carry):
+            state, buffers, errors = carry
+            met = jax.tree.map(lambda a: to_patches(a, gidx), xg)
+            # grid runs: the step's land data from the monthly records
+            x_patch = xp if land_fn is None else land_fn(xp, land, gidx)
+            state, values, step_errors = batched_step(
+                constants, state, combine_inputs(met, x_patch), params, tables
             )
-            new_buffers.append(S.accumulate(spec.statistic, b, slot, vals))
-        errors = jnp.maximum(errors, step_errors)
-        new = (state, tuple(new_buffers), errors)
-        if active:  # padded steps of a short last chunk change nothing (decision 33)
-            new = jax.tree.map(lambda a, b: jnp.where(active[0], a, b), new, carry)
-        return new, None
+            new_buffers = []
+            for spec, b, slot, gvars in zip(streams, buffers, slots, gridcell_vars):
+                vals = {n: values[n] for n in spec.variables}
+                vals.update(
+                    {f"gridcell:{n}": gridcell_sum(values[n], weight, alive, gidx) for n in gvars}
+                )
+                new_buffers.append(S.accumulate(spec.statistic, b, slot, vals))
+            return state, tuple(new_buffers), jnp.maximum(errors, step_errors)
+
+        if not active:
+            return advance(carry), None
+        # A padded step of a short last chunk changes nothing (decision 33) and is not
+        # computed (decision 116): lax.cond runs only the branch taken, where jnp.where on the
+        # results computed the whole step and discarded it
+        return jax.lax.cond(active[0], advance, lambda c: c, carry), None
 
     checkpointed_step = jax.checkpoint(step) if sim.checkpoint else step
 

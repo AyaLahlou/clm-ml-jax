@@ -10,10 +10,13 @@ Where things are:
 - Code snapshot the jobs ran: `$SCRATCH/clm-ml-jax/trees/gpu0_base` (commit `8f44da5`).
 - Jobs: `develop` queue, account `UCLB0069`, one A100 (40 GB), 16 cores, JAX 0.10.2.
 
+**Status (2026-11-13):** steps 0 and 1 done. The 1° globe runs at **1.06 s per step, 1.87×**
+(target 2×, 0.99 s); padded steps cost nothing. Stopped for the maintainer before step 2
+(see the end of this file).
+
 ## Step 0: measurements (2026-11-13). No change to the model
 
-**Stopped here for the maintainer:** the order of steps 1–3 and the choices in "For the
-maintainer" below.
+The maintainer agreed to the three proposals at the end of this section (decisions 114-116).
 
 ### Summary
 
@@ -225,3 +228,79 @@ target would need.
    a supplied table has one pair of grids (true of `psihat.nc`).
 3. **Order:** the gradient baseline, then steps 1, 2, 3 above, each with its tests; then
    measure and decide whether to go on.
+
+## Step 1: the table search, shared searches, padded steps (2026-11-13)
+
+Code snapshots in `$SCRATCH/clm-ml-jax/trees/` (`gpu1_search`, `gpu1_shared`, `gpu1_cond`);
+saved outputs `probe_gpu0/save_*.npz`; comparisons with `probe_gpu0/compare.py`.
+
+### Results (1° globe, one A100, 1-day chunk)
+
+| Code | ms per step | patch-steps/s | Speed-up | 21 patches, ms per step |
+|---|---|---|---|---|
+| Baseline (`8f44da5`) | 1975–1985 | 36 700 | 1.00× | 1212 |
+| 1. Table search without a loop on GPUs (decision 114, `8af77c8`) | 1065 | 68 170 | 1.86× | 192 |
+| 2. One search per grid in `psi_rsl` (decision 115, `a191453`) | 1057 | 68 670 | 1.87× | 175 |
+| 3. Padded steps skipped (decision 116) | 1061 | 68 400 | 1.87× | |
+
+- **Change 1** gives what the prototype gave.
+- **Change 2 gave much less than estimated** (0.7 % at the global size, where 5–10 % was
+  expected; 9 % of the fixed cost of a small domain). Probably the compiler already merged
+  the repeated searches once they were no longer loops. Its global gain is at the edge of the
+  measurement spread (0.6 %). It is kept: it helps small domains, changes no result, and the
+  maintainer agreed to its condition on the tables.
+- **Change 3:** a 48-step chunk with 24 real steps takes 25.4 s instead of 50.6 s; a full
+  chunk costs the same (+0.4 %, within the spread). The January run (31 days in 10-day
+  chunks) would no longer pay for 9 padded days: 25 % of its time.
+- CPU speed is unchanged by all three (50 ms per step for a 21-patch box).
+
+**Against the target:** steady running is at 1.87× (1.06 s per step; 2× is 0.99 s). For the
+January run as it was run, with its padding, the average step goes from 2.57 s to about
+1.06 s (2.4×).
+
+### Tests
+
+| Test | 1. search | 2. shared | 3. padded steps |
+|---|---|---|---|
+| Fast tier (unit + Fortran golden) | pass (445) | pass (447) | pass (447) |
+| CPU bit for bit | pass | pass | **fails by design (73 of 96 fields, last bits); reference regenerated**, then passes |
+| CPU noise twin | pass | pass | pass (before and after regenerating) |
+| CPU, small 1° box, one day | identical | identical | |
+| Restart, padded chunks equal one chunk, output streams, devices | | | pass |
+| CPU gradient tier (`tests/gradient_tier.py`) | | | pass (9, 6 min; all three changes in) |
+| All of `tests/regression` (CPU) | | | pass (216, 14 min; all three changes in) |
+
+On the CPU the search stays a loop (`auto`), so changes 1 and 2 leave the CPU arithmetic as it
+was. With `unrolled` forced on the CPU, the regression case differs from the reference at
+round-off level (largest relative difference 2.8e-11; one field, `stflx_air_canopy`, at 1.2
+times the noise-twin allowance; decision 114).
+
+### GPU results against the baseline
+
+Two fresh compiles of the **same, unchanged** program on the GPU come in two variants (open
+item O27). Saved global outputs and state, largest relative difference:
+
+| Compared | After 2 steps | After 1 day |
+|---|---|---|
+| Baseline A against baseline B (same code, two compiles) | 5e-14 | 0.21 in the worst patch; 99.9 % of values below 4e-3 |
+| Change 1 against the baseline of its variant | 4e-16 | 1.5e-13 |
+| Change 2 against the baseline of its variant | 2e-16 | 99.9 % of values below 4e-16; worst patch 1.6e-2 |
+| Change 3 against the baseline of its variant | 2e-16 | 1.4e-13 |
+
+So each change moves the GPU results by one unit in the last place after two steps, far less
+than the difference between two compiles of the unchanged code.
+
+**For the maintainer (not caused by this work, but measured here):** the two compile variants
+of the unchanged model, 5e-14 apart after two steps, are more than 1e-6 apart after one day
+in 4 176 of the 72 575 patches (5.8 %), more than 1e-3 in 1 085 and more than 1 % in 189 (leaf
+or air state). This is the round-off amplification of real 1° patches already recorded
+(O27 and the "issue 10" item of decision 88), now counted on the globe. It limits how GPU runs
+can be compared with each other, and it may deserve its own look.
+
+### Gradients (GPU, `timing/time_vmap.py --grad`, CHATS7 copies, 8-step chunk)
+
+| | Forward ms per step | Gradient ms per step | Gradient compile | Peak GB |
+|---|---|---|---|---|
+| Baseline, 1 patch | 616 | 1957 | 124 s | 0.004 |
+| Baseline, 4 096 patches | 724 | 2577 | 117 s | 8.2 |
+| After step 1 | see below | | | |
