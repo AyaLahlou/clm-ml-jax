@@ -68,10 +68,21 @@ class PsihatTable(NamedTuple):
 
 
 class RSLTables(NamedTuple):
-    """The psihat lookup tables for momentum and scalars."""
+    """The psihat lookup tables for momentum and scalars, on one pair of grids (as in
+    CLM-ml v2's ``psihat.nc``; decision 115): a place found on the grids serves both tables."""
 
-    momentum: PsihatTable
-    scalar: PsihatTable
+    zdt: Array  # (nZ,) (z - h) / (h - d), decreasing
+    dtl: Array  # (nL,) (h - d) / L, increasing
+    psi_momentum: Array  # (nZ, nL) psihat for momentum
+    psi_scalar: Array  # (nZ, nL) psihat for scalars
+
+    @property
+    def momentum(self) -> PsihatTable:
+        return PsihatTable(self.zdt, self.dtl, self.psi_momentum)
+
+    @property
+    def scalar(self) -> PsihatTable:
+        return PsihatTable(self.zdt, self.dtl, self.psi_scalar)
 
 
 #: How the psihat tables are searched, by name (model.yaml ``numerics.table_search``) -> the
@@ -159,23 +170,21 @@ def psic_monin_obukhov(zeta):
 # ---------------------------------------------------------------------------
 
 
-def lookup_psihat(zdt, dtl, table: PsihatTable, table_search: str = "loop"):
-    """Bilinear interpolation of the unscaled psihat ``A[(z-h)/(h-d), (h-d)/L]`` in
-    ``table`` (multiplied by ``c1`` it is psihat). Outside the grid, both neighbours are the
-    edge value (weights 1/2 each, as Fortran). ``table_search``: how the grids are searched
-    (:data:`TABLE_SEARCH`; the same indices either way).
+class _Bracket(NamedTuple):
+    """A value's place on one grid of the psihat tables: its two neighbours and their
+    weights (both the edge value, 1/2 each, outside the grid)."""
 
-    Fortran reference: MLCanopyTurbulenceMod.F90::LookupPsihat (Bonan et al. 2018,
-    eq. A21).
-    """
+    i1: Array
+    i2: Array
+    w1: Array
+    w2: Array
+
+
+def _dtl_bracket(dtl, dtLg, method: str) -> _Bracket:
+    """The place of ``(h - d)/L`` on its grid ``dtLg`` (increasing)."""
     dtl = jnp.asarray(dtl)
-    zdt = jnp.asarray(zdt)
-    dtLg, zdtg, pg = (jnp.asarray(a) for a in (table.dtl, table.zdt, table.psi))
+    dtLg = jnp.asarray(dtLg)
     nL = dtLg.shape[0]
-    nZ = zdtg.shape[0]
-    method = TABLE_SEARCH[table_search]
-
-    # (h - d)/L bracket (grid increasing)
     at_bnd_L = (dtl <= dtLg[0]) | (dtl > dtLg[-1])
     L2_raw = jnp.clip(jnp.searchsorted(dtLg, dtl, side="right", method=method), 0, nL - 1)
     L1_raw = jnp.maximum(L2_raw - 1, 0)
@@ -185,8 +194,15 @@ def lookup_psihat(zdt, dtl, table: PsihatTable, table_search: str = "loop"):
     wL2 = 1.0 - wL1
     L1 = jnp.where(dtl <= dtLg[0], 0, jnp.where(dtl > dtLg[-1], nL - 1, L1_raw))
     L2 = jnp.where(dtl <= dtLg[0], 0, jnp.where(dtl > dtLg[-1], nL - 1, L2_raw))
+    return _Bracket(L1, L2, wL1, wL2)
 
-    # (z - h)/(h - d) bracket (grid decreasing: searched as its negative)
+
+def _zdt_bracket(zdt, zdtg, method: str) -> _Bracket:
+    """The place of ``(z - h)/(h - d)`` on its grid ``zdtg`` (decreasing: searched as its
+    negative)."""
+    zdt = jnp.asarray(zdt)
+    zdtg = jnp.asarray(zdtg)
+    nZ = zdtg.shape[0]
     at_bnd_Z = (zdt > zdtg[0]) | (zdt < zdtg[-1])
     Z1_raw = jnp.clip(jnp.searchsorted(-zdtg, -zdt, side="right", method=method) - 1, 0, nZ - 2)
     Z2_raw = Z1_raw + 1
@@ -196,12 +212,32 @@ def lookup_psihat(zdt, dtl, table: PsihatTable, table_search: str = "loop"):
     wZ2 = 1.0 - wZ1
     Z1 = jnp.where(zdt > zdtg[0], 0, jnp.where(zdt < zdtg[-1], nZ - 1, Z1_raw))
     Z2 = jnp.where(zdt > zdtg[0], 0, jnp.where(zdt < zdtg[-1], nZ - 1, Z2_raw))
+    return _Bracket(Z1, Z2, wZ1, wZ2)
 
+
+def _interpolate_psihat(psi, z: _Bracket, L: _Bracket):
+    """Bilinear interpolation in the table ``psi`` (nZ, nL) at the places ``z`` and ``L``."""
+    pg = jnp.asarray(psi)
     return (
-        wZ1 * wL1 * pg[Z1, L1]
-        + wZ2 * wL1 * pg[Z2, L1]
-        + wZ1 * wL2 * pg[Z1, L2]
-        + wZ2 * wL2 * pg[Z2, L2]
+        z.w1 * L.w1 * pg[z.i1, L.i1]
+        + z.w2 * L.w1 * pg[z.i2, L.i1]
+        + z.w1 * L.w2 * pg[z.i1, L.i2]
+        + z.w2 * L.w2 * pg[z.i2, L.i2]
+    )
+
+
+def lookup_psihat(zdt, dtl, table: PsihatTable, table_search: str = "loop"):
+    """Bilinear interpolation of the unscaled psihat ``A[(z-h)/(h-d), (h-d)/L]`` in
+    ``table`` (multiplied by ``c1`` it is psihat). Outside the grid, both neighbours are the
+    edge value (weights 1/2 each, as Fortran). ``table_search``: how the grids are searched
+    (:data:`TABLE_SEARCH`; the same indices either way).
+
+    Fortran reference: MLCanopyTurbulenceMod.F90::LookupPsihat (Bonan et al. 2018,
+    eq. A21).
+    """
+    method = TABLE_SEARCH[table_search]
+    return _interpolate_psihat(
+        table.psi, _zdt_bracket(zdt, table.zdt, method), _dtl_bracket(dtl, table.dtl, method)
     )
 
 
@@ -239,11 +275,19 @@ def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables, table_search: str 
     zdt_hc = 0.0  # (hc - hc) / dt
     dtL = dt / obu
 
+    # The places of the two heights and of dtL on the tables' grids, found once: the four
+    # lookups below (two heights, momentum and scalars) share them (Fortran's LookupPsihat
+    # searches for each; the places are the same)
+    method = TABLE_SEARCH[table_search]
+    at_za = _zdt_bracket(zdt_za, tables.zdt, method)
+    at_hc = _zdt_bracket(zdt_hc, tables.zdt, method)
+    at_dtL = _dtl_bracket(dtL, tables.dtl, method)
+
     # Momentum
     phim = phim_monin_obukhov((hc - disp) / obu)
     c1_m = (1.0 - vkc / (2.0 * beta * phim)) * jnp.exp(0.5 * c2)
-    psim_hat1 = lookup_psihat(zdt_za, dtL, tables.momentum, table_search) * c1_m
-    psim_hat2 = lookup_psihat(zdt_hc, dtL, tables.momentum, table_search) * c1_m
+    psim_hat1 = _interpolate_psihat(tables.psi_momentum, at_za, at_dtL) * c1_m
+    psim_hat2 = _interpolate_psihat(tables.psi_momentum, at_hc, at_dtL) * c1_m
     psim1 = psim_monin_obukhov((za - disp) / obu)
     psim2 = psim_monin_obukhov((hc - disp) / obu)
     psim = -psim1 + psim2 + psim_hat1 - psim_hat2 + vkc / beta
@@ -251,8 +295,8 @@ def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables, table_search: str 
     # Scalars
     phic = phic_monin_obukhov((hc - disp) / obu)
     c1_c = (1.0 - PrSc * vkc / (2.0 * beta * phic)) * jnp.exp(0.5 * c2)
-    psic_hat1 = lookup_psihat(zdt_za, dtL, tables.scalar, table_search) * c1_c
-    psic_hat2 = lookup_psihat(zdt_hc, dtL, tables.scalar, table_search) * c1_c
+    psic_hat1 = _interpolate_psihat(tables.psi_scalar, at_za, at_dtL) * c1_c
+    psic_hat2 = _interpolate_psihat(tables.psi_scalar, at_hc, at_dtL) * c1_c
     psic1 = psic_monin_obukhov((za - disp) / obu)
     psic2 = psic_monin_obukhov((hc - disp) / obu)
     psic = -psic1 + psic2 + psic_hat1 - psic_hat2

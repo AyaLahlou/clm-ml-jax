@@ -99,7 +99,9 @@ Read at setup only (not differentiable through the run): `root_profile_beta` (ro
 
 ### 2f. psihat tables
 `processes.turbulence.RSLTables` from `data/psihat.nc` (`io/rsl_tables.default_rsl_tables`): the
-RSL ψ̂ lookup; one copy per chunk (`tables=`; broadcast over patches), data.
+RSL ψ̂ lookup; one copy per chunk (`tables=`; broadcast over patches), data. The momentum and scalar
+tables are on one pair of grids (checked when read; decision 115), and how the grids are
+searched is `numerics.table_search` (decision 114).
 
 ### 2g. Initial conditions
 - `clm_history` (default): `setup.patches.build_patches` builds `State` from the first step's

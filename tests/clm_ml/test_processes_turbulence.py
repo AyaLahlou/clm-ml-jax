@@ -128,6 +128,44 @@ def test_lookup_psihat_search_methods_agree(search):
     np.testing.assert_array_equal(lookup(zz, ll, m, search), lookup(zz, ll, m, "loop"))
 
 
+def test_psi_rsl_shares_the_table_searches():
+    """psi_rsl finds the places of its two heights and of (h - d)/L once for the four
+    lookups (decision 115): the same psihat values as four separate lookups."""
+    tables = default_rsl_tables()
+    za, hc, disp, obu, beta, PrSc = 23.0, 10.0, 7.3, -41.0, 0.33, 0.6
+    psim, psic, _, psim_hat2 = turb.psi_rsl(za, hc, disp, obu, beta, PrSc, tables)
+    dt = hc - disp
+    hat = [
+        turb.lookup_psihat(zdt, dt / obu, table)
+        for table in (tables.momentum, tables.scalar)
+        for zdt in ((za - hc) / dt, 0.0)
+    ]
+    c1_m = (1.0 - vkc / (2.0 * beta * turb.phim_monin_obukhov(dt / obu))) * jnp.exp(0.5 * turb.c2)
+    c1_c = (1.0 - PrSc * vkc / (2.0 * beta * turb.phic_monin_obukhov(dt / obu))) * jnp.exp(
+        0.5 * turb.c2
+    )
+    assert float(psim_hat2) == float(hat[1] * c1_m)
+    mo_m = -turb.psim_monin_obukhov((za - disp) / obu) + turb.psim_monin_obukhov(dt / obu)
+    mo_c = -turb.psic_monin_obukhov((za - disp) / obu) + turb.psic_monin_obukhov(dt / obu)
+    assert float(psim) == float(mo_m + hat[0] * c1_m - hat[1] * c1_m + vkc / beta)
+    assert float(psic) == float(mo_c + hat[2] * c1_c - hat[3] * c1_c)
+
+
+def test_tables_must_share_their_grids(tmp_path):
+    """The momentum and scalar tables are on one pair of grids (decision 115): a file where
+    they differ is refused."""
+    import xarray as xr
+
+    from clm_ml.io.rsl_tables import read_rsl_tables, rsl_table_file
+
+    with xr.open_dataset(rsl_table_file()) as ds:
+        ds = ds.load()
+    ds["dtLgridH"] = ds["dtLgridH"] * 1.5
+    ds.to_netcdf(tmp_path / "psihat.nc")
+    with pytest.raises(ValueError, match="same grids"):
+        read_rsl_tables(tmp_path / "psihat.nc")
+
+
 def test_table_search_follows_the_device():
     from clm_ml import driver
 

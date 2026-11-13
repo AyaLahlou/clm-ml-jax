@@ -1131,6 +1131,18 @@ times the noise-twin allowance), because the compiler arranges the surrounding a
 differently.
 Source: maintainer, 2026-11-13; `gpu_progress.md` step 0.
 
+**115. The momentum and scalar psihat tables are on one pair of grids**
+2026-11-13 · GPU optimization step 1 (O55) · maintainer · in force · Departure from Fortran: no
+`RSLTables` holds the two grids once (`zdt`, `dtl`) with the two psihat arrays
+(`psi_momentum`, `psi_scalar`); `read_rsl_tables` refuses a file whose momentum and scalar
+grids differ. `turbulence.py::psi_rsl` finds the places of its two heights and of (h - d)/L
+on the grids once and uses them for its four lookups: 3 searches per call instead of 8
+(Fortran's `LookupPsihat` searches in each lookup; the places and the interpolated values are
+the same: bit for bit on the CPU). A user-supplied table must therefore have one pair of
+grids, as CLM-ml v2's `psihat.nc` has.
+Reason: fewer GPU commands and less work (`gpu_progress.md`); no change of results.
+Source: maintainer, 2026-11-13.
+
 ## K. Scope deferred
 
 **88. Work deferred to after Phase 8**
