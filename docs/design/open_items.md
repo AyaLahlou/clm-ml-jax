@@ -723,7 +723,8 @@ Kernel count per step (Phase 6 step 1c), C3/C4 groups traced twice in mixed batc
 slower than in Phase 6b (program 2.32 GB → 4 MB, compile 840 s → 61 s in Phase 7).
 **Source:** plan "After Phase 8: GPU performance"; D10; `phase7_progress.md` timing.
 Plan (2026-11-13, branch `gpu_opt`): `gpu_optimization_plan.md`; target and scope in
-decision 113; open there: unrolling budget, padded-step skipping.
+decision 113; open there: unrolling budget, padded-step skipping. Step 0 measured (2026-11-13,
+`gpu_progress.md`): the psihat table search is 94 % of the GPU commands; a prototype reaches 1.86×.
 
 ### O56. Unsupported variants
 Well-mixed flux profile and dataset profiles (fail on traced layer counts), Norman solar

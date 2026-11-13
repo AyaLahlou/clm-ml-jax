@@ -1,8 +1,11 @@
 # GPU optimization plan (open item O55)
 
-Status: **plan only, for discussion with the maintainer** (branch `gpu_opt`). Written
-2026-11-13; reviewed and revised the same day (§9 lists what the review changed). Nothing
-below has been started. The deferred work it picks up: Phase 6 step 1c (kernels per step),
+Status: **step 0 (measurements) done 2026-11-13; stopped for the maintainer before step 1**
+(branch `gpu_opt`). Results and the revised order of work: [`gpu_progress.md`](gpu_progress.md).
+In short: the fixed cost is 1.2 s of the 2.0 s step (not 0.4 s), 94 % of the GPU commands
+come from the psihat table search, and a prototype that removes that loop reaches 1.86×. §2
+below is the picture before step 0 and is kept as written. Written 2026-11-13; reviewed and
+revised the same day (§9 lists what the review changed). The deferred work it picks up: Phase 6 step 1c (kernels per step),
 "After Phase 8: GPU performance" in the modernization plan, O55. Target and scope: decision 113.
 
 ## 1. Goal, targets and how they are measured
