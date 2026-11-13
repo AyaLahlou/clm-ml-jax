@@ -303,4 +303,38 @@ can be compared with each other, and it may deserve its own look.
 |---|---|---|---|---|
 | Baseline, 1 patch | 616 | 1957 | 124 s | 0.004 |
 | Baseline, 4 096 patches | 724 | 2577 | 117 s | 8.2 |
-| After step 1 | see below | | | |
+| After step 1 (`9c8a741`), 1 patch | 152 | 1037 | 103 s | 0.004 |
+| After step 1, 4 096 patches | 268 | 1690 | 117 s | 8.2 |
+
+Gradients are 1.9× faster for one patch and 1.5× for 4 096 patches, with the same memory and
+compile time. (This test case has one patch group and 46 layers, so its forward gain, 4.1× and
+2.7×, is larger than the globe's.) The GPU gradient tier (`jobs/grad_gpu.pbs`, `9c8a741`):
+11 pass, 12 min.
+
+### The 10-day reference chunk (`timing/time_program.py`, `results_program.jsonl`)
+
+| | Chunk (480 steps) | patch-steps/s | Compile | Peak GB |
+|---|---|---|---|---|
+| Baseline ("gpu0_ref") | 935.5 s | 37 240 | 41 s | 5.1 |
+| After step 1 ("gpu1_ref") | 508.5 s | 68 510 | 34 s | 5.1 |
+
+A simulated year: about 5.2 h on one A100 (was 9.5 h).
+
+### Where the step time is now, and what could come next
+
+After step 1 a global step is about 0.18 s of fixed cost and 0.88 s of GPU arithmetic (from
+the step-0 profile of the prototype): the canopy physics of the Runge–Kutta stages 0.48 s,
+the stomatal bisection 0.23 s, the remaining table lookups 0.10 s, the rest 0.08 s.
+
+To go from 1.87× to 2× the step must lose another 0.07 s. Candidates, by expected gain per
+risk:
+
+1. **Unroll the remaining loops** (plan step 2a: tridiagonal solves, flux-profile solves,
+   Obukhov and bisection loops; ~15 000 loop iterations per step are left). Attacks the
+   0.18 s of fixed cost. Same operations; code size and compile time to be watched.
+2. **The stomatal bisection** (0.23 s): its five extra function evaluations stacked, or its
+   body rearranged. Round-off-level.
+3. **A fresh profile first** (the step-0 profile of the prototype had command buffers off):
+   cheap, and it says which of 1 and 2 is worth more.
+
+**Stopped here for the maintainer.**
