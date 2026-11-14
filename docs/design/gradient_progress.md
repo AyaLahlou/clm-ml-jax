@@ -16,17 +16,18 @@ Words used here:
 
 ## Resume here
 
-**State (2026-11-14).** Rounds 1 (speed), 2 and 3 (accuracy) are measured. In the code:
-the two gradient corrections of round 2 (decision 119; forward values unchanged) and the
-`avmu` fix of round 3 (decision 120; forward values of grass and crop PFTs change, as
-Fortran computes). Next: round 4, the check on real 1° patches.
+**State (2026-11-14).** Rounds 1 (speed) and 2-4 (accuracy) are measured. In the code: the
+two gradient corrections of round 2 (decision 119; forward values unchanged) and the `avmu`
+fix of round 3 (decision 120). **Waiting for the maintainer: O79**, NaN parameter gradients
+where leaf water potential is positive (dew), found on 1° patches in round 4.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
 
-**Open from rounds 2 and 3** (O76): 1° patches with sparse canopies; a day with real rain.
+**Open from rounds 2-4** (O76): O79; the 1° check repeated after it, in other seasons and
+regions; state and forcing derivatives on 1° patches.
 
 **How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
 
@@ -42,6 +43,8 @@ JAX_PLATFORMS=cpu python jobs/gpu_probes/loops_grad.py .    # every loop, with i
 # accuracy: a day of outputs against finite differences (CPU; params 5 min, forcing 5, state 20)
 JAX_PLATFORMS=cpu python jobs/gpu_probes/gradcheck0.py . --wrt params|state|forcing [--h 1e-3,1e-5]
 python jobs/gpu_probes/gradcheck_report.py gradcheck_params.npz [-v]
+# the same for every patch of a 1° box (parameters; ~15 min for 20 patches)
+JAX_PLATFORMS=cpu python jobs/gpu_probes/gradcheck_grid.py . "{lat: [35, 37], lon: [-100, -98]}"
 ```
 
 Modes of `grad0.py`: `grad`/`jvp` are called as a user would (not jitted), `jgrad`/`jjvp`
@@ -57,6 +60,10 @@ derivative of one process (its results pass through `stop_gradient`): an ablatio
 - **Call the model once plainly before a jitted derivative** (`jax.jit(jax.grad(...))` as
   the first call fails: O76).
 - The 1-day CHATS7 case has 48 steps and `Model` chunks start at step 1: at most 47 steps.
+- **A derivative with respect to one parameter can hide a NaN in another:** differentiate
+  with respect to the whole parameter set (as `jax.grad` over `params` does) when looking
+  for NaN; a NaN partial derivative times a zero tangent is NaN in every parameter.
+- **Run each gradient test file in its own process** (`tests/gradient_tier.py` does): O78.
 
 ## Round 1: where a gradient's time goes (2026-11-14). No change to the model
 
@@ -273,3 +280,57 @@ amplified.
   acts at |φ2| < 1e-10, which never occurs: the Fortran formula for every PFT. Bit for bit
   and all of `tests/regression` (216) pass without a new reference; unit tests for eight
   leaf angle indices. Not compared with a Fortran run of a grass patch (none exists).
+
+## Round 4: real 1° patches (2026-11-14)
+
+`jobs/gpu_probes/gradcheck_grid.py`: the check of round 2 for every patch of a box of
+`configs/grid_1deg_2000`, 1 January 2000, 47 steps, 7 outputs per patch, the 27 parameters
+(each scaled in all PFT rows together), on the code with decisions 119 and 120. FD steps
+1e-4, 1e-5, 1e-6.
+
+| Box | Patches | Result |
+|---|---|---|
+| US Great Plains, 35-37°N (winter; LAI 0.00-0.85; needleleaf, deciduous tree, shrub, C3 and C4 grass, crop) | 21 | no NaN; 2 289 of 2 323 pairs within 0.1 % of FD, the rest within 1.3 % (mostly `gs_min`, and a patch with LAI 0.00); 26 pairs "lost": the leaf angle index of the four needleleaf patches (below) |
+| Brazilian cerrado, 10-12°S (wet season; LAI 1.6-4.4; tropical trees, crops, C4 grass) | 18 | 9 patches: within 0.5 % of FD; **9 patches: every parameter derivative NaN from step 17 on** (O79) |
+
+- **Leaf angle index of needleleaf trees:** their χ_l is 0.01, exactly where CLM's rule
+  "|χ_l| ≤ 0.01 becomes 0.01" starts, so AD gives no sensitivity (FD sees the half above).
+  A property of the rule, not an error.
+- Sparse canopies (LAI down to 0.00, the plant-area floor of decision 30) gave no NaN and
+  no wrong derivative for the parameters.
+
+### O79: NaN parameter gradients where leaf water potential is positive
+
+- **What happens:** in 9 of the 18 cerrado patches the derivative of every output with
+  respect to every parameter is NaN from step 17 (pre-dawn) to the end of the day, in
+  forward and in reverse mode. The forward run is finite.
+- **Cause:** the water-stress factor `fpsi = 1 / (1 + (psi_l/psi50)^shape_gs)`
+  (`photosynthesis.py::leaf_photosynthesis`; Fortran `MLLeafPhotosynthesisMod.F90` line
+  438). At that step dew forms (leaf latent heat −0.3 to −2.9 W m⁻²), the transpiration term
+  is negative and leaf water potential rises above zero (up to +0.03 MPa in the step mean)
+  in exactly those patches. `psi_l/psi50` is then negative. Its 40th power is still a number
+  (40 is a whole number), but its derivative with respect to the exponent `shape_gs`
+  contains ln(negative) = NaN; and a NaN partial derivative makes the gradient of every
+  parameter NaN (NaN × 0 = NaN), which is how `nan_by_parameter.py` found it: only a
+  derivative taken with respect to `shape_gs` alone, or to the whole parameter set, is NaN.
+- **Also a forward risk:** a calibrated, non-whole `shape_gs` (39.5, say) would make the
+  forward value NaN wherever psi_l > 0; Fortran's `**` with a real exponent and a negative
+  base is undefined there as well. CTSM's own vulnerability curve has the same form without
+  a guard.
+- **Proposal (for the maintainer; a modelling choice):** no water stress at psi_l ≥ 0:
+  `(max(psi_l/psi50, 0))^shape_gs`. For the default whole-number `shape_gs` the forward
+  value does not change (`fpsi` is exactly 1 for |psi_l/psi50| < 0.4 either way: to be
+  confirmed bit for bit), and the derivatives are 0 there instead of NaN.
+- **Behind it, not proposed to change now:** that leaf water potential can exceed zero at
+  all (dew entering the plant-hydraulics balance as negative transpiration,
+  `plant_hydraulics.py::leaf_water_potential`, as Fortran).
+
+### O78: XLA aborts while writing the compilation cache in the gradient tier
+
+After decision 120 the CPU gradient tier aborted three times ("Fatal Python error:
+Aborted" in JAX's `compilation_cache.put_executable_and_time`, inside
+`executable.serialize()`), each time in `tests/test_gradient_accuracy.py` when it compiled a
+new chunk in the pytest process that had already run `tests/test_differentiability.py`.
+The same test alone passes, and so does the tier once the program is in the cache. Not
+diagnosed. `tests/gradient_tier.py` and `jobs/grad_gpu.pbs` now run each test file in its
+own process: 13 pass with an empty compilation cache.

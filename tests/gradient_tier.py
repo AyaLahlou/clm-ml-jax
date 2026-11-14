@@ -37,10 +37,16 @@ def main(argv: list[str]) -> int:
     env = dict(os.environ)
     env["JAX_PLATFORMS"] = "cpu"
     targets = [FOCUSED] if focused else GRADIENT_FILES
-    cmd = [sys.executable, "-m", "pytest", *targets, "-m", "gradient"]
-    cmd += ["-p", "no:cacheprovider", "-o", "addopts=", "-q", *extra]
-    print("JAX_PLATFORMS=cpu", " ".join(cmd), flush=True)
-    return subprocess.run(cmd, cwd=ROOT, env=env).returncode
+    # One pytest process per file: with a cold compilation cache, XLA aborted while
+    # serializing a newly compiled chunk in a process that had run another file's tests
+    # (test_gradient_accuracy.py after test_differentiability.py; O78)
+    code = 0
+    for target in targets:
+        cmd = [sys.executable, "-m", "pytest", target, "-m", "gradient"]
+        cmd += ["-p", "no:cacheprovider", "-o", "addopts=", "-q", *extra]
+        print("JAX_PLATFORMS=cpu", " ".join(cmd), flush=True)
+        code = max(code, abs(subprocess.run(cmd, cwd=ROOT, env=env).returncode))
+    return code
 
 
 if __name__ == "__main__":

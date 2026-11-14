@@ -65,6 +65,8 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O73 | ~~The environment has no CUDA plugin: GPU jobs cannot see the GPUs~~ (closed: plugin 0.10.2 installed, `environment.yml`) | environment | closed | M |
 | O75 | `jax.grad` of `tridiag_2eq` with respect to only some of its coefficients fails inside JAX (was a second O74 until 2026-11-14) | bug (gradients, latent) | after 8 | I |
 | O76 | Gradients: speed, then quality and accuracy (branch `gpu_grad`) | performance / robustness (gradients) | after 8 | M |
+| O78 | XLA aborts while writing the compilation cache when a second gradient test file compiles in one process | robustness (upstream JAX?) | after 8 | I |
+| O79 | NaN parameter gradients where leaf water potential is positive (dew): `(psi_l/psi50)^shape_gs` | science issue (differentiability) | now (maintainer's decision) | M |
 | O77 | ~~Two-stream `avmu` wrong for PFTs with a negative leaf angle index (grasses, crops)~~ (closed: decision 120) | science issue (bug) | closed | M |
 | **4. Housekeeping and repository organization (8a)** |||||
 | O34 | ~~`.gitignore` names absent directories (`docs/` rule removed)~~ (closed: pruned) | housekeeping | closed | I |
@@ -547,6 +549,32 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Source:** GPU step 2a, 2026-11-13 (`gpu_progress.md`). Numbered O74 at first, a number
   already taken by "Compsets separate from the grid"; renumbered O75 on 2026-11-14.
 
+### O78. XLA abort while writing the compilation cache
+- **Kind:** robustness · **Target:** after 8 · **Decides:** I
+- **What:** with an empty compilation cache, the pytest process of the CPU gradient tier
+  aborted ("Fatal Python error: Aborted" in `jax._src.compilation_cache`, inside
+  `executable.serialize()`) when `tests/test_gradient_accuracy.py` compiled a chunk after
+  `tests/test_differentiability.py` had run in the same process (3 of 3 times, 2026-11-14).
+  Alone, or with the program already cached, it passes. Not diagnosed (compare O26).
+- **Now:** `tests/gradient_tier.py` and `jobs/grad_gpu.pbs` run one pytest process per
+  test file (13 pass, cold cache).
+- **Source:** gradient accuracy round 4 (`gradient_progress.md`).
+
+### O79. NaN parameter gradients where leaf water potential is positive
+- **Kind:** science issue (differentiability) · **Target:** now · **Decides:** M
+- **What:** `fpsi = 1 / (1 + (psi_l/psi50)^shape_gs)` (`photosynthesis.py`; Fortran
+  `MLLeafPhotosynthesisMod.F90` line 438). With dew, leaf water potential rises above zero
+  (seen: up to +0.03 MPa before dawn in 9 of 18 patches of a cerrado box, 1 January 2000);
+  the base is then negative, the derivative with respect to `shape_gs` is NaN, and with it
+  the gradient of every parameter, for the rest of the chunk. The forward run is finite
+  only because 40 is a whole number: a non-whole `shape_gs` would give NaN forward values.
+- **Proposed:** no water stress at psi_l ≥ 0, `(max(psi_l/psi50, 0))^shape_gs`: forward
+  values unchanged for the default parameters (to be confirmed bit for bit), derivatives 0
+  instead of NaN. A modelling choice: the maintainer's decision.
+- **Related, not proposed now:** leaf water potential above zero under dew
+  (`plant_hydraulics.py::leaf_water_potential`, as Fortran).
+- **Source:** gradient accuracy round 4 (`gradient_progress.md`).
+
 ### O77. Two-stream `avmu` for a negative leaf angle index
 - **Closed 2026-11-14** (decision 120): phi2 is used with its sign, as Fortran; CHATS7 and
   the regression references are unchanged.
@@ -588,8 +616,12 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   (36 padding slots) and invented rain and snow; the air-temperature leftover was the finite
   differences (corners of the model in the unstable afternoon). The C4 grass case found a
   forward-model error: O77, fixed (decision 120).
+- **Round 4 (2026-11-14):** two boxes of real 1° patches. Great Plains in winter (21
+  patches, LAI 0.00-0.85): no NaN, all parameter derivatives within 1.3 % of finite
+  differences. Cerrado in the wet season (18 patches): 9 sound, 9 with NaN gradients: O79.
 - **Open:**
-  - the check on 1° patches with sparse canopies and on a day with real rain;
+  - O79 (NaN gradients with dew), then the 1° check repeated in other seasons and regions,
+    and for state and forcing derivatives;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
     step for all 27 parameters on the CPU) or reverse mode (one number, every input);
   - the checkpoint layout as a setting (the step is computed three times for a gradient;

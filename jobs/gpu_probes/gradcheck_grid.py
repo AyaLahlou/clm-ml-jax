@@ -32,6 +32,7 @@ import numpy as np  # noqa: E402
 from clm_ml.experiment import load_experiment  # noqa: E402
 from clm_ml.model import Model  # noqa: E402
 from clm_ml.output_streams import StreamSpec  # noqa: E402
+from clm_ml.params import PFT_NAMES  # noqa: E402
 
 VARS = ("latent_heat_flux", "sensible_heat_flux", "net_radiation", "gpp", "ground_heat_flux",
         "canopy_top_air_temperature", "friction_velocity")  # fmt: skip
@@ -69,7 +70,7 @@ def shifted(t, e):
 
 y0, lai = (np.asarray(a) for a in F(params))
 npatch = y0.shape[1]
-pft = [sim.pft_names[int(r)] for r in np.asarray(sim.pft_row)[:npatch]]
+pft = [PFT_NAMES[int(i)] for i in run.domain.patches.pft_index]  # domain order, as the outputs
 print("patches", npatch, "outputs", y0.shape, "PFTs", sorted(set(pft)), flush=True)
 print("forward finite:", bool(np.isfinite(y0).all()), flush=True)
 stacked = jax.tree.map(lambda *xs: jnp.stack(xs), *tangents)
