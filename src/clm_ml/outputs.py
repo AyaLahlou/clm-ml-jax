@@ -311,6 +311,18 @@ VARIABLES_BY_NAME: Mapping[str, VariableSpec] = {v.name: v for v in VARIABLES}
 # Variables that cannot be averaged across patches with different layer grids.
 _PATCH_ONLY_DIMS = {"layer"}
 
+#: Gridcell fields written with a grid run's gridcell output (decision 108): the file name,
+#: units and long name of clm_ml.domain.Gridcells' area, land_fraction, vegetated_fraction
+GRIDCELL_AREA = {
+    "area": ("area", "km2", "Gridcell area (CLM history area)"),
+    "land_fraction": ("landfrac", "1", "Land fraction of the gridcell (CLM history landfrac)"),
+    "vegetated_fraction": (
+        "vegetated_fraction", "1",
+        "Fraction of the land covered by PFTs 1-16 (the patches run; surface data). A total: "
+        "value * area * landfrac * vegetated_fraction",
+    ),
+}  # fmt: skip
+
 COORDINATES = {
     "leaf_class": ["sunlit", "shaded"],
     "leaf_group": ["canopy", "sunlit", "shaded"],
@@ -337,6 +349,11 @@ class Outputs:
     # Area-weighted gridcell sums formed at every step inside the run (Phase 6 step 3),
     # ``(time, gridcell, ...)``: used for the gridcell level, so min/max are right there
     gridcell_data: Mapping[str, np.ndarray] = dataclasses.field(default_factory=dict, repr=False)
+    # Grid runs: the gridcells' latitude-longitude map (clm_ml.domain.LatLonMap), on which
+    # the gridcell level is written (decision 108); None: per gridcell
+    gridcell_map: object = None
+    # Grid runs: {Gridcells field: (gridcell,) values} of GRIDCELL_AREA, written on the map
+    gridcell_area: Mapping[str, np.ndarray] = dataclasses.field(default_factory=dict, repr=False)
 
     def __getattr__(self, name: str) -> np.ndarray:
         data = object.__getattribute__(self, "data")
@@ -371,6 +388,8 @@ class Outputs:
             soil_temperature=None if soil is None else np.asarray(soil, dtype=float),
             soil_depth=np.asarray(meta["soil_depth"]),
             raw={n: v for n, v in records.items() if "." in n},
+            gridcell_map=meta.get("gridcell_map"),
+            gridcell_area={n: v for n, v in meta.get("gridcell_area", {}).items() if v is not None},
         )
 
     def split(self, file_per: str, run_start: dt.datetime) -> list:
@@ -427,9 +446,12 @@ class Outputs:
 
     def to_xarray(self, level: str = "patch"):
         """``xarray.Dataset`` with units and long names. ``level`` is ``"patch"`` or
-        ``"gridcell"`` (area-weighted means; profile variables are omitted)."""
+        ``"gridcell"`` (area-weighted means; profile variables are omitted). A grid run's
+        gridcell level is on its latitude-longitude map (:meth:`_latlon_xarray`)."""
         import xarray as xr
 
+        if level == "gridcell" and self.gridcell_map is not None:
+            return self._latlon_xarray()
         if level == "gridcell":
             data, unit_dim = self.gridcell_mean(), "gridcell"
         elif level == "patch":
@@ -466,6 +488,50 @@ class Outputs:
         ds.attrs["time_convention"] = "time is the end of each output interval"
         return ds
 
+    def _latlon_xarray(self):
+        """The gridcell level of a grid run on its latitude-longitude map (decision 108):
+        variables ``(time, ..., lat, lon)``, NaN where no gridcell was run (ocean, ice,
+        unvegetated land, outside the region), ``run_mask`` (1 where one was) and the
+        gridcells' area, land fraction and vegetated fraction (``GRIDCELL_AREA``)."""
+        import xarray as xr
+
+        m = self.gridcell_map
+        rows, cols = m.index[:, 0], m.index[:, 1]
+        shape = (m.lat.size, m.lon.size)
+        variables = {}
+        for name, values in self.gridcell_mean().items():
+            spec = VARIABLES_BY_NAME[name]
+            per_cell = np.moveaxis(values, 1, -1)  # (time, ..., gridcell)
+            mapped = np.full(per_cell.shape[:-1] + shape, np.nan)
+            mapped[..., rows, cols] = per_cell
+            variables[name] = xr.Variable(
+                ("time",) + spec.dims + ("lat", "lon"),
+                mapped,
+                attrs={"units": spec.units, "long_name": spec.long_name, "legacy": spec.legacy},
+            )
+        mask = np.zeros(shape, dtype=np.int8)
+        mask[rows, cols] = 1
+        variables["run_mask"] = xr.Variable(
+            ("lat", "lon"), mask, attrs={"long_name": "1: a gridcell of the run"}
+        )
+        for field, values in self.gridcell_area.items():
+            name, units, long_name = GRIDCELL_AREA[field]
+            mapped = np.full(shape, np.nan)
+            mapped[rows, cols] = values
+            variables[name] = xr.Variable(
+                ("lat", "lon"), mapped, attrs={"units": units, "long_name": long_name}
+            )
+        coords = {
+            "time": self.time,
+            **COORDINATES,
+            "lat": ("lat", m.lat, {"units": "degrees_north", "long_name": "latitude"}),
+            "lon": ("lon", m.lon, {"units": "degrees_east", "long_name": "longitude"}),
+        }
+        ds = xr.Dataset(variables, coords=coords)
+        ds.attrs["title"] = "CLM-ML-JAX multilayer canopy model output"
+        ds.attrs["time_convention"] = "time is the end of each output interval"
+        return ds
+
     def to_netcdf(
         self, path: Path, levels: Sequence[str] = ("patch", "gridcell"), append: bool = False
     ) -> list[Path]:
@@ -497,12 +563,15 @@ class Outputs:
 
 
 def domain_meta(domain) -> dict:
-    """Patch and gridcell metadata the output files carry (JSON-serializable)."""
+    """Patch and gridcell metadata the output files carry (``gridcell_map``: a grid run's
+    :class:`clm_ml.domain.LatLonMap`, or None)."""
     return {
         "patch_gridcell": domain.patches.gridcell_index.tolist(),
         "patch_weight": domain.patches.weight.tolist(),
         "patch_pft": [PFT_NAMES[i] for i in domain.patches.pft_index],
         "gridcell_names": list(domain.gridcells.names),
+        "gridcell_map": domain.gridcells.latlon,
+        "gridcell_area": {n: getattr(domain.gridcells, n) for n in GRIDCELL_AREA},
     }
 
 

@@ -1,11 +1,11 @@
-# Preset for `clm-ml new DIR --from chats7_may2007_fortran`: the settings that differ from the defaults.
+# Compset for `clm-ml new DIR --from chats7_1day`: the settings that differ from the defaults.
 # `new` writes the four complete files. Relative paths starting with data/ are in the
 # repository (the CHATS7 input files are not installed with the package).
 description: >-
-  CHATS7, May 2007: the run compared with Fortran CLM-ml v2 (tests/test_fortran_python_comparison.py):
-  31 days with the Fortran acclimation temperature and the legacy .out files.
+  CHATS7, 1 May 2007: one day at the CHATS walnut orchard (Dixon, California), the CLM-ml v2
+  test case of Bonan, Burns & Patton (2026). The quickest complete run.
 run:
-  time: {start: 2007-05-01T00:00, length: 31 days}
+  time: {start: 2007-05-01T00:00, length: 1 day}
   forcing:
     meteorology:
       files: [data/input_files/tower-forcing/CHATS7/2007-05.nc]
@@ -18,12 +18,10 @@ run:
         levels: 3
   output:
     directory: output
-    legacy_ascii: true
     streams:
     - {name: halfhourly, frequency: step, statistic: mean, variables: [all], level: [patch]}
 domain:
   type: towers
-  towers: [chats7]                 # presets/towers/chats7.yaml
-model:
-  processes: {photosynthesis: {temperature_acclimation: run_mean}}
-params: chats                      # presets/params/chats.yaml
+  towers: [chats7]                 # compsets/towers/chats7.yaml
+model: {}
+params: chats                      # compsets/params/chats.yaml

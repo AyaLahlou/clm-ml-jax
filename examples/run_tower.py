@@ -2,7 +2,7 @@
 Run CLM-ML-JAX at one flux tower (default: the CHATS walnut orchard, 1 May 2007).
 
 The first time, the script writes an experiment folder (run.yaml, domain.yaml, model.yaml,
-params.yaml) from a preset, then runs it, prints the day's mean fluxes and saves a figure
+params.yaml) from a compset, then runs it, prints the day's mean fluxes and saves a figure
 (fluxes through the day, and canopy air temperature profiles by day and by night) in the
 folder's output directory.
 
@@ -35,7 +35,7 @@ FLUXES = ("net_radiation", "sensible_heat_flux", "latent_heat_flux", "ground_hea
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.strip().split("\n\n")[0])
     parser.add_argument("--folder", default="chats7_example", help="experiment folder")
-    parser.add_argument("--preset", default="chats7_1day", help="preset for a new folder")
+    parser.add_argument("--compset", default="chats7_1day", help="compset for a new folder")
     parser.add_argument("--length", help='run length, e.g. "7 days" (default: run.yaml)')
     parser.add_argument(
         "--set", action="append", default=[], metavar="FILE.KEY=VALUE",
@@ -45,8 +45,8 @@ def main() -> None:
 
     folder = Path(args.folder)
     if not folder.exists():
-        clm_ml.new_experiment(folder, args.preset)
-        print(f"wrote {folder}/ from the preset {args.preset}")
+        clm_ml.new_experiment(folder, args.compset)
+        print(f"wrote {folder}/ from the compset {args.compset}")
 
     overrides = list(args.set)
     if args.length:

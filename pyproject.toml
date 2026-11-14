@@ -51,4 +51,4 @@ ignore = ["E501"]
 "tests/**" = ["F401"]
 
 [tool.setuptools.package-data]
-clm_ml = ["data/*.nc", "presets/*/*.yaml"]
+clm_ml = ["data/*.nc", "compsets/*/*.yaml"]

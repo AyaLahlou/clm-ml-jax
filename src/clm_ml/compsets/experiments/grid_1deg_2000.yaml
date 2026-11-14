@@ -1,4 +1,4 @@
-# Preset for `clm-ml new DIR --from grid_1deg_2000`: the settings that differ from the
+# Compset for `clm-ml new DIR --from grid_1deg_2000`: the settings that differ from the
 # defaults. `new` writes the four complete files. The inputs are on NCAR's Derecho/Campaign
 # storage (docs/design/global_input.md).
 description: >-
@@ -7,7 +7,7 @@ description: >-
   parameters, soil moisture prescribed from a CTSM 5.4 run. A box in domain.yaml grid.region
   (e.g. {lat: [30, 50], lon: [-110, -80]}) runs a region, small ones on a CPU.
 run:
-  time: {start: 2000-01-01T00:00, length: until 2001-01-01T00:00}
+  time: {start: 2000-01-01T00:00, length: until 2001-01-01T00:00, calendar: noleap}   # as CRUJRA and the CTSM run
   forcing:
     gridded:
       meteorology:

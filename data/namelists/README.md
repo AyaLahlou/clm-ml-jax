@@ -12,8 +12,8 @@ clm-ml run chats7
 ```
 
 The converter reads the paths as the Fortran driver did (`../input_files/...` relative to this
-directory, i.e. `data/input_files/`), takes the tower from its preset (CHATS7), the parameters
-from `pftcon_val` (1: the `chats` preset, 0: `clm5_defaults`) and refuses settings it cannot
+directory, i.e. `data/input_files/`), takes the tower from its compset (CHATS7), the parameters
+from `pftcon_val` (1: the `chats` compset, 0: `clm5_defaults`) and refuses settings it cannot
 translate (e.g. `clm_phys = 'CLM4_5'`). The ready-made equivalents of the CHATS7 runs are in
 `configs/` (`configs/chats7_1day`, `configs/chats7_may2007_fortran`).
 

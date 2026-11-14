@@ -2,13 +2,15 @@
 The ``clm-ml`` command. An experiment is a folder with run.yaml, domain.yaml, model.yaml and
 params.yaml (decision 91; docs/design/experiment_folders.md).
 
-    clm-ml new DIR --from PRESET            write a complete experiment folder from a preset
+    clm-ml new DIR --from COMPSET            write a complete experiment folder from a compset
+        [--machine derecho --account ACCOUNT [--device gpu --devices N --walltime HH:MM:SS]]
+                                            (also submit.pbs, a batch job for the folder)
     clm-ml check DIR [--set ...]            validate the four files and print a summary
     clm-ml run DIR [--set file.key=value]   run the model and write the outputs
     clm-ml upgrade DIR                      rewrite a folder with every current setting
     clm-ml convert NAMELIST -o DIR          write an experiment folder from a Fortran namelist
     clm-ml params SOURCE -o PARAMS.yaml     write a complete params.yaml from a CLM parameter
-                                            file (.nc), or copy a params file or preset
+                                            file (.nc), or copy a params file or compset
 
 ``--set`` changes one setting without editing the files, the file named first:
 ``--set 'run.time.length=7 days'``, ``--set model.processes.stomatal_conductance.scheme=medlyn``,
@@ -25,7 +27,7 @@ from clm_ml.io.yaml_schema import ConfigError
 
 
 def main(argv: list[str] | None = None) -> int:
-    from clm_ml.experiment import preset_names
+    from clm_ml.experiment import compset_names
 
     parser = argparse.ArgumentParser(prog="clm-ml", description=__doc__.split("\n\n")[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -36,11 +38,17 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--set", dest="overrides", action="append", default=[],
                        metavar="FILE.KEY=VALUE", help="change one setting (repeatable)")  # fmt: skip
 
-    p = sub.add_parser("new", help="write a complete experiment folder from a preset")
+    p = sub.add_parser("new", help="write a complete experiment folder from a compset")
     p.add_argument("folder", type=Path)
-    p.add_argument("--from", dest="preset", required=True,
-                   help=f"preset: {', '.join(preset_names())}")  # fmt: skip
+    p.add_argument("--from", dest="compset", required=True,
+                   help=f"compset: {', '.join(compset_names())}")  # fmt: skip
     p.add_argument("--force", action="store_true", help="overwrite the folder's files")
+    p.add_argument("--machine", help="derecho: also write submit.pbs, a batch job for the folder")
+    p.add_argument("--device", choices=("gpu", "cpu"), default="gpu",
+                   help="what the job runs on (default gpu)")  # fmt: skip
+    p.add_argument("--devices", type=int, help="number of devices (run.execution.devices)")
+    p.add_argument("--account", help="project account the job is charged to (derecho)")
+    p.add_argument("--walltime", default="04:00:00", help="job wall-clock limit (default 04:00:00)")
 
     p = sub.add_parser("upgrade", help="rewrite a folder with every current setting")
     p.add_argument("folder", type=Path)
@@ -50,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("-o", "--out-dir", type=Path, required=True)
 
     p = sub.add_parser("params", help="write a complete params.yaml (from a CLM .nc file)")
-    p.add_argument("source", help="CLM parameter file (.nc), params file or preset name")
+    p.add_argument("source", help="CLM parameter file (.nc), params file or compset name")
     p.add_argument("-o", "--out", type=Path, required=True)
     p.add_argument("--base", default="clm5_defaults",
                    help="params file for what a CLM file lacks (default clm5_defaults)")  # fmt: skip
@@ -60,7 +68,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "new":
             from clm_ml.experiment import new_experiment
 
-            print(f"wrote {new_experiment(args.folder, args.preset, force=args.force)}")
+            folder = new_experiment(
+                args.folder, args.compset, force=args.force, machine=args.machine,
+                device=args.device, devices=args.devices, account=args.account,
+                walltime=args.walltime,
+            )  # fmt: skip
+            print(f"wrote {folder}")
             return 0
         if args.command == "upgrade":
             from clm_ml.experiment import upgrade_experiment

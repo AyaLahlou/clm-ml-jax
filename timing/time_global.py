@@ -65,7 +65,7 @@ def main() -> None:
     tmp = Path(tempfile.mkdtemp())
     convert_namelist(ROOT / "data" / "namelists" / "nl.CHATS7.1day", tmp)
     chats = yaml.safe_load(
-        (ROOT / "src" / "clm_ml" / "presets" / "towers" / "chats7.yaml").read_text()
+        (ROOT / "src" / "clm_ml" / "compsets" / "towers" / "chats7.yaml").read_text()
     )["CHATS7"]
     towers = {}
     for g in range(n_g):

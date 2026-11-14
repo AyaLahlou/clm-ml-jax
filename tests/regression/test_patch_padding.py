@@ -80,7 +80,7 @@ def test_padded_domains_share_one_program():
     script = SCRIPT.format(
         src=str(ROOT / "src"),
         namelist=str(ROOT / "data" / "namelists" / "nl.CHATS7.1day"),
-        towers=str(ROOT / "src" / "clm_ml" / "presets" / "towers" / "chats7.yaml"),
+        towers=str(ROOT / "src" / "clm_ml" / "compsets" / "towers" / "chats7.yaml"),
         root=str(ROOT),
     )
     run = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)

@@ -1,6 +1,6 @@
 # Configurations
 
-Ready-to-run experiment folders, one per preset, written by `clm-ml new` (decision 91;
+Ready-to-run experiment folders, one per compset, written by `clm-ml new` (decision 91;
 `docs/design/experiment_folders.md`). Each folder holds the four files of an experiment, every
 setting listed with its explanation:
 
@@ -23,7 +23,7 @@ clm-ml run configs/chats7_1day --set 'run.time.length=3 days' --set model.proces
 clm-ml new my_site --from chats7_1day   # your own copy to edit
 ```
 
-Do not edit these folders by hand: they are the presets in `src/clm_ml/presets/` written
+Do not edit these folders by hand: they are the compsets in `src/clm_ml/compsets/` written
 out, and `tests/clm_ml/test_configs.py` checks that they match (regenerate one with
 `clm-ml new configs/NAME --from NAME --force`). To add a tower or patches, edit `domain.yaml`
 of your own folder; for your own parameters, edit its `params.yaml`.

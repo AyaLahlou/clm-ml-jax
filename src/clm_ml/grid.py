@@ -154,6 +154,36 @@ def _in_region(lat, lon, region):
     return (lat >= s) & (lat <= n) & in_lon
 
 
+def latlon_map(lat2, lon2, rows, cols, region):
+    """The latitude-longitude map of the gridcell output (decision 108): the gridcells at
+    ``rows``, ``cols`` of the surface data (``LATIXY``, ``LONGXY``) on the grid's rows and
+    columns inside the ``region`` (all of them for ``global``). The longitudes of a region
+    are in its own convention, increasing eastward from its west edge (e.g. -100 to -95,
+    or -10 to 20 through 0 E); a region spanning every longitude keeps the grid's. None if
+    the surface data is not a regular latitude-longitude grid (the output stays per
+    gridcell)."""
+    from clm_ml.domain import LatLonMap
+
+    lat1, lon1 = lat2[:, 0].astype(float), lon2[0, :].astype(float)
+    if not (np.allclose(lat2, lat1[:, None]) and np.allclose(lon2, lon1[None, :])):
+        return None
+    row_axis, col_axis, lon = np.arange(lat1.size), np.arange(lon1.size), lon1
+    if region is not None and region != "global":
+        row_axis = np.flatnonzero((lat1 >= region.lat[0]) & (lat1 <= region.lat[1]))
+        west, east = region.lon
+        if east - west < 360.0:
+            # the gridcells' own test (_in_region), so every gridcell is on the map
+            inside = np.flatnonzero(_in_region(np.full_like(lon1, region.lat[0]), lon1, region))
+            east_of_west = np.mod(lon1 - west, 360.0)  # degrees east of the west edge
+            col_axis = inside[np.argsort(east_of_west[inside], kind="stable")]
+            lon = west + east_of_west
+    row_of, col_of = np.full(lat1.size, -1), np.full(lon1.size, -1)
+    row_of[row_axis], col_of[col_axis] = np.arange(row_axis.size), np.arange(col_axis.size)
+    return LatLonMap(
+        lat=lat1[row_axis], lon=lon[col_axis], index=np.stack([row_of[rows], col_of[cols]], 1)
+    )
+
+
 def load_grid_domain(
     section: GridSection,
     *,
@@ -177,6 +207,8 @@ def load_grid_domain(
 
     with netcdf.dataset(mask_file) as ds:
         landmask = np.asarray(ds.variables["landmask"][:]) == 1
+        cell_km2 = np.ma.filled(ds.variables["area"][:], np.nan).astype(float)
+        landfrac = np.ma.filled(ds.variables["landfrac"][:], np.nan).astype(float)
     with netcdf.dataset(surf) as ds:
 
         def var(name):
@@ -262,6 +294,10 @@ def load_grid_domain(
         longitude=lon.astype(float),
         measurement_height=np.full(rows.size, float(section.forcing_height)),
         grid_index=np.stack([rows, cols], axis=1),
+        latlon=latlon_map(lat2, lon2, rows, cols, section.region),
+        area=cell_km2[rows, cols],
+        land_fraction=landfrac[rows, cols],
+        vegetated_fraction=vegetated[rows, cols] / 100.0,  # PCT_* are percent of the land
     )
     patches = Patches(
         gridcell_index=g_of.astype(int),

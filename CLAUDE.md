@@ -182,9 +182,9 @@ src/clm_ml/
   run.py (run.yaml schema), domain.py (domain.yaml), config.py (model.yaml), params.py,
   experiment.py (experiment folders: load, new, upgrade; Experiment.execute),
   model.py (Model: chunks and gradients), cli.py
-  presets/        towers/, params/, experiments/: what `clm-ml new` copies (package data)
+  compsets/       towers/, params/, experiments/: what `clm-ml new` copies (package data)
   data/           psihat.nc (package data)
-configs/          the presets written out as experiment folders (run, domain, model, params)
+configs/          the compsets written out as experiment folders (run, domain, model, params)
 data/             CHATS7 forcing (input_files/) and the CLM-ml namelists (namelists/nl.*)
 tests/
   clm_ml/              unit tests (fast)
@@ -261,12 +261,12 @@ docs/design/           plan, decisions.md, open_items.md, model_overview.md, pha
 ```bash
 pip install -e ".[dev]"                     # dev extras include pytest-cov, which pytest.ini needs (--no-cov)
 
-clm-ml new my_site --from chats7_1day      # an experiment folder from a preset (configs/README.md)
+clm-ml new my_site --from chats7_1day      # an experiment folder from a compset (configs/README.md)
 clm-ml check my_site                        # validate + summary, no run
 clm-ml run my_site [--set 'run.time.length=3 days']  # run (netCDF output, config copy in OUTPUT/config)
 clm-ml upgrade my_site                      # rewrite with every current setting (also old layout)
 clm-ml convert data/namelists/nl.CHATS7.1day -o chats7/   # namelist -> experiment folder
-clm-ml params ctsm60_params.nc -o p.yaml   # CLM parameter file -> complete params.yaml (preset clm6 = CTSM 6.0)
+clm-ml params ctsm60_params.nc -o p.yaml   # CLM parameter file -> complete params.yaml (compset clm6 = CTSM 6.0)
 clm-ml new configs/chats7_1day --from chats7_1day --force   # regenerate configs/ after changing options
 
 python -m pytest tests/clm_ml tests/fortran_validation -m "not slow" -q   # unit + golden tests (fast)
@@ -332,7 +332,7 @@ The full plan is in **`docs/design/modernization_plan.md`**. The proposed API is
 `docs/design/api_sketch.py` (historical), and runnable config files are in `configs/`.
 
 **Decisions:**
-- **Tower presets: CHATS7 only** (`src/clm_ml/presets/towers/chats7.yaml`). Other towers
+- **Tower compsets: CHATS7 only** (`src/clm_ml/compsets/towers/chats7.yaml`). Other towers
   go in an experiment's `domain.yaml`, with explicit layer counts per patch
   (`canopy_layers: {within: N, above: M}`) where default spacing gives too many layers.
 - **Names.** Import as `import clm_ml`. The install name is `clm-ml-jax`. The command-line tool
@@ -352,8 +352,8 @@ The full plan is in **`docs/design/modernization_plan.md`**. The proposed API is
   - Strict: missing, unknown or misplaced keys are errors; `clm-ml upgrade` adds new keys at
     their defaults. Every option is declared once in the code with `yaml_schema.option`
     (explanation, Fortran name, `applies`, `hidden`, `path`); the files are generated from
-    it (`clm-ml new --from PRESET`, presets in `src/clm_ml/presets/`). `configs/` holds the
-    presets written out; regenerate after changing an option
+    it (`clm-ml new --from COMPSET`, compsets in `src/clm_ml/compsets/`). `configs/` holds the
+    compsets written out; regenerate after changing an option
     (`clm-ml new configs/NAME --from NAME --force`; `tests/clm_ml/test_configs.py`).
 - YAML loads into typed dataclass pytrees. Validation is plain Python, with errors that name the
   file and key. No Hydra, no Flax.

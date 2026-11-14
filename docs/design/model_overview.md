@@ -21,8 +21,8 @@ An experiment is a folder with four complete files (decision 91,
 
 Every option is declared once in the code (`yaml_schema.option`: explanation, Fortran name,
 the kind of run it applies to, hidden test settings, paths); `clm-ml new` writes the files
-from a preset (`src/clm_ml/presets/`: tower, params and experiment presets), and `configs/`
-holds the presets written out. `src/clm_ml/data/psihat.nc` is the only file the processes read
+from a compset (`src/clm_ml/compsets/`: tower, params and experiment compsets), and `configs/`
+holds the compsets written out. `src/clm_ml/data/psihat.nc` is the only file the processes read
 from the package.
 
 Three kinds of "value" (the JAX distinction):
@@ -223,7 +223,10 @@ from the configuration).
   into one slot per output record (memory ∝ records, not steps); records spanning chunks merged
   on the host (`StreamCollector`); netCDF written per stream/level/period
   (`outputs.StreamFileWriter`) as soon as a period completes.
-- **Gridcell level:** area-weighted sum of patches, formed at every step in the chunk.
+- **Gridcell level:** area-weighted sum of patches, formed at every step in the chunk. A grid
+  run writes it on the surface data's latitude-longitude grid (`domain.LatLonMap`, built by
+  `grid.latlon_map`; `Outputs._latlon_xarray`; decision 108), with `area`, `landfrac` and
+  `vegetated_fraction` (values are per m2 of vegetated land); tower runs per gridcell.
 - **Legacy `.out`** (`output.legacy_ascii`, one patch only, validation vs Fortran): an extra
   internal per-step stream in the *same* run, written by `io/legacy.py`.
 - **Checks:** 13 conservation checks recorded per patch per step (max over the chunk), checked

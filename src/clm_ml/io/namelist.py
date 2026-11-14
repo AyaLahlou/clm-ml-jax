@@ -42,7 +42,7 @@ def _datetime(ymd: int, tod: int) -> dt.datetime:
 
 def convert_namelist(namelist_path: Path, out_dir: Path) -> Path:
     """Write the experiment folder of ``namelist_path`` into ``out_dir``: the four complete
-    files (decision 91), the tower from its preset, ``pftcon_val = 1`` the ``chats``
+    files (decision 91), the tower from its compset, ``pftcon_val = 1`` the ``chats``
     parameters (``clm5_defaults`` otherwise). Returns the folder."""
     import f90nml
 
@@ -130,7 +130,7 @@ def convert_namelist(namelist_path: Path, out_dir: Path) -> Path:
     }
     recipe = {
         "run": run,
-        "domain": {"type": "towers", "towers": [tower]},  # the tower's preset
+        "domain": {"type": "towers", "towers": [tower]},  # the tower's compset
         "model": {"canopy_layers": {"merge_thin_layers_below": float(g.get("dpai_min", 0.01))}},
         "params": "chats" if int(g.get("pftcon_val", 0)) == 1 else "clm5_defaults",
     }
@@ -140,7 +140,7 @@ def convert_namelist(namelist_path: Path, out_dir: Path) -> Path:
     return write_experiment(
         out_dir, run_file, domain_file, config, params,
         generated=f"Converted from {namelist_path.name} by clm-ml {version()} (`clm-ml convert`).",
-        params_about=f"Copied from the preset {recipe['params']} (pftcon_val "
+        params_about=f"Copied from the compset {recipe['params']} (pftcon_val "
         f"{int(g.get('pftcon_val', 0))}).",
         force=True,
     )  # fmt: skip

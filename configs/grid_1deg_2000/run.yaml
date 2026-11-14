@@ -18,7 +18,7 @@ time:
   # Model calendar, as CTSM's GREGORIAN / NO_LEAP: dates, solar geometry, run length and output
   # records follow it. noleap only for grid runs (tower forcing is a real time series).
   # choices: gregorian | noleap; default: gregorian.
-  calendar: gregorian
+  calendar: noleap
 
 forcing:
   # Meteorology and prescribed land data.
@@ -138,7 +138,10 @@ output:
     # default: [all].
     variables: [latent_heat_flux, sensible_heat_flux, net_radiation, gpp, ground_heat_flux, canopy_top_air_temperature, leaf_area_index, soil_water_stress]
 
-    # Patch values, area-weighted gridcell sums, or both.
+    # Patch values, gridcell means (over the patches, by area), or both. A grid run's gridcell
+    # file is on the latitude-longitude grid of the surface data (the region's box), NaN where no
+    # gridcell was run; its values are per m2 of vegetated land, and it holds area, landfrac and
+    # vegetated_fraction (a total is value * area * landfrac * vegetated_fraction).
     # default: [patch, gridcell].
     level: [patch, gridcell]
 

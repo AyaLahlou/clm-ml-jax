@@ -27,9 +27,9 @@ src/clm_ml/
   driver.py     compiled chunks over all patches, output streams, checks, restarts
   experiment.py experiment folders: load, new, upgrade, run
   run.py, domain.py, config.py, params.py   the four files' settings (run, domain, model, params)
-  presets/      what `clm-ml new` copies (towers, parameter sets, experiments)
+  compsets/      what `clm-ml new` copies (towers, parameter sets, experiments)
   io/           tower and CLM history readers, restarts (netCDF), legacy .out writer, YAML schema
-configs/        the presets written out as experiment folders
+configs/        the compsets written out as experiment folders
 data/           CHATS7 forcing and the CLM-ml namelists (test and example data)
 tests/
   clm_ml/              unit tests (fast)
@@ -64,7 +64,7 @@ declarations. After adding or changing one:
 - give the old form to `clm-ml upgrade` if a setting was renamed or regrouped
   (`clm_ml.experiment._migrate`);
 - regenerate the folders in `configs/`:
-  `clm-ml new configs/NAME --from NAME --force` for each preset
+  `clm-ml new configs/NAME --from NAME --force` for each compset
   (`tests/clm_ml/test_configs.py` checks they are current);
 - record the decision in `docs/design/decisions.md`.
 

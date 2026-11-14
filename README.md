@@ -50,7 +50,7 @@ Patton 2026). The forcing and CLM input files for May 2007 are in this repositor
 (`data/input_files/`), so this runs right after installing.
 
 ```bash
-clm-ml new chats7 --from chats7_1day    # write an experiment folder from the preset
+clm-ml new chats7 --from chats7_1day    # write an experiment folder from the compset
 clm-ml check chats7                      # check the settings and print a summary (no run)
 clm-ml run chats7                        # run 1 May 2007 (under a minute on a CPU)
 ```
@@ -109,10 +109,13 @@ clm-ml run chats7 --set params.broadleaf_deciduous_temperate_tree.vcmax25=100
 - **Your own tower:** copy a folder (`clm-ml new my_tower --from chats7_1day`), then edit
   `domain.yaml` (location, forcing height, soil, patches) and `run.yaml` (dates, forcing and
   CLM history files). `python examples/run_tower.py --folder my_tower` runs it.
-- **Global:** `python examples/run_global.py` runs the 1° CLM grid, using the preset
-  `grid_1deg_2000` (CRUJRA forcing, CLM6 parameters; its input files are on NCAR's Glade
-  storage). The whole globe needs a GPU. A small region runs on a CPU:
-  `python examples/run_global.py --region 35 40 -100 -95 --length "1 day"`.
+- **Global:** `examples/run_global.py` sets up a case on the 1° CLM grid from the
+  compset `grid_1deg_2000` (CRUJRA forcing, CLM6 parameters; its input files are on NCAR's
+  Glade storage): edit the settings at its top (case folder, dates, region, machine, GPUs,
+  account) and run `python examples/run_global.py`. On Derecho the case folder gets a batch
+  job, submitted with `qsub CASE_DIR/submit.pbs`; elsewhere run `clm-ml run CASE_DIR`
+  (`clm-ml new --machine derecho --account ...` writes the same job). The whole globe needs
+  a GPU; a small region (e.g. `REGION = "{lat: [35, 40], lon: [-100, -95]}"`) runs on a CPU.
 - **Ready-made folders:** `configs/` (`configs/README.md`), including May 2007 set up for the
   comparison with the Fortran model.
 - **From a Fortran CLM-ml namelist:** `clm-ml convert data/namelists/nl.CHATS7.1day -o chats7/`.

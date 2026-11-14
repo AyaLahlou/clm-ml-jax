@@ -29,7 +29,7 @@ the forcing data interval is in run.yaml (`time.step_seconds`) and in towers.yam
 files it names, and nothing is read from inside the package at run time. Every file is
 **complete**: it lists every setting that applies to it, each with a comment saying what it
 means, its units, its choices, its default (or that it is required) and the Fortran name it
-replaces. A new experiment is generated from a preset (`clm-ml new`), never assembled by
+replaces. A new experiment is generated from a compset (`clm-ml new`), never assembled by
 hand. The model refuses an incomplete file and says how to fix it (`clm-ml upgrade`). Each
 run writes a copy of the four files, as the model read them, into its output directory.
 
@@ -44,7 +44,7 @@ my_experiment/
 ```
 
 ```bash
-clm-ml new my_site --from chats7       # write a complete experiment folder from a preset
+clm-ml new my_site --from chats7       # write a complete experiment folder from a compset
 clm-ml check my_site/                  # validate the four files and print a summary
 clm-ml run my_site/                    # run; output and a copy of the four files in output/
 clm-ml run my_site/ --set run.time.days=3 --set model.physics.stomatal_conductance=medlyn
@@ -65,7 +65,7 @@ clm-ml upgrade my_site/                # rewrite the files with every current ke
 4. **Only the sections that apply.** A tower experiment's files don't show the grid
    settings, and a grid experiment's files don't show the tower ones (`domain.yaml`
    `type: towers | grid` decides). This keeps each file to what the user can actually set.
-5. **Presets are starting points only.** The built-in CHATS7 tower, the parameter sets
+5. **Compsets are starting points only.** The built-in CHATS7 tower, the parameter sets
    (`clm5_defaults`, `chats`, `clm6`) and the 1° grid experiment are copied into a folder by
    `clm-ml new` and `clm-ml convert`. A run never refers to them by name.
 6. **Every option's meaning is written once, in the code.** Each run, domain and model option
@@ -98,7 +98,7 @@ time:
 ```
 
 For params.yaml the comment block is given once per parameter in a `units`/description
-header, not repeated for each of the 16 PFTs, and the header names the preset the table was
+header, not repeated for each of the 16 PFTs, and the header names the compset the table was
 copied from (for example "copied from chats: clm5_defaults with the CHATS walnut values").
 
 ## 5. What goes in which file
@@ -138,7 +138,7 @@ user set, adds new keys at their defaults, applies renames from a table in the c
 loader's table of old forcing keys does today), refuses to drop a removed key that has a
 non-default value without saying so, refreshes the comments, and keeps a copy of the old
 files (`DIR/.previous/`). It also converts a folder in today's layout (run.yaml naming a
-params preset, a towers file and a model.yaml) into the four files. No version number is
+params compset, a towers file and a model.yaml) into the four files. No version number is
 stored in the files: upgrade compares the keys with the code.
 
 ## 7. Runs record their configuration
@@ -162,23 +162,23 @@ params = exp.params.set("broadleaf_deciduous_temperate_tree", vcmax25=100.0)
 
 Calibration and ensembles change parameters in Python (`Params.set`, or arrays passed to
 `Model.run_chunk`); they don't need shared params files. `clm_ml.new_experiment(dir,
-preset)` and `clm_ml.upgrade_experiment(dir)` do what the commands do.
+compset)` and `clm_ml.upgrade_experiment(dir)` do what the commands do.
 
 ## 9. Repository layout
 
 ```
-configs/                       the presets written out as complete experiment folders
+configs/                       the compsets written out as complete experiment folders
   README.md
   chats7_1day/{run,domain,model,params}.yaml
   chats7_may2007_fortran/...   (the Fortran comparison)
   grid_1deg_2000/...
-src/clm_ml/presets/            the sources `clm-ml new` copies from (package data)
+src/clm_ml/compsets/            the sources `clm-ml new` copies from (package data)
   towers/chats7.yaml           the CHATS7 tower
   params/{clm5_defaults,chats,clm6}.yaml
   experiments/{chats7_1day,chats7_may2007_fortran,grid_1deg_2000}.yaml   (run settings)
 ```
 
-`configs/` is generated from the presets (`clm-ml new`), and a test checks that every
+`configs/` is generated from the compsets (`clm-ml new`), and a test checks that every
 folder in it is complete and current. `src/clm_ml/data/` keeps only what the physics reads
 (`psihat.nc`). `configs/model.yaml` (decision 90) goes away: every folder has its own
 complete model.yaml, and `clm-ml new` writes one.
@@ -203,7 +203,7 @@ complete model.yaml, and `clm-ml new` writes one.
 | `clm-ml convert NAMELIST -o DIR` (run.yaml + model.yaml) | the same, writing all four files |
 | `clm-ml params FILE.nc -o p.yaml` | the same (a CLM parameter file into a complete params.yaml) |
 | `clm-ml model-yaml` | removed (`new` and `upgrade` write complete files) |
-| none | `clm-ml new DIR --from PRESET`, `clm-ml upgrade DIR` |
+| none | `clm-ml new DIR --from COMPSET`, `clm-ml upgrade DIR` |
 | `--set time.days=3` | `--set run.time.days=3` (the file named first) |
 
 ## 12. Implementation and testing
@@ -216,7 +216,7 @@ twin:
 2. `domain.yaml` (towers or grid) and the move of the settings in §5.
 3. The experiment loader (`load_experiment`, strict) and `clm-ml run|check DIR`; the
    regression tests run from a CHATS7 experiment folder and must stay bit for bit.
-4. Presets, `clm-ml new`, `clm-ml convert` writing four files, `configs/` regenerated, the
+4. Compsets, `clm-ml new`, `clm-ml convert` writing four files, `configs/` regenerated, the
    test that keeps `configs/` current.
 5. `clm-ml upgrade` (including today's layout), the configuration copy in the output.
 6. Documentation and examples (README, CONTRIBUTING, CLAUDE.md, `model_overview.md`), the

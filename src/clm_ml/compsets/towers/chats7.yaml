@@ -1,4 +1,4 @@
-# The CHATS7 tower (preset for `clm-ml new`): the CHATS walnut orchard, Dixon, California
+# The CHATS7 tower (compset for `clm-ml new`): the CHATS walnut orchard, Dixon, California
 # (Bonan, Burns & Patton 2026). Generated in Phase 1 from the legacy TowerDataMod.py
 # (deleted in Phase 7.4); the forcing interval (30 min) is a run.yaml setting. The texture is
 # given as percentages (10 % sand, 35 % clay: a silty clay loam), as the Fortran run uses them.

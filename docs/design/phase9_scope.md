@@ -26,7 +26,7 @@ These are starting points for 9.2, 9.4 and 9.5, not replacements.
   strict, `clm-ml new | check | run | upgrade | convert | params` (decisions 91, 93).
 - The public API: `load_experiment`, `new_experiment`, `upgrade_experiment`, `Experiment`,
   `Model` (decision 96); everything else is internal.
-- The presets and `configs/` (CHATS7 one day, the May 2007 Fortran comparison, the 1° grid
+- The compsets and `configs/` (CHATS7 one day, the May 2007 Fortran comparison, the 1° grid
   run), the gridded streams' time axis (decision 102).
 - Authorship, citation and the canonical repository (decision 97); release on GitHub, 1.0.0
   tagged at the end of Phase 9, no PyPI for now (decisions 98, 103).

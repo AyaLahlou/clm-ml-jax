@@ -19,13 +19,13 @@ Only the canopy roughness ratios (``z0m_to_height_ratio``, ``displacement_to_hei
 which only grid runs use, may be left out; a grid run then refuses the file. To make a new
 parameter set, copy a complete file (``clm-ml params chats -o mine.yaml``) and edit it.
 
-Presets (``clm_ml/presets/params/``, copied into a folder by ``clm-ml new``): ``clm5_defaults`` (CLM5 / CLM-ml v1 values),
+Compsets (``clm_ml/compsets/params/``, copied into a folder by ``clm-ml new``): ``clm5_defaults`` (CLM5 / CLM-ml v1 values),
 ``chats`` (``clm5_defaults`` with the CHATS walnut orchard values; Bonan, Burns & Patton
 2026, Table 2) and ``clm6``.
 
 Every params file is YAML in this one format. To use a CLM parameter file (netCDF, e.g. the
 CTSM 6.0 file), convert it once (``clm-ml params ctsm60_params.nc -o params_clm6.yaml``,
-:mod:`clm_ml.params_convert`); the preset ``clm6`` is that conversion of the CTSM 6.0 file.
+:mod:`clm_ml.params_convert`); the compset ``clm6`` is that conversion of the CTSM 6.0 file.
 """
 
 from __future__ import annotations
@@ -180,7 +180,7 @@ class Params:
 
     @classmethod
     def from_yaml(cls, path_or_name: Path | str) -> "Params":
-        """Load a complete params file (a path, or a preset name such as ``"chats"``)."""
+        """Load a complete params file (a path, or a compset name such as ``"chats"``)."""
         path = _resolve(path_or_name)
         return cls.from_data(read_yaml(path), path.name)
 
@@ -275,7 +275,7 @@ def pft_index(name: str, source: str) -> int:
 
 
 def builtin_params_path(name: str) -> Path:
-    return Path(str(resources.files("clm_ml") / "presets" / "params" / f"{name}.yaml"))
+    return Path(str(resources.files("clm_ml") / "compsets" / "params" / f"{name}.yaml"))
 
 
 def _check_value(spec: ParamSpec, value, where: str):

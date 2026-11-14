@@ -44,7 +44,7 @@ in `domain.yaml` that defines a gridcell and its patches.
 
 A run reads nothing but these four files and the data files they name. Every setting is
 written out, with its explanation, in the files themselves (`clm-ml new` writes them from a
-preset; `configs/` holds the presets written out).
+compset; `configs/` holds the compsets written out).
 
 | File | Says | Becomes in Python |
 |---|---|---|
@@ -70,7 +70,7 @@ src/clm_ml/
                     the four files' contents as typed Python objects
   io/yaml_schema.py every setting declared once (explanation, default, Fortran name);
                     the YAML files are generated from these declarations
-  presets/          the presets `clm-ml new` copies (towers, PFT parameter sets, experiments)
+  compsets/          the compsets `clm-ml new` copies (towers, PFT parameter sets, experiments)
 
   setup/            before the run, once (NumPy): each patch's layer grid, leaf/stem area
                     fractions, soil column, roots, and the initial state
@@ -227,7 +227,7 @@ What differs is mostly how the code is written. The few science departures are l
 | Iterative solvers stop at a tolerance (Obukhov length: hybrid secant/Brent; stomatal conductance: bisection; intercellular CO₂: hybrid) | Fixed numbers of iterations that stop updating when converged; gradients by the implicit function theorem, which does not change the forward value | Compiled code needs a known number of iterations; differentiating through every iteration gives wrong or exploding gradients. Within the validation tolerance (open item O5) |
 | 1-based indexing (layers `1..ncan`, bands `1..2`, leaves `isun=1, isha=2`) | 0-based everywhere (layer 0 at the ground; band 0 visible, 1 near-infrared; leaf 0 sunlit, 1 shaded) | Python convention; only the legacy `.out` writer rebuilds the 1-based layout |
 | Namelist (`nl.*`) with integer option codes | Four YAML files with named choices (`stomatal_conductance: wue`); `clm-ml convert` translates a namelist | Readable, complete and checked: a typo is an error, not a silent default |
-| `.out` text files, every step | Output streams: chosen variables, frequency (step to yearly), statistic (mean, instantaneous, min, max), patch or gridcell level, one netCDF file per run, year or month; `output.legacy_ascii` still writes the `.out` files for one patch | Configurable output whose memory does not grow with run length |
+| `.out` text files, every step | Output streams: chosen variables, frequency (step to yearly), statistic (mean, instantaneous, min, max), patch or gridcell level (a grid run's gridcell files on the latitude-longitude grid, decision 108), one netCDF file per run, year or month; `output.legacy_ascii` still writes the `.out` files for one patch | Configurable output whose memory does not grow with run length |
 | Conservation checks stop the run at the failing step (`endrun`) | The step records each check's largest error; the host tests them after each chunk and stops, or leaves the failing patch out (`on_patch_error`) | A host call inside compiled code pauses the device every step and prevents caching. Fortran's 15 checks of the implicit flux-profile solution are not run (open item O4) |
 | Forcing read record by record from whole-run arrays | Forcing streams read a chunk at a time (with one record either side for the time interpolation), on a background thread | Global, multi-decade runs need memory independent of run length |
 | One tower per executable | Any number of towers or a grid in one run; patches grouped by C3/C4 pathway; split over several GPUs with `jax.shard_map` | Spatial scale from one tower to global |

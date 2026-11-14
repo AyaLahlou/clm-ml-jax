@@ -35,15 +35,17 @@ needs_data = pytest.mark.skipif(
 
 def grid_run_files(tmp: Path, region: dict, start: str, days: float = 1, co2: dict | None = None,
                    output: dict | None = None) -> Path:  # fmt: skip
-    """A small grid experiment folder (``tmp/grid``) from the grid_1deg_2000 preset: 10 + 10
-    canopy layers, CO2 constant (``co2``, default 383 ppm), hourly latent heat and GPP."""
+    """A small grid experiment folder (``tmp/grid``) from the grid_1deg_2000 compset: 10 + 10
+    canopy layers, CO2 constant (``co2``, default 383 ppm), hourly latent heat and GPP, Gregorian
+    calendar."""
     import sys
 
     sys.path.insert(0, str(ROOT))
     from tests.experiment_tools import make_experiment
 
     def run(d):
-        d["time"].update(start=start, length=f"{days} days")
+        # Gregorian (the compset's is noleap, decision 109): the tower runs compared with it
+        d["time"].update(start=start, length=f"{days} days", calendar="gregorian")
         d["forcing"]["gridded"]["co2"] = dict({"source": "constant"}, **(co2 or {"ppm": 383}))
         d["output"] = output or {
             "directory": str(tmp / "out"),
@@ -52,7 +54,7 @@ def grid_run_files(tmp: Path, region: dict, start: str, days: float = 1, co2: di
         }  # fmt: skip
 
     return make_experiment(
-        tmp / "grid", preset="grid_1deg_2000", run=run,
+        tmp / "grid", compset="grid_1deg_2000", run=run,
         domain={"grid": {"surface_data": SURFACE, "land_mask": f"{HIST}.2000-01.nc",
                          "region": region}},
         model=lambda d: d["numerics"].update(on_patch_error="stop", max_failed_patch_fraction=0.01),
@@ -151,9 +153,23 @@ import numpy as np, jax
 jax.config.update("jax_enable_x64", True)
 from clm_ml.experiment import load_experiment
 tmp = Path({tmp!r})
+runs, outs = {{}}, {{}}
 for name in ("grid", "tower"):
-    out = load_experiment(tmp / name).execute(write=False)["h"]
-    np.savez(tmp / f"{{name}}_out.npz", **{{v: np.asarray(out.data[v]) for v in ("latent_heat_flux", "gpp")}})
+    runs[name] = load_experiment(tmp / name)
+    outs[name] = runs[name].execute(write=name == "grid")["h"]  # the grid run's files
+    np.savez(tmp / f"{{name}}_out.npz", **{{v: np.asarray(outs[name].data[v]) for v in ("latent_heat_flux", "gpp")}})
+# the grid run's gridcell file on the latitude-longitude map (decision 108)
+import xarray as xr
+(path,) = sorted((tmp / "out").glob("*_gridcell.nc"))
+ds, g = xr.load_dataset(path), runs["grid"].domain.gridcells
+i, j = g.latlon.index[:, 0], g.latlon.index[:, 1]
+np.savez(tmp / "grid_map.npz", mapped=ds["latent_heat_flux"].values[:, i, j],
+         mean=outs["grid"].gridcell_mean()["latent_heat_flux"], map_lat=ds["lat"].values[i],
+         map_lon=ds["lon"].values[j], lat=g.latitude, lon=g.longitude,
+         n_run=int(ds["run_mask"].sum()), n_finite=int(np.isfinite(ds["latent_heat_flux"][0]).sum()),
+         area=ds["area"].values[i, j], landfrac=ds["landfrac"].values[i, j],
+         vegetated=ds["vegetated_fraction"].values[i, j], domain_area=g.area,
+         domain_landfrac=g.land_fraction, domain_vegetated=g.vegetated_fraction)
 print("ran")
 """
 
@@ -203,7 +219,8 @@ def test_grid_run_equals_tower_runs_of_its_data(tmp_path):
     1° patches amplify round-off (a 1e-15 relative change of LAI alone moves a tower run by
     ~8 W m-2 within hours; open issue in docs/design/global_input.md), and the two
     programs (vegetation and soil water formed inside the chunk vs read per step) round
-    differently."""
+    differently. The grid run's gridcell file has every gridcell at its latitude and
+    longitude (decision 108)."""
     import numpy as np
 
     _python(WRITE_RUNS.format(root=str(ROOT), tmp=str(tmp_path),
@@ -214,6 +231,16 @@ def test_grid_run_equals_tower_runs_of_its_data(tmp_path):
         night = np.max(np.abs(g[v][:12] - t[v][:12])) / np.max(np.abs(t[v]))  # 00-12 UTC
         assert night <= 1e-10, (v, night)
         assert np.max(np.abs(g[v] - t[v])) <= 0.1 * np.max(np.abs(t[v])), v
+    # decision 108: the gridcell file is on the latitude-longitude grid of the surface data
+    m = np.load(tmp_path / "grid_map.npz")
+    np.testing.assert_array_equal(m["mapped"], m["mean"])
+    np.testing.assert_array_equal(m["map_lat"], m["lat"])
+    np.testing.assert_allclose(np.mod(m["map_lon"], 360.0), m["lon"], rtol=0, atol=1e-9)
+    assert m["n_run"] == m["n_finite"] == m["lat"].size
+    for name in ("area", "landfrac", "vegetated"):  # for totals: area * landfrac * vegetated
+        np.testing.assert_array_equal(m[name], m[f"domain_{name}"])
+    assert (m["area"] > 0).all() and (m["landfrac"] > 0).all() and (m["landfrac"] <= 1).all()
+    assert (m["vegetated"] > 0).all() and (m["vegetated"] <= 1 + 1e-12).all()
 
 
 THIN_LAYER_SCRIPT = """

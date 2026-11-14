@@ -137,6 +137,16 @@ Reason: the maintainer's decision: enough for a user to install and run now; the
 documentation later.
 Source: maintainer, 2026-11-01.
 
+**110. The global example is a case-setup script**
+2026-11-05 · after Phase 8 · maintainer · revised by 112 (revises 103's `examples/run_global.py`) · Departure from Fortran: no
+`examples/run_global.py` reads as instructions for setting up a case: settings at the top
+(case folder under `$SCRATCH`, start, length, calendar, region, GPUs, chunk), then create
+the case from the compset, write the settings into its files (`Experiment.write_copy`), print
+the check summary and run (or leave the case for `clm-ml run`). No command-line options,
+functions or plotting.
+Reason: quick to reuse by changing a few values; the case folder records the run.
+Source: maintainer, 2026-11-05.
+
 ## B. Configuration and user interface
 
 **7. Names and platform**
@@ -284,18 +294,18 @@ Source: maintainer, 2026-11-01 (open_items O17).
 2026-11-01 · Phase 8a · maintainer · in force (implemented 2026-11-01) · Departure from Fortran: no
 An experiment is a folder with `run.yaml` (when, forcing, output), `domain.yaml` (towers or
 grid), `model.yaml` (schemes, numerics) and `params.yaml` (every parameter of every PFT); a run
-reads only these and the data files they name, never a preset by name. Every file is complete
+reads only these and the data files they name, never a compset by name. Every file is complete
 (each key with its explanation, choices, default or REQUIRED); missing, unknown or misplaced
 keys are errors, and `clm-ml upgrade DIR` rewrites a folder to the current layout keeping the
-user's values. Folders are generated from presets (`clm-ml new DIR --from PRESET`); each setting
+user's values. Folders are generated from compsets (`clm-ml new DIR --from COMPSET`); each setting
 lives in one file; each run writes a copy of the four files into its output. Details:
 [`experiment_folders.md`](experiment_folders.md).
 Reason: one start point where every user setting is visible and the required ones are marked,
 for ecologists; one definition of every option in the code (as jax-gcm), so files, errors and
 reference documentation agree.
 Implemented (2026-11-01): `clm_ml.experiment` (load, new, upgrade, the configuration copy),
-`run.py`/`domain.py`/`config.py` options declared with `yaml_schema.option`, presets in
-`clm_ml/presets/`, `configs/` the presets written out. Behaviour that changed with it: the
+`run.py`/`domain.py`/`config.py` options declared with `yaml_schema.option`, compsets in
+`clm_ml/compsets/`, `configs/` the compsets written out. Behaviour that changed with it: the
 model step is `numerics.step_seconds` (default 1800 s; no longer "null = the forcing
 interval"); the tower forcing interval is run.yaml `forcing.meteorology.interval_seconds`
 (was run.yaml `time.step_seconds` and towers.yaml `forcing_step_minutes`); towers are written
@@ -312,7 +322,7 @@ run.yaml, test-only settings hidden).
 `import clm_ml` offers `load_experiment`, `new_experiment`, `upgrade_experiment`,
 `Experiment` and `Model`; they are documented and stable from 1.0. Everything else
 (`clm_ml.processes`, `driver`, `setup`, ...) is internal and may change.
-Reason: enough for runs, presets, upgrades and calibration; a small surface to keep stable.
+Reason: enough for runs, compsets, upgrades and calibration; a small surface to keep stable.
 Source: open_items O21.
 
 **97. Authorship, citation and repository**
@@ -341,13 +351,13 @@ AI assistants) and the unused namelists `nl.CHATS7.debug`, `nl.CHATS7.test3`,
 Reason: the maintainer's decision.
 Source: open_items O36, O40.
 
-**107. The grid preset runs the whole globe; the region word is `global`**
+**107. The grid compset runs the whole globe; the region word is `global`**
 2026-11-04 · after Phase 8 · maintainer · in force · Departure from Fortran: no
-The preset `grid_1deg_2000` has no region, so it runs the whole globe (the default); a
+The compset `grid_1deg_2000` has no region, so it runs the whole globe (the default); a
 box in `domain.yaml grid.region` runs a region. The named word for the whole globe is
 `global` (was `whole_globe`, decision 93); `clm-ml upgrade` rewrites `whole_globe` and the
 old null as `global`.
-Reason: a global preset should run the globe; `global` is the plainer word (maintainer).
+Reason: a global compset should run the globe; `global` is the plainer word (maintainer).
 Source: maintainer, 2026-11-04.
 
 ## C. Spatial structure: gridcells, patches, layers, soil
@@ -518,7 +528,7 @@ Reason: long runs cannot use a CLM history at every forcing step.
 Source: plan §0 14; Phase 4b.
 
 **42. Exact model calendar**
-2026-10-30 · Phase 6 review · maintainer · in force · Departure from Fortran: yes (fixes CLM-ml's year counting; orbit kept fixed)
+2026-10-30 · Phase 6 review · maintainer · in force (grid compset noleap: 109) · Departure from Fortran: yes (fixes CLM-ml's year counting; orbit kept fixed)
 `time.calendar: gregorian` (default) or `noleap` (grid runs), with exact date arithmetic as
 CTSM's clock; a Gregorian 29 February reads no-leap streams' 28 February. Orbital parameters are
 those of the start year (not per year: D4), a known departure from CLM's historical runs
@@ -586,6 +596,15 @@ Unchanged for runs inside the data years with `year_align: year_first` (bit for 
 Reason: copy CLM's rule (maintainer).
 Source: open_items O30; CDEPS `dshr_stream_mod.F90`; CTSM `stream_definition_datm.xml`,
 `SoilMoistureStreamMod.F90`.
+
+**109. Grid runs use the no-leap calendar by default**
+2026-11-05 · after Phase 8 · maintainer · in force (revises 42's default for grid runs) · Departure from Fortran: no
+The compset `grid_1deg_2000` sets `time.calendar: noleap`, so grid experiments made from it run
+the no-leap calendar; the option's default stays `gregorian`, which tower runs need (their
+forcing is a real time series).
+Reason: CLM's TRENDY runs, the CRUJRA forcing and the CTSM run giving the soil moisture are all
+no-leap.
+Source: maintainer, 2026-11-05.
 
 ## E. Science changes and departures from Fortran
 
@@ -936,6 +955,37 @@ skipping temperatures of exactly 0 in leafless layers.
 Reason: replaces a comparison with a template state that no longer exists.
 Source: C28.
 
+**108. A grid run's gridcell output on the latitude-longitude grid**
+2026-11-05 · after Phase 8 · maintainer · in force · Departure from Fortran: no
+For a grid run, the gridcell level (the `*_gridcell.nc` files) is written on the surface
+data's latitude-longitude grid, variables `(time, ..., lat, lon)`, instead of a flat
+`gridcell` dimension: the whole grid for `region: global`, the grid's rows and columns inside
+the box for a region (longitudes in the box's convention, increasing eastward), NaN where no
+gridcell was run, and `run_mask` (1 where one was). Patch files stay per patch, and tower runs
+keep the `gridcell` dimension. No separate level and no remapping command (runs are repeated).
+The file also holds `area` (km2) and `landfrac`, from the CLM history file of `grid.land_mask`
+(as in CLM's own history files), and `vegetated_fraction`: the fraction of the land covered by
+PFTs 1-16 in the surface data, which the patches represent. Gridcell values are per m2 of
+vegetated land (decision 28), not per m2 of land as in CLM: a total is
+`value * area * landfrac * vegetated_fraction`, and `value * vegetated_fraction` is CLM's
+per-m2-of-land basis for fluxes that bare ground does not have (e.g. GPP, transpiration).
+Reason: maps are how gridded results are read and compared with CLM history files; totals and
+the comparison with CLM need the vegetated fraction, which differs from CLM's land basis.
+Source: maintainer, 2026-11-05.
+
+**112. Derecho batch job with a new case; the global example only sets the case up**
+2026-11-05 · after Phase 8 · maintainer · in force (revises 110) · Departure from Fortran: no
+`new_experiment` (`clm-ml new`) takes the machine, the device (gpu or cpu), the number of
+devices (written to `run.execution.devices`), the account and the walltime. On machine
+`derecho` the account is required and the folder also gets `submit.pbs` (`clm_ml.batch`):
+a PBS job on the `main` queue (1-4 GPUs of one node, or a CPU node) running `clm-ml run` on
+the folder with the Python environment that created it, log in `run.log`. Other machines get
+no job script. `examples/run_global.py` only sets the case up (no `RUN_NOW`): the user submits
+it from the command line (`qsub CASE_DIR/submit.pbs`, or `clm-ml run CASE_DIR`).
+Reason: a global run needs a GPU batch job; writing it with the case, as CESM's case setup
+does, saves writing one by hand and keeps setup and running separate.
+Source: maintainer, 2026-11-05.
+
 ## I. Code architecture
 
 **79. 0-based indexing everywhere**
@@ -1030,6 +1080,15 @@ otherwise (`clm_ml.driver._default_cache_dir`).
 Reason: the cache grows to gigabytes (2.1 GB in the home directory by 2026-11-02) and filled
 the home quota; caches belong on scratch.
 Source: maintainer, 2026-11-02.
+
+**111. "Compset", not "preset"**
+2026-11-05 · after Phase 8 · maintainer · in force · Departure from Fortran: no
+What `clm-ml new DIR --from NAME` starts a folder from is called a compset (component set,
+as in CLM/CESM): the package folder `clm_ml/compsets/` (experiments, params, towers),
+`compset_names()`, `clm-ml new --from COMPSET`, and every message and document. The old word
+is not accepted. Unlike a CESM compset, ours also fixes the grid (or tower) and input files.
+Reason: CLM users' terminology.
+Source: maintainer, 2026-11-05.
 
 ## J. Performance
 

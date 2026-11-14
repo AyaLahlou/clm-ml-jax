@@ -8,7 +8,7 @@ Experiment folders: an experiment is a folder with four complete files,
 - ``params.yaml`` (:mod:`clm_ml.params`): which plants: every parameter of every PFT.
 
 :func:`load_experiment` reads a folder strictly (every key present; nothing read from the
-package), :func:`new_experiment` writes one from a preset (``clm_ml/presets``),
+package), :func:`new_experiment` writes one from a compset (``clm_ml/compsets``),
 :func:`upgrade_experiment` rewrites one in the current layout. ``Experiment.execute()`` sets
 the run up (``clm_ml.setup``) and runs it in this process (``clm_ml.driver``), with one clock
 for all gridcells (decision 24).
@@ -55,12 +55,12 @@ def version() -> str:
         return "dev"
 
 
-def presets_dir() -> Path:
-    return Path(str(resources.files("clm_ml") / "presets"))
+def compsets_dir() -> Path:
+    return Path(str(resources.files("clm_ml") / "compsets"))
 
 
-def preset_names() -> list[str]:
-    return sorted(p.stem for p in (presets_dir() / "experiments").glob("*.yaml"))
+def compset_names() -> list[str]:
+    return sorted(p.stem for p in (compsets_dir() / "experiments").glob("*.yaml"))
 
 
 # --------------------------------------------------------------------------------------
@@ -462,8 +462,8 @@ def load_experiment(folder: Path | str, overrides: tuple[str, ...] | list[str] =
             f"`clm-ml upgrade {folder}` converts this folder (the layout before experiment "
             "folders)"
             if (folder / "run.yaml").exists()
-            else f"`clm-ml new {folder} --from PRESET` writes a complete folder "
-            f"(presets: {', '.join(preset_names())})"
+            else f"`clm-ml new {folder} --from COMPSET` writes a complete folder "
+            f"(compsets: {', '.join(compset_names())})"
         )
         raise ConfigError(f"{folder}: missing {', '.join(absent)}; {hint}")
     data = {key: read_yaml(folder / name) for key, name in FILES.items()}
@@ -806,22 +806,22 @@ def relative_to(folder: Path, text: str) -> str:
 
 
 def compose(recipe: dict, source: str) -> tuple[RunFile, DomainFile, ModelConfig, Params]:
-    """The four objects of a preset recipe or a converted namelist (``run``, ``domain``,
-    ``model`` settings that differ from the defaults; ``params`` a preset name or path;
-    ``domain.towers`` a list of tower presets or a mapping of towers)."""
+    """The four objects of a compset recipe or a converted namelist (``run``, ``domain``,
+    ``model`` settings that differ from the defaults; ``params`` a compset name or path;
+    ``domain.towers`` a list of tower compsets or a mapping of towers)."""
     domain = dict(recipe.get("domain") or {})
     kind = domain.get("type")
     if kind == "towers" and isinstance(domain.get("towers"), list):
         towers = {}
         for name in domain["towers"]:
-            preset = presets_dir() / "towers" / f"{str(name).lower()}.yaml"
-            if not preset.exists():
+            compset = compsets_dir() / "towers" / f"{str(name).lower()}.yaml"
+            if not compset.exists():
                 raise ConfigError(
-                    f"{source}: tower {name!r} has no preset (presets: "
-                    f"{', '.join(sorted(p.stem for p in preset.parent.glob('*.yaml')))}); "
+                    f"{source}: tower {name!r} has no compset (compsets: "
+                    f"{', '.join(sorted(p.stem for p in compset.parent.glob('*.yaml')))}); "
                     "describe it in domain.yaml"
                 )
-            towers.update({k: v for k, v in read_yaml(preset).items()})
+            towers.update({k: v for k, v in read_yaml(compset).items()})
         domain["towers"] = towers
     domain_file = from_dict(DomainFile, domain, source=source, context=kind)
     run_file = from_dict(RunFile, recipe.get("run") or {}, source=source, context=kind)
@@ -830,24 +830,48 @@ def compose(recipe: dict, source: str) -> tuple[RunFile, DomainFile, ModelConfig
     return run_file, domain_file, config, params
 
 
-def new_experiment(folder: Path | str, preset: str, *, force: bool = False) -> Path:
-    """Write a complete experiment folder from a preset (``clm_ml/presets/experiments``)."""
-    path = presets_dir() / "experiments" / f"{preset}.yaml"
+def new_experiment(
+    folder: Path | str,
+    compset: str,
+    *,
+    force: bool = False,
+    machine: Optional[str] = None,
+    device: str = "gpu",
+    devices: Optional[int] = None,
+    account: Optional[str] = None,
+    walltime: str = "04:00:00",
+) -> Path:
+    """Write a complete experiment folder from a compset (``clm_ml/compsets/experiments``).
+
+    ``devices`` (if given) is written to ``run.execution.devices``. On ``machine`` derecho the
+    folder also gets ``submit.pbs``, a job running it on ``devices`` GPUs (``device`` gpu) or
+    a CPU node, charged to ``account`` (required) (decision 112); other machines get none."""
+    from clm_ml.batch import check_machine, write_job_script
+
+    path = compsets_dir() / "experiments" / f"{compset}.yaml"
     if not path.exists():
-        raise ConfigError(f"unknown preset {preset!r}; presets: {', '.join(preset_names())}")
+        raise ConfigError(f"unknown compset {compset!r}; compsets: {', '.join(compset_names())}")
+    machine = check_machine(machine, device, devices or 1, account)
     recipe = read_yaml(path)
     run_file, domain_file, config, params = compose(recipe, path.name)
+    if devices is not None:
+        execution = dataclasses.replace(run_file.execution, devices=devices)
+        run_file = dataclasses.replace(run_file, execution=execution)
     folder = Path(folder)
-    repo = Path(__file__).resolve().parents[2]  # preset paths starting data/: the repository
+    repo = Path(__file__).resolve().parents[2]  # compset paths starting data/: the repository
 
     def place(text: str) -> str:
         return relative_to(folder, str(repo / text)) if text.startswith("data/") else text
 
-    return write_experiment(
+    write_experiment(
         folder, run_file, domain_file, config, params,
-        generated=f"Generated by clm-ml {version()} (`clm-ml new {folder.name} --from {preset}`).",
-        params_about=f"Copied from the preset {recipe['params']}.", path=place, force=force,
+        generated=f"Generated by clm-ml {version()} (`clm-ml new {folder.name} --from {compset}`).",
+        params_about=f"Copied from the compset {recipe['params']}.", path=place, force=force,
     )  # fmt: skip
+    if machine is not None:
+        write_job_script(folder, device=device, devices=devices or 1, account=account,
+                         walltime=walltime)  # fmt: skip
+    return folder
 
 
 #: model.yaml settings renamed or moved (decision 93): old dotted key -> new dotted key
@@ -969,13 +993,13 @@ def upgrade_experiment(folder: Path | str) -> list[str]:
     """Rewrite an experiment folder in the current layout, every setting with its current
     explanation: the values the user set are kept, keys added since are written at their
     defaults, renamed or regrouped keys moved (:func:`_migrate`); a folder in the layout before experiment
-    folders (run.yaml naming a params preset or file, towers and a model.yaml) becomes the four
+    folders (run.yaml naming a params compset or file, towers and a model.yaml) becomes the four
     files. The old files are kept in ``folder/.previous/``. Returns what was done."""
     import shutil
 
     folder = Path(folder).resolve()
     if not (folder / "run.yaml").exists():
-        raise ConfigError(f"{folder}: no run.yaml (`clm-ml new {folder} --from PRESET`)")
+        raise ConfigError(f"{folder}: no run.yaml (`clm-ml new {folder} --from COMPSET`)")
     run_data = read_yaml(folder / "run.yaml")
     old_layout = not (folder / "domain.yaml").exists() or bool(
         {"model", "params", "domain"} & set(run_data)
@@ -1076,8 +1100,8 @@ def _from_old_layout(folder: Path, run_data: dict, report: list[str]) -> tuple[d
     domain = {"type": kind, "min_patch_weight": old_domain.get("min_patch_weight", 0.0)}
     if kind == "towers":
         available = {}
-        for preset in sorted((presets_dir() / "towers").glob("*.yaml")):
-            available.update(read_yaml(preset))
+        for compset in sorted((compsets_dir() / "towers").glob("*.yaml")):
+            available.update(read_yaml(compset))
         if old_domain.get("towers_file"):
             available.update(read_yaml(folder / old_domain["towers_file"]))
         names = list(old_domain.get("towers") or [])

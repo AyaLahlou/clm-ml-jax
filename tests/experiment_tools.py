@@ -1,4 +1,4 @@
-"""Experiment folders for tests (decision 91): a complete folder from a preset or a namelist,
+"""Experiment folders for tests (decision 91): a complete folder from a compset or a namelist,
 then changes to its files (dicts merged into them, or functions that edit them)."""
 
 from __future__ import annotations
@@ -8,8 +8,8 @@ from pathlib import Path
 FILES = {"run": "run.yaml", "domain": "domain.yaml", "model": "model.yaml"}
 
 
-def make_experiment(folder, *, preset=None, namelist=None, **changes) -> Path:
-    """Write an experiment folder (``preset``, default ``chats7_1day``, or ``namelist``) and
+def make_experiment(folder, *, compset=None, namelist=None, **changes) -> Path:
+    """Write an experiment folder (``compset``, default ``chats7_1day``, or ``namelist``) and
     apply ``changes`` (:func:`edit`). Returns the folder."""
     from clm_ml.experiment import new_experiment
     from clm_ml.io.namelist import convert_namelist
@@ -18,24 +18,24 @@ def make_experiment(folder, *, preset=None, namelist=None, **changes) -> Path:
     if namelist is not None:
         convert_namelist(Path(namelist), folder)
     else:
-        new_experiment(folder, preset or "chats7_1day", force=True)
+        new_experiment(folder, compset or "chats7_1day", force=True)
     return edit(folder, **changes)
 
 
 def chats7_tower() -> dict:
-    """The CHATS7 tower preset (``clm_ml/presets/towers/chats7.yaml``) as a dict."""
+    """The CHATS7 tower compset (``clm_ml/compsets/towers/chats7.yaml``) as a dict."""
     import yaml
 
-    from clm_ml.experiment import presets_dir
+    from clm_ml.experiment import compsets_dir
 
-    return yaml.safe_load((presets_dir() / "towers" / "chats7.yaml").read_text())["CHATS7"]
+    return yaml.safe_load((compsets_dir() / "towers" / "chats7.yaml").read_text())["CHATS7"]
 
 
 def edit(folder, *, run=None, domain=None, model=None, params=None) -> Path:
     """Change an experiment folder's files: a dict is merged into the file (nested sections
     merged, other values replaced: so towers given in a dict are added to the file's; give a
     function to replace them), a function gets the file's contents to edit in place;
-    ``params``: a preset name, a params file or a :class:`clm_ml.params.Params`, written as the
+    ``params``: a compset name, a params file or a :class:`clm_ml.params.Params`, written as the
     folder's complete params.yaml. The files are then completed (`clm-ml upgrade`: keys left
     out, e.g. of a new output stream, at their defaults)."""
     import yaml

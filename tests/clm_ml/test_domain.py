@@ -6,16 +6,16 @@ import yaml
 
 from clm_ml.config import ModelConfig
 from clm_ml.domain import Domain, load_towers
-from clm_ml.experiment import presets_dir
+from clm_ml.experiment import compsets_dir
 from clm_ml.io.yaml_schema import ConfigError
 from clm_ml.params import Params
 
 PARAMS = Params.from_yaml("chats")
-CHATS7 = load_towers(presets_dir() / "towers" / "chats7.yaml")
+CHATS7 = load_towers(compsets_dir() / "towers" / "chats7.yaml")
 
 
-def test_tower_presets_hold_chats7_only():
-    assert sorted(p.name for p in (presets_dir() / "towers").glob("*.yaml")) == ["chats7.yaml"]
+def test_tower_compsets_hold_chats7_only():
+    assert sorted(p.name for p in (compsets_dir() / "towers").glob("*.yaml")) == ["chats7.yaml"]
     assert list(CHATS7) == ["CHATS7"]
 
 
@@ -120,6 +120,6 @@ def test_no_towers():
         Domain.from_towers({}, params=PARAMS, config=ModelConfig())
 
 
-def test_chats7_preset_is_the_shipped_tower():
-    data = yaml.safe_load((presets_dir() / "towers" / "chats7.yaml").read_text())
+def test_chats7_compset_is_the_shipped_tower():
+    data = yaml.safe_load((compsets_dir() / "towers" / "chats7.yaml").read_text())
     assert data["CHATS7"]["measurement_height"] == 23.0
