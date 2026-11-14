@@ -11,8 +11,14 @@ Where things are:
 - Jobs: `develop` queue, account `UCLB0069`, one A100 (40 GB), 16 cores, JAX 0.10.2.
 
 **Status (2026-11-13, evening):** steps 0, 1 and 2a done. The 1° globe runs at **0.70 s per
-step, 2.85×** (target 2×, 0.99 s: met); padded steps cost nothing. Open for the maintainer:
-gradient programs are slower with the loops written out (step 2 below, "Gradients").
+step, 2.85×** (target 2×, 0.99 s: met); padded steps cost nothing.
+
+**2026-11-14: the forward work stops here** (maintainer; `gpu_opt` will be merged by the
+maintainer). **Correction:** the gradient times in this log (steps 1 and 2a) are of the
+second gradient call, which is not steady (decision 118). Measured again in steady state,
+gradients are **faster** with the loops written out, not slower (table under "Gradients" of
+step 2a). Gradient work continues on branch `gpu_grad`:
+[`gradient_progress.md`](gradient_progress.md) (O76).
 
 ## Resume here
 
@@ -37,17 +43,17 @@ step 1 and resumed the same evening for step 2a.
   before: 935.5 s.
 - 21-patch box (the fixed cost): 69 ms per step; step 1: 175; before: 1212.
 - Compile (forward, cold): ~110 s; step 1: 35–40 s. Generated code 0.01 MB; peak 4.7 GB.
-- Gradient (`timing/time_vmap.py --grad`, CHATS7 copies): **slower than step 1**: 1519 ms per
-  step for 1 patch (step 1: 1037), 2197 for 4 096 patches (step 1: 1690; 7.9 GB); compile
-  ~420 s (step 1: ~105–115 s). With `numerics.solver_loops: loop` the gradient program is
-  step 1's.
+- Gradient (CHATS7 copies, steady state, `jobs/gpu_probes/grad0.py`, 2026-11-14): 219 ms per
+  step for 1 patch, 787 for 4 096 patches; with `numerics.solver_loops: loop` (step 1's
+  program) 659 and 1294. Compile 6–8 min (loops: ~80 s). The figures first written here
+  (1519 and 2197 against 1037 and 1690) were of the unsteady second call (decision 118).
 - Target: 2× = 0.99 s per step. Reached: 2.85×.
 - Measurement spread: 0.2 % within a job, 0.6 % between jobs. Believe changes above ~2 %.
 
-**Next step** (nothing below is started; each needs the maintainer's go-ahead):
-1. **Gradients and `solver_loops`** (open decision below): which loop group slows the
-   gradient (the layer loops are differentiated; the Obukhov and roughness-length loops are
-   behind `stop_gradient`), with `gpu0.py`-style prototypes on `timing/time_vmap.py --grad`.
+**Next step** (the forward work was stopped by the maintainer on 2026-11-14; nothing below
+is started, and each needs the maintainer's go-ahead):
+1. ~~Gradients and `solver_loops`~~: settled by measurement on 2026-11-14 (no loop group
+   slows the gradient; decision 118). Gradient work: `gradient_progress.md`.
 2. **A profile of the unrolled program** (`MODE=prof` with `XF=nocb` on `trees/gpu2_unroll`):
    why the layer loops gave 0.34 s (the estimate from the loop bookkeeping was 0.05–0.1 s),
    and what is left. Before step 2a the stage physics was 0.43 s in kernels that ran 4–8
@@ -59,15 +65,11 @@ step 1 and resumed the same evening for step 2a.
    computed once outside the loop), a round-off-level rewrite.
 
 **Open decisions**
-- **Gradient programs and `solver_loops`** (plan §7 item 1: a forward gain that slows
-  gradients is discussed before it is kept). With `auto`, a GPU gradient is 1.3–1.5× slower
-  and compiles 4× longer than at step 1, while its forward pass is 2–4× faster. Choices:
-  (a) keep `auto` for everything and set `numerics.solver_loops: loop` in the `model.yaml`
-  of gradient work; (b) make `auto` mean loops for `Model` (the gradient interface) and
-  written-out loops for `clm-ml run`; (c) write out only the loops that do not slow the
-  gradient, once next step 1 has found them.
+- ~~Gradient programs and `solver_loops`~~: no decision needed. The slowdown was a timing
+  error (decision 118); with `auto` a GPU gradient is 1.6–3× faster than with loops.
 - The compile-time and code-size budget for unrolling (plan §7 item 6): settled for the
-  forward program by decision 117 (~110 s accepted); open for the gradient program.
+  forward program by decision 117 (~110 s accepted); open for the gradient program (6–8 min
+  with the loops written out, ~80 s with loops; once, then cached).
 - Whether to keep change 2 (shared searches, decision 115): 0.7 % at the global size, 9 % of
   a small domain's fixed cost. Kept for now.
 - Whether the round-off amplification counted in "GPU results against the baseline" below
@@ -129,8 +131,10 @@ of the scripts in `jobs/gpu_probes/` were smoke-tested on the CPU (`gpu0.py`) an
   `.o` file where `qsub` is run.
 - **Do not write out the stomatal bisection** (20 halvings of one large kernel): the GPU
   program was still compiling after 34 minutes.
-- **A loop written out is slower on the CPU** (the 21-patch box: 4 times) and slower to
-  differentiate on the GPU (step 2).
+- **A loop written out is slower on the CPU** (the 21-patch box: 4 times). On the GPU it is
+  faster to differentiate too, but the gradient program compiles 4–5 times longer.
+- **Time a gradient from its third call** (decision 118): the second call of an un-jitted
+  `jax.grad` is several times slower than the following ones.
 - One step is 6 sub-steps × **5** physics evaluations (the plan's §2 says 4).
 - `timing/time_vmap.py` needed `gridcell_count` for padded patches (fixed in `8af77c8`).
 
@@ -432,6 +436,8 @@ can be compared with each other, and it may deserve its own look.
 | After step 1 (`9c8a741`), 1 patch | 152 | 1037 | 103 s | 0.004 |
 | After step 1, 4 096 patches | 268 | 1690 | 117 s | 8.2 |
 
+(These are second-call times, not steady state: decision 118. Steady state after step 1:
+659 ms per step for 1 patch, 1294 for 4 096; the baseline was not measured again.)
 Gradients are 1.9× faster for one patch and 1.5× for 4 096 patches, with the same memory and
 compile time. (This test case has one patch group and 46 layers, so its forward gain, 4.1× and
 2.7×, is larger than the globe's.) The GPU gradient tier (`jobs/grad_gpu.pbs`, `9c8a741`):
@@ -574,11 +580,21 @@ within two steps in a few patches, as O27 describes over a day; not investigated
 | Step 2a, 1 patch | 41 | **1519** | **419 s** | 0.004 |
 | Step 2a, 4 096 patches | 128 | **2197** | **428 s** | 7.9 |
 
-**The forward pass is 2–4× faster, the gradient 1.3–1.5× slower, and the gradient compile
-4× longer.** The layer loops are differentiated (the Obukhov and roughness-length loops are
-behind `stop_gradient`), and the derivative of a written-out loop is a larger program than
-the derivative of a loop. Against the baseline before the GPU work (1957 and 2577 ms) the
-gradient is still faster. With `numerics.solver_loops: loop` in `model.yaml` a gradient
-program is step 1's. What `auto` should mean for gradient programs is open ("Resume here").
+**Correction (2026-11-14, decision 118): the gradient columns above are of the second
+call, which is not steady.** The same programs (`c7f4a20`) timed from the third call, and as
+a jitted gradient (`jobs/gpu_probes/grad0.py`, logs `probe_grad0/log_g_*.txt`):
 
-**Stopped here for the maintainer.**
+| ms per step, steady | Forward | One forward-mode derivative | Gradient | Gradient compile (jitted) |
+|---|---|---|---|---|
+| Loops (`solver_loops: loop`, step 1's program), 1 patch | 150 | 215 | 659 | 82 s |
+| Loops, 4 096 patches | 269 | 421 | 1294 | 83 s |
+| Written out (`auto`), 1 patch | 41 | 55 | **219** | 464 s |
+| Written out, 4 096 patches | 129 | 226 | **787** | 382 s |
+
+**With the loops written out the gradient is 3.0× faster for one patch and 1.6× for 4 096**,
+as the forward pass is (3.7× and 2.1×); only the compile is longer (4–5×, once). The second
+call took 8.2 s (loops) and 11.5 s (written out) for the 8 steps of one patch, against 5.3
+and 1.75 s for the calls after it: the longer second call of the written-out program was
+read as a slower gradient. `auto` needs no exception for gradient programs.
+
+**Stopped here for the maintainer** (2026-11-13); corrected 2026-11-14.
