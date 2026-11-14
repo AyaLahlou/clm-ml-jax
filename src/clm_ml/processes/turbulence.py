@@ -453,7 +453,11 @@ def _secant_step(tables, sparse_canopy, table_search, _, carry):
 
 
 def obukhov_length(
-    inp: ObuInputs, tables: RSLTables, sparse_canopy: bool, table_search: str = "loop"
+    inp: ObuInputs,
+    tables: RSLTables,
+    sparse_canopy: bool,
+    table_search: str = "loop",
+    unroll: bool = False,
 ):
     """The Obukhov length (m): ``OBU_ITERATIONS`` secant steps from 100 m and -100 m on
     ``obu_new(obu) - obu``. The forward value is the solver's answer; its gradient is the
@@ -461,7 +465,8 @@ def obukhov_length(
     with a 1 m step, the correction skipped where ``|dF/dobu| <= 1e-6``), applied as
     ``obu - (step - stop_gradient(step))`` so it never changes the forward value
     (numerics_and_regression.md §2). Differentiating through the iterations instead gives
-    exploding gradients (|J|^25, ~1e144 observed).
+    exploding gradients (|J|^25, ~1e144 observed). ``unroll``: the secant steps written out
+    instead of a compiled loop (the same steps; ``numerics.solver_loops``, decision 117).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::GetObu (Fortran solves with the hybrid
     secant/Brent ``MLMathToolsMod::hybrid``, tol = 0.1 m; 25 fixed secant steps here,
@@ -477,7 +482,9 @@ def obukhov_length(
         inp,
     )
     step = functools.partial(_secant_step, tables, sparse_canopy, table_search)
-    obu = jax.lax.stop_gradient(jax.lax.fori_loop(0, OBU_ITERATIONS, step, carry)[1])
+    obu = jax.lax.stop_gradient(
+        jax.lax.fori_loop(0, OBU_ITERATIONS, step, carry, unroll=unroll or None)[1]
+    )
 
     # Implicit-function gradient: the residual's dependence on the inputs, divided by its
     # (constant) slope in obu
@@ -509,10 +516,19 @@ def _z0m_residual(trial, obu, hc_minus_d, exp1, exp2, psim_hc):
 
 
 def roughness_length(
-    ztop, zdisp, obu, beta, PrSc, zref, tables: RSLTables, table_search: str = "loop"
+    ztop,
+    zdisp,
+    obu,
+    beta,
+    PrSc,
+    zref,
+    tables: RSLTables,
+    table_search: str = "loop",
+    unroll: bool = False,
 ):
     """Roughness length for momentum (m), by bisection on ``[ztop, 0]`` with the Fortran
     stopping rule (bracket narrower than 0.001 m, at most 20 halvings; the last midpoint).
+    ``unroll``: the halvings written out instead of a compiled loop.
 
     Fortran reference: MLCanopyTurbulenceMod.F90::RoughnessLength (Bonan et al. 2018,
     eq. A14 solved for z0m).
@@ -529,6 +545,7 @@ def roughness_length(
         itmax=20,
         c_init=0.0,
         args=(obu, hc_minus_d, exp1, exp2, psim_hc),
+        unroll=unroll,
     )
 
 
@@ -701,13 +718,15 @@ def harman_finnigan(
     sparse_canopy: bool,
     ground_conductance: str,
     table_search: str = "loop",
+    unroll: bool = False,
 ) -> Turbulence:
     """Canopy turbulence from the roughness sublayer theory of Harman and Finnigan (2008):
     the canopy-top air (from the layer air temperature ``tair`` and vapour pressure ``eair``,
     (layer,)), the Obukhov length, roughness length, wind and momentum flux profiles and the
     aerodynamic conductances. Forcing at ``zref``: ``pref`` (Pa), ``uref``, ``thref``,
     ``thvref``, ``qref``, ``rhomol``. ``table_search``: how the psihat tables are searched
-    (:data:`TABLE_SEARCH`).
+    (:data:`TABLE_SEARCH`). ``unroll``: the Obukhov and roughness-length iterations written
+    out instead of compiled loops (``numerics.solver_loops``, decision 117).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::HF2008 (Bonan et al. 2018).
     Reads: ``tair_profile``, ``eair_profile``, ``pref_forcing``, ``ztop_canopy``,
@@ -726,13 +745,13 @@ def harman_finnigan(
     qaf = mmh2o / mmdry * eair_top / (pref - (1.0 - mmh2o / mmdry) * eair_top)
 
     inp = ObuInputs(Lc, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol, taf, qaf)
-    obu = obukhov_length(inp, tables, sparse_canopy, table_search)
+    obu = obukhov_length(inp, tables, sparse_canopy, table_search, unroll)
     t = obukhov_terms(obu, inp, tables, sparse_canopy, table_search)
     # Rounded as stored (Fortran's ustar(p), beta(p), ...; the legacy code wrote them to the
     # container): otherwise XLA may fold e.g. (a / b) / beta in u(h) = u*/beta into
     # a / (b beta), 1 ulp off (Phase 7 decision C15)
     t = jax.lax.optimization_barrier(t)
-    z0m = roughness_length(ztop, t.zdisp, t.obu, t.beta, t.PrSc, zref, tables, table_search)
+    z0m = roughness_length(ztop, t.zdisp, t.obu, t.beta, t.PrSc, zref, tables, table_search, unroll)
 
     # Mixing length lm and lm/beta
     lm = 2.0 * t.beta**3 * Lc

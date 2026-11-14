@@ -43,12 +43,12 @@ def _forcing(thref=296.0, taf=294.0, uref=3.0):
     )  # fmt: skip
 
 
-def _run(ground="log_profile", **forcing):
+def _run(ground="log_profile", unroll=False, **forcing):
     f = _forcing(**forcing)
     return turb.harman_finnigan(
         _layers(), f["tair"], f["eair"], f["pref"], f["ztop"], f["lai"], f["sai"], f["zref"],
         f["uref"], f["thref"], f["thvref"], f["qref"], f["rhomol"], default_rsl_tables(),
-        sparse_canopy=True, ground_conductance=ground,
+        sparse_canopy=True, ground_conductance=ground, unroll=unroll,
     )  # fmt: skip
 
 
@@ -189,3 +189,19 @@ def test_obukhov_gradient_is_the_implicit_one():
 
 def test_registry():
     assert turb.ROUGHNESS_SUBLAYER == {"harman_finnigan": turb.harman_finnigan}
+
+
+def test_solver_loops_follow_the_device():
+    from clm_ml import driver
+
+    assert driver.solver_loops("unrolled") is True and driver.solver_loops("loop") is False
+    assert driver.solver_loops("auto") == (jax.default_backend() == "gpu")
+
+
+@pytest.mark.parametrize("taf", [294.0, 295.8, 296.5])
+def test_unrolled_iterations_match_the_loops(taf):
+    """The Obukhov and roughness-length iterations written out (numerics.solver_loops,
+    decision 117) are the loops' iterations."""
+    loop, unrolled = _run(taf=taf), _run(taf=taf, unroll=True)
+    for name in ("obu", "z0m", "ustar", "wind", "gac"):
+        np.testing.assert_allclose(getattr(unrolled, name), getattr(loop, name), rtol=1e-12)

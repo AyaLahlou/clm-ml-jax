@@ -9,7 +9,7 @@
 # outputs, gradients and profiles of the compiled chunk on one A100. Time a fixed snapshot,
 # not the working tree:  git worktree add --detach $SCRATCH/clm-ml-jax/trees/NAME COMMIT
 #   qsub -v MODE=base,TAG=name,TREE=$SCRATCH/clm-ml-jax/trees/NAME jobs/gpu_probes/gpu0.pbs
-# MODE: base (yardstick) | scale | save | grad | proto | prof.  Submit from a scratch
+# MODE: base (yardstick) | scale | save | grad | proto | unroll | prof.  Submit from a scratch
 # directory: PBS writes its own .o file where qsub is run.
 set -u
 SCRATCH=${SCRATCH:-/glade/derecho/scratch/$USER}
@@ -31,7 +31,7 @@ git -C $T log --oneline -1; hostname; date
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader; lscpu | grep "Model name"
 G="configs/grid_1deg_2000"
 filt() { grep -v "^W1\|^I1\|pjrt_executable"; }
-run() { python -u $HERE/gpu0.py $T $G "$@" 2>&1 | filt | grep -E "^setup|^compile|^run |steady_ms|patch_steps|us_per|peak|Error|error|Traceback"; }
+run() { python -u $HERE/gpu0.py $T $G "$@" 2>&1 | filt | grep -E "^setup|^compile|^run |^loops|steady_ms|patch_steps|us_per|peak|Error|error|Traceback"; }
 
 case ${XF:-} in   # XLA flag presets (plan step 1b)
 nocb) XFLAGS="--xla_gpu_enable_command_buffer=" ;;
@@ -62,6 +62,12 @@ proto)  # prototype: another jnp.searchsorted method for the psihat table (globa
     run "domain.grid.region={lat: [55, 57], lon: [-110, -105]}" run.execution.devices=1 \
       --steps 8 --repeat 4 --searchsorted $m --label "$TAG small C3 only searchsorted=$m"
   done ;;
+unroll) # prototype: loop groups written out (U=layers+obukhov+z0m+gs; fresh compile)
+  export JAX_COMPILATION_CACHE_DIR=$PROF/cache_unroll_$TAG
+  run domain.grid.region=global run.execution.devices=1 --steps ${STEPS:-48} --repeat 3 \
+    --unroll $U --label "$TAG unroll=$U" ${SAVE:+--save $P/save_$TAG.npz}
+  run "domain.grid.region={lat: [35, 37], lon: [-100, -98]}" run.execution.devices=1 \
+    --steps 8 --repeat 4 --unroll $U --label "$TAG small unroll=$U" ;;
 save)   # one day of global output saved, from a fresh compile (GPU comparison runs, plan §5)
   export JAX_COMPILATION_CACHE_DIR=$PROF/cache_save_$TAG
   git -C $T log --oneline -1

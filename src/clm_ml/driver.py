@@ -321,6 +321,18 @@ def table_search(choice: str) -> str:
     return "unrolled" if jax.default_backend() == "gpu" else "loop"
 
 
+def solver_loops(choice: str) -> bool:
+    """Whether a run writes its solver loops out (model.yaml ``numerics.solver_loops``;
+    decision 117): the loops over layers of the radiation, longwave and flux-profile solves
+    and the Obukhov and roughness-length iterations. ``auto`` is ``unrolled`` on a GPU (the
+    1 degree globe ran 1.5x faster in the prototype: a loop costs commands and copies per
+    iteration there, and the written-out rows merge with the physics around them) and
+    ``loop`` on the CPU (4x faster there, and the arithmetic of the regression reference)."""
+    if choice == "auto":
+        return jax.default_backend() == "gpu"
+    return choice == "unrolled"
+
+
 def step_options(run):
     """The time step's static choices (``clm_ml.step.StepOptions``) of a run."""
     from clm_ml.options import MLOptions, substep_options
@@ -337,7 +349,9 @@ def step_options(run):
     return (
         StepOptions(
             substep=substep_options(
-                opts.step_options(), table_search(run.config.numerics.table_search)
+                opts.step_options(),
+                table_search(run.config.numerics.table_search),
+                solver_loops(run.config.numerics.solver_loops),
             ),
             step_seconds=int(run.step_seconds),
             layer_pai_floor=float(opts.layer_pai_floor),

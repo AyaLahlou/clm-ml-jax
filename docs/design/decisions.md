@@ -1110,8 +1110,8 @@ memory are reported at each step. Changes that alter only round-off (order of ad
 library solvers, fusion) are part of the effort under the regression policy (noise twin,
 reference regenerated). This refines 87: "arithmetic-preserving" there means no
 science-adjacent changes (no fewer solver iterations, sub-steps or another integrator), which
-still holds. Still open: the compile-time and code-size budget for unrolling (plan §7);
-padded steps: decision 116.
+still holds. The compile-time and code-size budget for unrolling (plan §7): settled for the layer
+and turbulence loops by decision 117; padded steps: decision 116.
 Reason: global runs are the main use; calibration needs gradients.
 Source: maintainer, 2026-11-13.
 
@@ -1157,6 +1157,33 @@ still equals the same run in one chunk bit for bit (`test_restart.py`). `Model` 
 not use the flag.
 Reason: padding cost 25 % of a 31-day global run with 10-day chunks.
 Source: maintainer, 2026-11-13 (the reference regeneration approved the same day).
+
+**117. The layer and turbulence loops are written out on GPUs**
+2026-11-13 · GPU optimization step 2 (O55) · maintainer · in force · Departure from Fortran: no
+`numerics.solver_loops` (hidden; `auto`, `loop`, `unrolled`): how the fixed-length loops
+inside the canopy sub-step are compiled. `unrolled` writes the iterations out one after
+another in the compiled program (`unroll=` of `lax.scan` and `lax.fori_loop`; the Python
+source keeps one loop): the same operations in the same order, without a loop counter, an
+end test and copies of the carried values per iteration. It covers the loops over layers
+(shortwave sweeps and the beam transmittance in `solar_radiation.py`, the longwave solve
+`math.py::tridiag`, the flux-profile solve `math.py::tridiag_2eq`), the Obukhov iteration
+(`turbulence.py::obukhov_length`, 25 secant steps) and the roughness-length bisection
+(`turbulence.py::roughness_length`, 20 halvings). `auto` (the default) is `unrolled` on a GPU
+and `loop` on the CPU. Always loops: the stomatal solvers (`photosynthesis.py`: unrolled, the
+GPU program was still compiling after 34 minutes, and the bisection body is already one
+kernel), the sub-steps and Runge-Kutta stages, the steps of a chunk, and the soil temperature
+solve (once per step).
+Reason: in the prototype the 1 degree globe ran at 0.695 s per step instead of 1.06 s
+(2.85x the 1.98 s before the GPU work; layer loops alone 0.727 s), and a 21-patch box at 67 ms
+instead of 189 (`gpu_progress.md`, step 2). On the CPU the loops are faster (the unrolled
+small box ran 4 times slower) and keeping them keeps the regression reference bit for bit.
+Cost: the forward GPU program compiles in ~115 s instead of ~38 s (once; then cached), which
+the maintainer accepted (the compile budget of plan section 7 item 6 for this case).
+Results: round-off only. GPU, globe, after 2 steps: 3.7e-16 from the baseline of the same
+compile variant. CPU with `unrolled` forced: the regression case passes the noise-twin
+criterion (largest difference 0.76 times the allowance, largest relative difference 5e-11;
+32 of 96 fields bit for bit).
+Source: maintainer, 2026-11-13; `gpu_progress.md` step 2.
 
 ## K. Scope deferred
 

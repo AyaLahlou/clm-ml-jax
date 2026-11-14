@@ -28,6 +28,7 @@ parser.add_argument("--label", default="")
 parser.add_argument("--profile", action="store_true")
 parser.add_argument("--real", type=int, default=0, help="real steps; the rest of the chunk padded")
 parser.add_argument("--searchsorted", default="", help="prototype: jnp.searchsorted method")
+parser.add_argument("--unroll", default="", help="prototype: loop groups to unroll, e.g. layers+obukhov")
 parser.add_argument("--save", default="", help="save the output buffers and state (npz)")
 parser.add_argument("--out", default="results_gpu0.jsonl")
 args = parser.parse_args()
@@ -47,6 +48,37 @@ if args.searchsorted:  # prototype (step 0): another method for the psihat table
     jnp.searchsorted = _patched
     jax.numpy.searchsorted = _patched
 
+UNROLL = {  # prototype (step 2a): loops written out, by the file and name of the loop body
+    "layers": {"math:_forward", "math:_back", "math:_eliminate", "math:_substitute",
+               "solar_radiation:_tbi_step", "solar_radiation:_upward",
+               "solar_radiation:_downward", "solar_radiation:_sum", "soil:add"},
+    "obukhov": {"turbulence:_secant_step"},
+    "z0m": {"math:body"},
+    "gs": {"photosynthesis:body"},
+}  # fmt: skip
+if args.unroll:
+    _wanted = set().union(*(UNROLL[g] for g in args.unroll.split("+")))
+    _scan, _fori = jax.lax.scan, jax.lax.fori_loop
+    _seen = {}
+
+    def _key(f):
+        f = getattr(f, "func", f)
+        return Path(f.__code__.co_filename).stem + ":" + f.__name__
+
+    def _patched_scan(f, init, xs=None, length=None, reverse=False, unroll=1, **kw):
+        hit = _key(f) in _wanted
+        _seen[_key(f)] = hit
+        return _scan(f, init, xs, length=length, reverse=reverse, unroll=True if hit else unroll, **kw)
+
+    def _patched_fori(lower, upper, body_fun, init_val, **kw):
+        hit = _key(body_fun) in _wanted
+        _seen[_key(body_fun)] = hit
+        if hit:
+            kw["unroll"] = True
+        return _fori(lower, upper, body_fun, init_val, **kw)
+
+    jax.lax.scan, jax.lax.fori_loop = _patched_scan, _patched_fori
+
 from clm_ml import driver as D  # noqa: E402
 from clm_ml import output_streams as S  # noqa: E402
 from clm_ml.experiment import load_experiment  # noqa: E402
@@ -61,6 +93,7 @@ res = {
     "overrides": args.overrides,
     "steps": args.steps,
     "searchsorted": args.searchsorted or "scan",
+    "unroll": args.unroll,
 }
 t0 = time.perf_counter()
 sim = D.simulation(run).laid_out(int(ex.devices or 1), ex.patch_count, ex.gridcell_count)
@@ -97,6 +130,8 @@ try:
 except Exception as exc:  # noqa: BLE001
     res["code_mb"] = f"unavailable: {exc}"
 print("compile", res["compile_s"], "s, code", res["code_mb"], "MB", flush=True)
+if args.unroll:
+    print("loops", {k: ("unrolled" if v else "loop") for k, v in sorted(_seen.items())}, flush=True)
 
 cudart = None
 if args.profile:

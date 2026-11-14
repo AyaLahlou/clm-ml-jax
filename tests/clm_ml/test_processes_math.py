@@ -135,3 +135,22 @@ def test_tridiag_2eq_batches_and_compiles():
     assert t.shape == q.shape == (3, N2)
     np.testing.assert_allclose(t[1], 2.0 * t[0] - _solve_2eq(*co[:4], 0 * co[4], *co[5:])[0],
                                rtol=1e-12)  # fmt: skip
+
+
+def test_unrolled_solves_match_the_loops():
+    """The solves with their rows written out (numerics.solver_loops, decision 117) do the
+    loops' operations in the loops' order."""
+    a, b, c, r = _system(43, 5)
+    for min_pivot in (None, 1.0e-10):
+        loop = tridiag(a, b, c, r, min_pivot=min_pivot)
+        np.testing.assert_allclose(
+            tridiag(a, b, c, r, min_pivot=min_pivot, unroll=True), loop, rtol=1e-14
+        )
+    co = _system_2eq(1)
+    for got, ref in zip(tridiag_2eq(*co, N2, unroll=True), tridiag_2eq(*co, N2)):
+        np.testing.assert_allclose(got, ref, rtol=1e-14)
+    grads = [
+        jax.grad(lambda c: jnp.sum(tridiag_2eq(*c, N2, unroll=u)[0]))(co) for u in (False, True)
+    ]
+    for got, ref in zip(grads[1], grads[0]):
+        np.testing.assert_allclose(got, ref, rtol=1e-12, atol=1e-14)

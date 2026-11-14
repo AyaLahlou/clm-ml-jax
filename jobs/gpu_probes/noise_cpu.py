@@ -1,5 +1,7 @@
-"""The regression case on the CPU with another psihat table search, against the committed
-reference by the noise-twin criterion (tests/regression/test_end_to_end_regression.py)."""
+"""The regression case on the CPU with another psihat table search (loop, unrolled,
+compare_all) or with the solver loops written out (solver_loops; decision 117), against the
+committed reference by the noise-twin criterion
+(tests/regression/test_end_to_end_regression.py)."""
 
 import sys, tempfile
 from pathlib import Path
@@ -11,7 +13,10 @@ from tests.regression.record_run import REFERENCE_FILE, TWIN_FILES, recorded_fie
 from clm_ml import driver
 
 method = sys.argv[1]
-driver.table_search = lambda choice: method
+if method == "solver_loops":
+    driver.solver_loops = lambda choice: True
+else:
+    driver.table_search = lambda choice: method
 load = lambda p: {k: v for k, v in np.load(p).items() if not k.startswith("meta.")}
 ref, plus, minus = load(REFERENCE_FILE), load(TWIN_FILES["plus"]), load(TWIN_FILES["minus"])
 run, out = run_case(Path(tempfile.mkdtemp()))
