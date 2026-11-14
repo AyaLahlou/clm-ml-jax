@@ -1183,7 +1183,14 @@ Results: round-off only. GPU, globe, after 2 steps: 3.7e-16 from the baseline of
 compile variant. CPU with `unrolled` forced: the regression case passes the noise-twin
 criterion (largest difference 0.76 times the allowance, largest relative difference 5e-11;
 32 of 96 fields bit for bit).
-Source: maintainer, 2026-11-13; `gpu_progress.md` step 2.
+Measured with the change (`c7f4a20`): 0.696 s per step, 104 300 patch-steps/s, the 10-day
+chunk in 334 s (508 s before), compile ~110 s; after one day the GPU results are 5e-16 from
+the code before. Another fresh compile differed after two steps by up to 4.4e-8 in 199 of
+72 575 patches (the compile variants of O27).
+Not settled: GPU gradient programs are 1.3-1.5x slower and compile 4x longer with the loops
+written out (the layer loops are differentiated); until decided, gradient work on a GPU can
+set `numerics.solver_loops: loop` (`gpu_progress.md`, "Resume here").
+Source: maintainer, 2026-11-13; `gpu_progress.md` step 2a.
 
 ## K. Scope deferred
 

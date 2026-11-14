@@ -10,15 +10,16 @@ Where things are:
 - Code snapshot the jobs ran: `$SCRATCH/clm-ml-jax/trees/gpu0_base` (commit `8f44da5`).
 - Jobs: `develop` queue, account `UCLB0069`, one A100 (40 GB), 16 cores, JAX 0.10.2.
 
-**Status (2026-11-13):** steps 0 and 1 done. The 1° globe runs at **1.06 s per step, 1.87×**
-(target 2×, 0.99 s); padded steps cost nothing. Stopped for the maintainer before step 2
-(see the end of this file).
+**Status (2026-11-13, evening):** steps 0, 1 and 2a done. The 1° globe runs at **0.70 s per
+step, 2.85×** (target 2×, 0.99 s: met); padded steps cost nothing. Open for the maintainer:
+gradient programs are slower with the loops written out (step 2 below, "Gradients").
 
-## Resume here (paused 2026-11-13 by the maintainer)
+## Resume here
 
 **State.** Branch `gpu_opt` (made from `feature/latlon_output`, not merged anywhere), pushed.
-Steps 0 and 1 of the plan are done, tested and committed. Nothing is half-finished: no
-uncommitted model changes, no jobs running.
+Steps 0, 1 and 2a of the plan are done, tested and committed. Nothing is half-finished: no
+uncommitted model changes, no jobs running. The work was paused by the maintainer after
+step 1 and resumed the same evening for step 2a.
 
 | Commit | What |
 |---|---|
@@ -28,34 +29,45 @@ uncommitted model changes, no jobs running.
 | `a191453` | one search per grid in `psi_rsl` (decision 115) |
 | `9c8a741` | padded steps not computed; regression reference regenerated (decision 116) |
 | `2143fbb` | step-1 gradient timings, GPU gradient tier, 10-day reference |
+| `c7f4a20` | step 2a: layer and turbulence loops written out on GPUs (decision 117) |
 
 **Numbers to beat** (1° globe, 72 575 patches, one A100, JAX 0.10.2):
-- 1-day chunk: **1057–1065 ms per step** (68 200–68 700 patch-steps/s); before: 1975–1985.
-- 10-day chunk (`timing/time_program.py`): 508.5 s, 68 510 patch-steps/s; before: 935.5 s.
-- 21-patch box (the fixed cost): 175 ms per step; before: 1212.
-- Gradient (`timing/time_vmap.py --grad`, CHATS7 copies): 1037 ms per step for 1 patch,
-  1690 for 4 096 patches (8.2 GB); compile ~105–115 s.
-- Target: 2× = 0.99 s per step. Reached: 1.87×. Missing: ~0.07 s per step.
+- 1-day chunk: **696 ms per step** (104 300 patch-steps/s); step 1: 1057–1065; before: 1975–1985.
+- 10-day chunk (`timing/time_program.py`): 334.0 s, 104 300 patch-steps/s; step 1: 508.5 s;
+  before: 935.5 s.
+- 21-patch box (the fixed cost): 69 ms per step; step 1: 175; before: 1212.
+- Compile (forward, cold): ~110 s; step 1: 35–40 s. Generated code 0.01 MB; peak 4.7 GB.
+- Gradient (`timing/time_vmap.py --grad`, CHATS7 copies): **slower than step 1**: 1519 ms per
+  step for 1 patch (step 1: 1037), 2197 for 4 096 patches (step 1: 1690; 7.9 GB); compile
+  ~420 s (step 1: ~105–115 s). With `numerics.solver_loops: loop` the gradient program is
+  step 1's.
+- Target: 2× = 0.99 s per step. Reached: 2.85×.
 - Measurement spread: 0.2 % within a job, 0.6 % between jobs. Believe changes above ~2 %.
 
-**Next step, when resumed** (nothing below is started; each needs the maintainer's go-ahead):
-1. **A fresh profile of the current code** (`MODE=prof`, twice: with the default flags, and
-   with `XF=nocb`, which makes every kernel visible). It decides between 2 and 3.
-2. **Unroll the remaining loops** (plan step 2a). About 15 000 loop iterations per step are
-   left (census table below, without the table-search row): longwave tridiagonal solve
-   (`math.py::tridiag`, 4 980), flux-profile solves (`math.py::_tridiag_2eq_solve`, 4 680),
-   Obukhov (`turbulence.py::obukhov_length`, 1 500), the two bisections
-   (`photosynthesis.py::solve_gs_bisection`, `math.py::bisection_traceable`, 1 200 each).
-   `lax.scan` and `lax.fori_loop` take `unroll=`. Make the factor a setting like
-   `numerics.table_search` (decision 114 is the pattern: a hidden `numerics` option, `auto` by
-   device, passed down as a static keyword). Expect last-bit changes on whichever device
-   unrolls (the unrolled table search was not bit for bit on the CPU). Watch code size and
-   compile time (today: 0.01 MB, 35–40 s forward; ~110 s gradient).
-3. **The stomatal bisection** (0.23 s per step, one fused kernel of 357 µs run 600 times):
-   its 5 extra function evaluations stacked into fewer passes. Round-off-level.
+**Next step** (nothing below is started; each needs the maintainer's go-ahead):
+1. **Gradients and `solver_loops`** (open decision below): which loop group slows the
+   gradient (the layer loops are differentiated; the Obukhov and roughness-length loops are
+   behind `stop_gradient`), with `gpu0.py`-style prototypes on `timing/time_vmap.py --grad`.
+2. **A profile of the unrolled program** (`MODE=prof` with `XF=nocb` on `trees/gpu2_unroll`):
+   why the layer loops gave 0.34 s (the estimate from the loop bookkeeping was 0.05–0.1 s),
+   and what is left. Before step 2a the stage physics was 0.43 s in kernels that ran 4–8
+   times slower per operation than the stomatal bisection kernel.
+3. **The stomatal bisection** (0.25 s per step before step 2a, one fused kernel of 357 µs run
+   600 times per step and group). It is already one efficient kernel: stacking its five extra
+   evaluations would not reduce the arithmetic, and unrolling it does not compile in
+   reasonable time (step 2). A gain here needs less arithmetic per halving (invariants
+   computed once outside the loop), a round-off-level rewrite.
 
 **Open decisions**
-- The compile-time and code-size budget for unrolling (plan §7 item 6; proposal there).
+- **Gradient programs and `solver_loops`** (plan §7 item 1: a forward gain that slows
+  gradients is discussed before it is kept). With `auto`, a GPU gradient is 1.3–1.5× slower
+  and compiles 4× longer than at step 1, while its forward pass is 2–4× faster. Choices:
+  (a) keep `auto` for everything and set `numerics.solver_loops: loop` in the `model.yaml`
+  of gradient work; (b) make `auto` mean loops for `Model` (the gradient interface) and
+  written-out loops for `clm-ml run`; (c) write out only the loops that do not slow the
+  gradient, once next step 1 has found them.
+- The compile-time and code-size budget for unrolling (plan §7 item 6): settled for the
+  forward program by decision 117 (~110 s accepted); open for the gradient program.
 - Whether to keep change 2 (shared searches, decision 115): 0.7 % at the global size, 9 % of
   a small domain's fixed cost. Kept for now.
 - Whether the round-off amplification counted in "GPU results against the baseline" below
@@ -79,6 +91,7 @@ qsub -v MODE=save,TAG=name_48,TREE=$T,REP=3,SMALL=1,REAL=24 $J   # 1 day saved +
 qsub -v MODE=grad,TAG=name,TREE=$T $J                    # gradient timing, 1 and 4 096 patches
 qsub -v MODE=prof,TAG=name,TREE=$T[,XF=nocb] $J          # nsys profile + XLA dump (globe and small box)
 qsub -v MODE=scale,TAG=name,TREE=$T $J                   # step time against number of patches
+qsub -v MODE=unroll,TAG=name,TREE=$T,U=layers+obukhov+z0m $J   # prototype: loop groups written out by the probe (add STEPS=2,SAVE=1 to save)
 qsub -v REV=COMMIT,TAG=name jobs/program_gpu.pbs         # the 10-day reference chunk
 qsub -v REV=COMMIT,TAG=name jobs/grad_gpu.pbs            # GPU gradient tier (12 min)
 # 3. read the results (in $SCRATCH/clm-ml-jax/probe_gpu0: results_gpu0.jsonl, log_TAG.txt)
@@ -86,6 +99,7 @@ python jobs/gpu_probes/compare.py save_A.npz save_B.npz                 # two sa
 python jobs/gpu_probes/attribute.py $SCRATCH/clm-ml-jax/prof0/TAG_global $SCRATCH/clm-ml-jax/prof0/hlo_TAG_global
 JAX_PLATFORMS=cpu python jobs/gpu_probes/census.py TREE                 # loops per step (CPU)
 JAX_PLATFORMS=cpu python jobs/gpu_probes/noise_cpu.py unrolled          # a table search on the CPU against the noise twins
+JAX_PLATFORMS=cpu python jobs/gpu_probes/noise_cpu.py solver_loops      # the solver loops written out on the CPU, likewise
 ```
 
 Queue `develop`, account `UCLB0069`; jobs started within minutes on 2026-11-13. The copies
@@ -107,14 +121,23 @@ of the scripts in `jobs/gpu_probes/` were smoke-tested on the CPU (`gpu0.py`) an
 - **Unrolling is not bit for bit on the CPU** even when the operations are the same (the
   unrolled table search: last bits; one field at 1.2 times the noise-twin allowance). So is
   moving code into a `lax.cond` branch (decision 116).
-- **`qsub -v` splits on commas:** flag sets with commas are presets in `gpu0.pbs` (`XF=`).
+- **`qsub -v` splits on commas:** flag sets with commas are presets in `gpu0.pbs` (`XF=`);
+  loop groups are joined with `+` (`U=`).
+- **The probe jobs print nothing until a run ends** (their output goes through `grep`): an
+  empty log means still compiling or running, not a failure.
+- **Submit `jobs/program_gpu.pbs` and `jobs/grad_gpu.pbs` from scratch too:** PBS drops its
+  `.o` file where `qsub` is run.
+- **Do not write out the stomatal bisection** (20 halvings of one large kernel): the GPU
+  program was still compiling after 34 minutes.
+- **A loop written out is slower on the CPU** (the 21-patch box: 4 times) and slower to
+  differentiate on the GPU (step 2).
 - One step is 6 sub-steps × **5** physics evaluations (the plan's §2 says 4).
 - `timing/time_vmap.py` needed `gridcell_count` for padded patches (fixed in `8af77c8`).
 
 **Scratch** (Derecho purges unused scratch files; everything needed to resume is in the
 repository, the rest is evidence): `$SCRATCH/clm-ml-jax/probe_gpu0/` (results, logs, saved
 outputs, ~500 MB), `prof0/` (profiles, XLA dumps, per-tag caches; several GB, can be deleted),
-`trees/gpu0_base`, `gpu1_search`, `gpu1_shared`, `gpu1_cond`, `gpu1_done` (git worktrees: remove
+`trees/gpu0_base`, `gpu1_search`, `gpu1_shared`, `gpu1_cond`, `gpu1_done`, `gpu2_unroll` (git worktrees: remove
 with `git worktree remove PATH`, or `git worktree prune` after a purge).
 
 ## Step 0: measurements (2026-11-13). No change to the model
@@ -439,5 +462,123 @@ risk:
    body rearranged. Round-off-level.
 3. **A fresh profile first** (the step-0 profile of the prototype had command buffers off):
    cheap, and it says which of 1 and 2 is worth more.
+
+**Stopped here for the maintainer** (paused; resumed the same evening with step 2 below).
+
+## Step 2a: the remaining loops (2026-11-13, evening)
+
+Code snapshots `trees/gpu1_done` (`9c8a741`, profiles and prototypes) and `trees/gpu2_unroll`
+(`c7f4a20`, the change); logs `probe_gpu0/log_prof4*.txt`, `log_u_*.txt`, `log_u2_*.txt`,
+`log_s4*.txt`, `log_grad_step2.txt`; profiles `prof0/prof4_*`, `prof4n_*`.
+
+### A fresh profile of the step-1 code
+
+1068 ms per step with the default flags, 1141 ms with every kernel visible (`XF=nocb`). GPU
+time per step, kernels matched to the source by loop depth and by how often they run:
+
+| What | GPU s per step |
+|---|---|
+| Canopy physics of the Runge–Kutta stages (174 kernels, each run 30 times per step and group) | 0.43 |
+| Stomatal bisection loop (one kernel of 357 µs for the C3 group, 600 times per step) | 0.25 |
+| Obukhov loop, with its table lookups | 0.07 |
+| Other table lookups | 0.07 |
+| Tridiagonal and flux-profile loops | 0.02 |
+| Loop counters (12 400 per step) | 0.02 |
+| Outside the sub-steps (soil, output, forcing) | 0.07 |
+| Copies of loop-carried values (29 000 per step, 21 GB) | 0.09 |
+
+- **The copies are per-patch vectors** (25 600 of the 29 000 are 66 097 or 6 478 values of
+  8 bytes): the carries of the Obukhov and layer loops, not of the stomatal bisection.
+- **Five stage kernels take 0.26 s and are slow for their size:** 150–750 operations on
+  patch × layer (× leaf) arrays in 1.0–2.8 ms, where the bisection kernel does 241 operations
+  on the same number of values in 0.36 ms. They hold the slices, concatenations and updates
+  that assemble and read the layer solves.
+- The picture is the step-0 prototype's: nothing new moved in.
+
+### Prototype: loop groups written out by the probe (`gpu0.py --unroll`, `src/` untouched)
+
+"Written out" (unrolled): the compiled program holds the loop's iterations one after another,
+without a counter, an end test and copies of the carried values; the Python source keeps one
+loop (`unroll=` of `lax.scan` and `lax.fori_loop`). Globe, 1-day chunk; 21-patch box.
+
+| Written out | Globe, ms per step | Speed-up | 21 patches, ms per step | Compile |
+|---|---|---|---|---|
+| Nothing (step 1) | 1062 | 1.87× | 189 | 38 s |
+| Layer loops (tridiagonal and flux-profile solves, radiation sweeps, soil) | 727 | 2.72× | 98 | 72 s |
+| Obukhov and roughness-length iterations | 1018 | 1.95× | 142 | 77 s |
+| Layer loops, Obukhov and roughness length | **695** | **2.85×** | 67 | 113 s |
+| Stomatal bisection, alone or with the others | not obtained | | | no result after 34 min (jobs cancelled) |
+
+- **The layer loops gave 0.34 s**, far more than the 0.05–0.1 s expected from the copies and
+  counters. Probably the compiler now merges the layer sweeps with the physics around them
+  (the slow stage kernels above); a profile of the unrolled program would show it. Not done.
+- On the CPU the fully written-out 21-patch box compiled in 60 s instead of 23 s and ran at
+  190 ms per step instead of 50: the CPU keeps its loops.
+
+### The change (decision 117, `c7f4a20`)
+
+`numerics.solver_loops` (hidden; `auto`, `loop`, `unrolled`; `auto`: `unrolled` on a GPU,
+`loop` on the CPU), passed down as a static keyword to the shortwave sweeps
+(`solar_radiation.py`), the longwave solve (`math.py::tridiag`), the flux-profile solve
+(`math.py::tridiag_2eq`), the Obukhov iteration and the roughness-length bisection
+(`turbulence.py`). The stomatal solvers, sub-steps, stages, steps and the soil temperature
+solve (once per step; written out in the prototype, a loop in the change) stay loops.
+
+| 1° globe, one A100 | ms per step | patch-steps/s | Speed-up | Compile | Peak GB |
+|---|---|---|---|---|---|
+| Baseline (`8f44da5`) | 1975–1985 | 36 700 | 1.00× | 40 s | 3.5 |
+| Step 1 (`9c8a741`) | 1057–1065 | 68 400 | 1.87× | 35–40 s | |
+| Step 2a (`c7f4a20`), 1-day chunk | **696** | **104 300** | **2.85×** | 107–112 s | |
+| Step 2a, 10-day chunk ("gpu2_ref") | 696 (334.0 s) | 104 300 | 2.80× of 935.5 s | 110 s | 4.7 |
+
+- A 21-patch box: 69 ms per step (step 1: 175; baseline: 1212).
+- A 48-step chunk with 24 real steps: 16.7 s (a full one: 33.4 s).
+- A simulated year: about 3.4 h on one A100 (step 1: 5.2 h; baseline: 9.5 h).
+
+### Tests
+
+| Test | Result |
+|---|---|
+| Fast tier (unit + Fortran golden) | pass (452; new: written-out solves and iterations equal the loops) |
+| CPU bit for bit, noise twin | pass (the CPU program is unchanged: `auto` is `loop`) |
+| CPU with `unrolled` forced (`noise_cpu.py solver_loops`) | passes the noise-twin criterion: largest difference 0.76 times the allowance, largest relative difference 5e-11, 32 of 96 fields bit for bit |
+| CPU gradient tier | pass (9) |
+| All of `tests/regression` (CPU) | pass (216) |
+| GPU gradient tier (`jobs/grad_gpu.pbs`, `c7f4a20`) | pass (11), but 46 min instead of 12: the gradient programs compile about four times longer |
+
+### GPU results against the baselines
+
+Largest relative difference of the saved global outputs and state:
+
+| Compared | After 2 steps | After 1 day |
+|---|---|---|
+| Prototype, all three groups, against baseline A | 3.7e-16 | |
+| Step 2a against step 1 (`save_s3_48`) | | 5.1e-16 |
+| Step 2a against baseline B | | 1.4e-13 |
+| Step 2a, another compile (`save_s4_2`), against baselines A and B | 4.4e-8 in the worst value; 99.9 % of values below 1.3e-13 | |
+| Prototype, layer loops only, against baselines A and B | 4.4e-8; 99.9 % below 1.0e-13 | |
+
+So the written-out program has compile variants too (O27). One agrees with the step-1
+code to one unit in the last place after a whole day. Another (met twice: `save_s4_2` and
+the layers-only prototype, 4.6e-11 apart) differs after two steps in 199 of the 72 575
+patches by more than 1e-12 (90 values above 1e-10, the largest 4.4e-8, in a leaf state):
+larger than the 5e-14 between the two variants of the baseline. It is round-off amplified
+within two steps in a few patches, as O27 describes over a day; not investigated further.
+
+### Gradients (GPU, `timing/time_vmap.py --grad`, CHATS7 copies, 8-step chunk)
+
+| | Forward ms per step | Gradient ms per step | Gradient compile | Peak GB |
+|---|---|---|---|---|
+| Step 1, 1 patch | 152 | 1037 | 103 s | 0.004 |
+| Step 1, 4 096 patches | 268 | 1690 | 117 s | 8.2 |
+| Step 2a, 1 patch | 41 | **1519** | **419 s** | 0.004 |
+| Step 2a, 4 096 patches | 128 | **2197** | **428 s** | 7.9 |
+
+**The forward pass is 2–4× faster, the gradient 1.3–1.5× slower, and the gradient compile
+4× longer.** The layer loops are differentiated (the Obukhov and roughness-length loops are
+behind `stop_gradient`), and the derivative of a written-out loop is a larger program than
+the derivative of a loop. Against the baseline before the GPU work (1957 and 2577 ms) the
+gradient is still faster. With `numerics.solver_loops: loop` in `model.yaml` a gradient
+program is step 1's. What `auto` should mean for gradient programs is open ("Resume here").
 
 **Stopped here for the maintainer.**

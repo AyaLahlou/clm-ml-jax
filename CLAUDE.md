@@ -38,11 +38,14 @@ Guidance for Claude (and other contributors) working in this repository.
   decisions with the maintainer, on a new branch `phase9/docs` from `main`. Open items:
   `docs/design/open_items.md`; how the model works now: `docs/how_the_model_works.md` (users)
   and `docs/design/model_overview.md` (detail).
-- **GPU optimization (O55, decisions 113-116): paused 2026-11-13** on branch `gpu_opt` (from
-  `feature/latlon_output`, not merged): the 1° globe runs 1.87× faster on one A100 (1.06 s
-  per step; target 2×). Plan `docs/design/gpu_optimization_plan.md`; results, the next step
-  and how to measure: `docs/design/gpu_progress.md` ("Resume here"); probes in
-  `jobs/gpu_probes/`. Ask the maintainer before resuming.
+- **GPU optimization (O55, decisions 113-117):** branch `gpu_opt` (from
+  `feature/latlon_output`, not merged): the 1° globe runs 2.85× faster on one A100 (0.70 s
+  per step; the 2× target is met, 2026-11-13). Hidden settings `numerics.table_search` and
+  `numerics.solver_loops` follow the device (GPU: written out; CPU: loops, the regression
+  reference). Open: GPU gradients are 1.3–1.5× slower with the loops written out. Plan
+  `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
+  `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/`. Ask the
+  maintainer before going on.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).
 - **Where the work is:** NCAR Derecho (CPU login node; GPUs through PBS, account UCLB0069,
   develop queue `gpudev`). Phase 6 history: `docs/design/phase6_progress.md`.

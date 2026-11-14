@@ -63,6 +63,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O71 | ~~Forward-mode gradients (`jax.jvp`, `jax.jacfwd`) fail: `tridiag_2eq` has a reverse-only custom rule~~ (closed: decision 104) | bug (gradients) | closed | I (approach agreed with M) |
 | O72 | ~~Environment now has JAX 0.10.2; the regression reference and the JAX workarounds are from 0.9.2~~ (closed: decision 105, keep 0.10.2) | testing / environment | closed | M |
 | O73 | ~~The environment has no CUDA plugin: GPU jobs cannot see the GPUs~~ (closed: plugin 0.10.2 installed, `environment.yml`) | environment | closed | M |
+| O74 | `jax.grad` of `tridiag_2eq` with respect to only some of its coefficients fails inside JAX | bug (gradients, latent) | after 8 | I |
 | **4. Housekeeping and repository organization (8a)** |||||
 | O34 | ~~`.gitignore` names absent directories (`docs/` rule removed)~~ (closed: pruned) | housekeeping | closed | I |
 | O35 | ~~Empty `.gitmodules`; CONTRIBUTING describes a submodule~~ (closed: .gitmodules deleted) | housekeeping | closed | I |
@@ -379,7 +380,11 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Kind:** bug (reproducibility) · **Target:** after 8 (GPU work) · **Decides:** I
 - **What:** on the GPU about one fresh compile in five gives a program whose results differ
   by ~1e-11 (within the noise twin). Diagnosis unfinished (setup programs get different
-  cache keys in each process). Bit for bit is a CPU-only test.
+  cache keys in each process). Bit for bit is a CPU-only test. On the 1° globe (GPU steps
+  1 and 2a, `gpu_progress.md`): two variants of the unchanged program are 5e-14 apart after
+  two steps and more than 1e-6 apart after a day in 5.8 % of the patches; with the loops
+  written out (decision 117) one variant differs after two steps by up to 4.4e-8 in 199
+  patches.
 - **Source:** C4 ("Open"); CLAUDE.md gotchas.
 
 ### O28. A failing patch still enters its chunk's gridcell sums
@@ -527,6 +532,17 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Next:** install the plugin matching JAX (`pip install "jax[cuda12]==0.10.2"`), then run
   the GPU gradient tier (`jobs/grad_gpu.pbs`) once.
 - **Source:** found while closing O72 (2026-11-02).
+
+### O74. `tridiag_2eq`: gradient with respect to only some coefficients
+- **Kind:** bug (gradients, latent) · **Target:** after 8 · **Decides:** I
+- **What:** `jax.grad` of `math.py::tridiag_2eq` with respect to one coefficient array, the
+  others held constant, raises inside JAX's `custom_linear_solve` (an `AssertionError` in its
+  transpose rule for `a1` alone, a `TypeError` in its JVP for `d1` alone; JAX 0.10.2). With
+  all coefficients differentiated together, as the model always does, both modes work and
+  are tested (`test_processes_math.py`). Not diagnosed: seen while writing the decision-117
+  test, with and without written-out loops. It would matter if a caller ever passed a
+  constant coefficient array.
+- **Source:** GPU step 2a, 2026-11-13 (`gpu_progress.md`).
 
 ## 4. Housekeeping and repository organization (8a)
 
@@ -726,9 +742,13 @@ Plan (2026-11-13, branch `gpu_opt`): `gpu_optimization_plan.md`; target and scop
 decision 113; open there: unrolling budget, padded-step skipping. Step 0 measured (2026-11-13,
 `gpu_progress.md`): the psihat table search is 94 % of the GPU commands; a prototype reaches 1.86×.
 Step 1 done (decisions 114-116): 1.87× (1.06 s per step, 68 500 patch-steps/s), padded steps
-free. **Paused 2026-11-13 by the maintainer**; to resume: `gpu_progress.md` "Resume here"
-(next: a fresh profile, then unrolling the remaining loops or the stomatal bisection; open:
-the unrolling budget, the round-off amplification between GPU compiles).
+free. Paused 2026-11-13 by the maintainer and resumed the same evening. Step 2a done
+(decision 117): the layer and turbulence loops written out on GPUs, **2.85× (0.70 s per
+step, 104 300 patch-steps/s); the 2× target is met**. Open (`gpu_progress.md` "Resume
+here"): gradient programs are 1.3–1.5× slower and compile 4× longer with the loops written
+out (what `numerics.solver_loops: auto` should mean for them); the round-off amplification
+between GPU compiles (O27), now also seen after two steps in 199 patches; the merge of
+`gpu_opt`.
 
 ### O56. Unsupported variants
 Well-mixed flux profile and dataset profiles (fail on traced layer counts), Norman solar

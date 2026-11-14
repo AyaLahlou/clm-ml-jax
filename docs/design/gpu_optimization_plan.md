@@ -1,8 +1,10 @@
 # GPU optimization plan (open item O55)
 
-Status: **steps 0 and 1 done 2026-11-13 (1.87x steady; padded steps free); stopped for the
-maintainer before the next step**
-(branch `gpu_opt`). Results and the revised order of work: [`gpu_progress.md`](gpu_progress.md).
+Status: **steps 0, 1 and 2a done 2026-11-13 (2.85x steady, 0.70 s per step: the 2x target is
+met; padded steps free); open: gradient programs are slower with the loops written out**
+(branch `gpu_opt`). Step 2a (decision 117) wrote out the loops over layers and the Obukhov and
+roughness-length iterations on GPUs; the stomatal bisection stays a loop (it does not compile
+in reasonable time written out). Results and the revised order of work: [`gpu_progress.md`](gpu_progress.md).
 In short: the fixed cost is 1.2 s of the 2.0 s step (not 0.4 s), 94 % of the GPU commands
 come from the psihat table search, and a prototype that removes that loop reaches 1.86×. §2
 below is the picture before step 0 and is kept as written. Written 2026-11-13; reviewed and
@@ -224,6 +226,14 @@ into one, so intermediate values never go to memory).
 - **Bit for bit:** unrolling keeps the operations and their order, so the CPU result should
   be identical. If the compiler still changes the last bits, the change is treated as a
   round-off change (noise twin, reference regenerated, said so).
+- **Done 2026-11-13 (decision 117, `gpu_progress.md` step 2a):** one setting,
+  `numerics.solver_loops`, for the layer loops and the Obukhov and roughness-length
+  iterations (full unrolling; no partial factors were needed). Measured against the
+  expectations above: the layer loops gave most of the gain (0.34 of 0.37 s per step), the
+  solver loops little; the stomatal bisection could not be written out (no compiled program
+  after 34 minutes); the CPU result is not identical (noise twin passes), so the CPU keeps
+  its loops; and the gradient of the written-out layer loops is 1.3–1.5× slower with a 4×
+  longer compile, which is open.
 - **2b. Carry less.** If the profile shows large arrays carried through loops that do not
   change them, take them out of the carry.
 
@@ -318,9 +328,13 @@ Answered by the maintainer (2026-11-13; decision 113):
    scripts).
 5. **Custom CUDA kernels are ruled out for now** (§6).
 
-Open (the maintainer has no preference yet; proposals, to be settled with the step-0 numbers):
+Partly open:
 
-6. **Budget for compile time and code size when unrolling.** Proposal:
+6. **Budget for compile time and code size when unrolling.** Settled for the forward program
+   by decision 117 (2026-11-13: ~110 s instead of ~38 s accepted, code size unchanged at
+   0.01 MB). Open for the gradient program, which compiles in ~420 s instead of ~110 s with
+   the loops written out and runs 1.3–1.5× slower (item 1 above: to be discussed;
+   `gpu_progress.md` "Resume here"). The original proposal:
    - forward chunk: compile under ~5 min (today ~1 min), generated code under ~100 MB (today
      4 MB), far below the 2 GB that broke the cache in Phase 6b;
    - gradient program: compile within ~2× today's.
