@@ -1,10 +1,12 @@
 """
 Timing test of the compiled model (clm_ml.model.Model) on CHATS7:
 
-- forward: one compiled chunk of N steps, run twice; the second run is the steady cost
-  (no compilation);
-- gradient: d(mean latent heat over the chunk)/d(parameters), first call (compilation
-  included) and second call.
+- forward: one compiled chunk of N steps, called four times; the first call includes the
+  compilation, the steady cost is the fastest of the third and fourth;
+- gradient: d(mean latent heat over the chunk)/d(parameters), likewise. The second call of
+  an un-jitted ``jax.grad`` is not steady (several times slower than the calls after it;
+  reported as ``gradient_second_s``): until 2026-11-14 this script reported it as the
+  steady cost, so older gradient lines of the results file are too high.
 
 Peak memory is the process's maximum resident set size. Appends one JSON line to
 ``timing/results_model.jsonl``. Used before and after Phase 5b (mask-aware layers).
@@ -72,13 +74,15 @@ def main() -> None:
         if name == "gradient" and args.no_grad:
             continue
         times = []
-        for _ in range(2):
+        for _ in range(4):
             t = time.perf_counter()
             jax.block_until_ready(fn(params))
             times.append(time.perf_counter() - t)
+        steady = min(times[2:])
         result[f"{name}_first_s"] = round(times[0], 2)
-        result[f"{name}_steady_s"] = round(times[1], 3)
-        result[f"{name}_steady_per_step_ms"] = round(1000 * times[1] / n, 1)
+        result[f"{name}_second_s"] = round(times[1], 3)
+        result[f"{name}_steady_s"] = round(steady, 3)
+        result[f"{name}_steady_per_step_ms"] = round(1000 * steady / n, 1)
     result.update(
         peak_rss_gb=round(_peak_gb(), 2),
         device=str(jax.devices()[0]),

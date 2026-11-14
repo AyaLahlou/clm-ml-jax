@@ -42,10 +42,15 @@ Guidance for Claude (and other contributors) working in this repository.
   `feature/latlon_output`, not merged): the 1° globe runs 2.85× faster on one A100 (0.70 s
   per step; the 2× target is met, 2026-11-13). Hidden settings `numerics.table_search` and
   `numerics.solver_loops` follow the device (GPU: written out; CPU: loops, the regression
-  reference). Open: GPU gradients are 1.3–1.5× slower with the loops written out. Plan
+  reference). Forward work stopped by the maintainer 2026-11-14 (they merge `gpu_opt`). Plan
   `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
   `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/`. Ask the
   maintainer before going on.
+- **Gradients (O76, decision 118):** branch `gpu_grad` (from `gpu_opt`): speed first, then
+  quality and accuracy, for sensitivity experiments (parameters, states, forcings; a tower
+  first, global later). Gradient times before 2026-11-14 were of the unsteady second call:
+  time from the third call. A tower is 4–5× faster on the CPU than on a GPU. Log and
+  "Resume here": `docs/design/gradient_progress.md`.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).
 - **Where the work is:** NCAR Derecho (CPU login node; GPUs through PBS, account UCLB0069,
   develop queue `gpudev`). Phase 6 history: `docs/design/phase6_progress.md`.

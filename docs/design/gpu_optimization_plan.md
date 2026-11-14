@@ -1,7 +1,9 @@
 # GPU optimization plan (open item O55)
 
 Status: **steps 0, 1 and 2a done 2026-11-13 (2.85x steady, 0.70 s per step: the 2x target is
-met; padded steps free); open: gradient programs are slower with the loops written out**
+met; padded steps free). The forward work was stopped there by the maintainer (2026-11-14).
+The gradient slowdown first reported with step 2a was a timing error (decision 118): GPU
+gradients are faster with the loops written out; gradient work continues as O76**
 (branch `gpu_opt`). Step 2a (decision 117) wrote out the loops over layers and the Obukhov and
 roughness-length iterations on GPUs; the stomatal bisection stays a loop (it does not compile
 in reasonable time written out). Results and the revised order of work: [`gpu_progress.md`](gpu_progress.md).
@@ -232,8 +234,8 @@ into one, so intermediate values never go to memory).
   expectations above: the layer loops gave most of the gain (0.34 of 0.37 s per step), the
   solver loops little; the stomatal bisection could not be written out (no compiled program
   after 34 minutes); the CPU result is not identical (noise twin passes), so the CPU keeps
-  its loops; and the gradient of the written-out layer loops is 1.3–1.5× slower with a 4×
-  longer compile, which is open.
+  its loops. The gradient of the written-out loops was first reported 1.3–1.5× slower: a
+  timing error (decision 118). It is 1.6–3× faster; its compile is 4–5× longer (6–8 min).
 - **2b. Carry less.** If the profile shows large arrays carried through loops that do not
   change them, take them out of the carry.
 
@@ -332,9 +334,9 @@ Partly open:
 
 6. **Budget for compile time and code size when unrolling.** Settled for the forward program
    by decision 117 (2026-11-13: ~110 s instead of ~38 s accepted, code size unchanged at
-   0.01 MB). Open for the gradient program, which compiles in ~420 s instead of ~110 s with
-   the loops written out and runs 1.3–1.5× slower (item 1 above: to be discussed;
-   `gpu_progress.md` "Resume here"). The original proposal:
+   0.01 MB). Open for the gradient program, which compiles in 6–8 min instead of ~80 s with
+   the loops written out (and then runs 1.6–3× faster: decision 118, O76). The original
+   proposal:
    - forward chunk: compile under ~5 min (today ~1 min), generated code under ~100 MB (today
      4 MB), far below the 2 GB that broke the cache in Phase 6b;
    - gradient program: compile within ~2× today's.

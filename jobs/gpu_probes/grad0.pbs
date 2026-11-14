@@ -1,0 +1,29 @@
+#!/bin/bash
+#PBS -N clmml_grad0
+#PBS -A UCLB0069
+#PBS -q develop
+#PBS -l select=1:ncpus=16:ngpus=1:mem=100GB
+#PBS -l walltime=01:30:00
+#PBS -j oe
+# Gradient speed probe on one A100 (docs/design/gradient_progress.md). Submit from scratch:
+#   qsub -v TAG=name,TREE=$SCRATCH/clm-ml-jax/trees/NAME,SL=loop|unrolled[,NS="1 4096",MODES=fwd,grad] jobs/gpu_probes/grad0.pbs
+set -u
+SCRATCH=${SCRATCH:-/glade/derecho/scratch/$USER}
+P=$SCRATCH/clm-ml-jax/probe_grad0
+exec > >(tee -a $P/log_${TAG}.txt) 2>&1
+module load cuda/12.9.0
+export PATH=/glade/work/$USER/conda-envs/clm-ml-jax/bin:$PATH
+export JAX_COMPILATION_CACHE_DIR=$SCRATCH/jax_compile_cache_gpu
+export TMPDIR=$SCRATCH/tmp
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export JAX_PLATFORMS=cuda
+HERE=${REPO:-/glade/work/$USER/clm-ml-jax}/jobs/gpu_probes
+mkdir -p $P; cd $P
+git -C $TREE log --oneline -1; hostname; date
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+for n in ${NS:-1 4096}; do
+  X=""; [ $n -gt 1 ] && X="run.execution.patch_count=$n run.execution.gridcell_count=2"
+  python -u $HERE/grad0.py $TREE model.numerics.solver_loops=$SL $X --modes ${MODES:-fwd,jvp,grad,jgrad} \
+    --label "$TAG n=$n" --out results_gpu.jsonl 2>&1 | grep -v "^W0\|^I0\|^W1\|^I1\|pjrt_executable"
+done
+echo "ALL DONE $(date)"

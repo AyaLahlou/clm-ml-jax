@@ -1187,10 +1187,26 @@ Measured with the change (`c7f4a20`): 0.696 s per step, 104 300 patch-steps/s, t
 chunk in 334 s (508 s before), compile ~110 s; after one day the GPU results are 5e-16 from
 the code before. Another fresh compile differed after two steps by up to 4.4e-8 in 199 of
 72 575 patches (the compile variants of O27).
-Not settled: GPU gradient programs are 1.3-1.5x slower and compile 4x longer with the loops
-written out (the layer loops are differentiated); until decided, gradient work on a GPU can
-set `numerics.solver_loops: loop` (`gpu_progress.md`, "Resume here").
-Source: maintainer, 2026-11-13; `gpu_progress.md` step 2a.
+Gradients (corrected 2026-11-14, decision 118): with the loops written out a GPU gradient
+is faster, 219 instead of 659 ms per step for one patch and 787 instead of 1294 for 4 096;
+its program compiles in 6-8 min instead of ~80 s (once; then cached). The slowdown of
+1.3-1.5x first written here came from timing the second gradient call. `auto` therefore
+also serves gradient programs.
+Source: maintainer, 2026-11-13; `gpu_progress.md` step 2a; `gradient_progress.md`.
+
+**118. Gradient timings are of the steady state, from the third call**
+2026-11-14 · gradients (O76) · implementation · in force · Departure from Fortran: n/a
+`timing/time_model.py` and `timing/time_vmap.py` call the forward chunk and the gradient
+four times and report the fastest of the third and fourth call as the steady cost (the
+second call is kept as `*_second_s`).
+Reason: the second call of an un-jitted `jax.grad` of `Model.run_chunk` is not steady: 1.7 s
+against 0.39 s on the CPU (8 steps), 8.2 against 5.3 s and 11.5 against 1.75 s on an A100
+(loops, loops written out); what it does was not tracked down, and a jitted gradient has no
+such call. The scripts reported the second call, so every gradient time recorded before
+2026-11-14 (the results files, the phase logs, `gpu_progress.md` steps 1 and 2a) is too
+high, by a factor that differs between programs: comparisons of gradient times across code
+versions made before that date are not reliable (the forward times are unaffected).
+Source: `gradient_progress.md` round 1.
 
 ## K. Scope deferred
 
