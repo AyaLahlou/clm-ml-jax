@@ -21,6 +21,9 @@ ap.add_argument("--steps", type=int, default=47)
 ap.add_argument("--first", type=int, default=1)
 ap.add_argument("--h", default="1e-2,1e-3,1e-4,1e-5,1e-6", help="relative finite-difference steps")
 ap.add_argument("--out", default="")
+ap.add_argument("--pft", default="", help="another PFT for the patch (e.g. c4_grass)")
+ap.add_argument("--rain", type=float, default=0.0, help="rain (kg/m2/s) in 3 of every 12 steps")
+ap.add_argument("--snow", type=float, default=0.0, help="snow (kg/m2/s) in 2 of every 12 steps")
 args = ap.parse_intermixed_args()
 TREE = Path(args.tree)
 sys.path.insert(0, str(TREE / "src"))
@@ -38,9 +41,21 @@ VARS = ("latent_heat_flux", "sensible_heat_flux", "net_radiation", "gpp", "groun
         "canopy_top_air_temperature", "friction_velocity")  # fmt: skip
 tmp = Path(tempfile.mkdtemp())
 convert_namelist(TREE / "data" / "namelists" / "nl.CHATS7.1day", tmp)
+if args.pft:
+    text = (tmp / "domain.yaml").read_text()
+    assert "pft: broadleaf_deciduous_temperate_tree" in text
+    (tmp / "domain.yaml").write_text(
+        text.replace("pft: broadleaf_deciduous_temperate_tree", f"pft: {args.pft}")
+    )
 model = Model.from_experiment(load_experiment(tmp, args.overrides))
 first, n = args.first, args.steps
 state, params, forcing = model.initial_state(), model.default_params(), model.forcing(first, n)
+if args.rain or args.snow:  # invented showers: the forcing is an input like any other
+    xg, xp = forcing
+    k = (np.arange(n) % 12).reshape((-1,) + (1,) * (xg.rain.ndim - 1))
+    xg = xg._replace(rain=jnp.where(k < 3, args.rain, 0.0) + 0 * xg.rain,
+                     snow=jnp.where((k >= 6) & (k < 8), args.snow, 0.0) + 0 * xg.snow)  # fmt: skip
+    forcing = (xg, xp)
 stream = StreamSpec("s", "step", "mean", VARS)
 base = {"params": params, "state": state, "forcing": forcing}[args.wrt]
 

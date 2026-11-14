@@ -16,18 +16,19 @@ Words used here:
 
 ## Resume here
 
-**State (2026-11-14).** Round 1 (speed) and round 2 (accuracy) are measured. The two
+**State (2026-11-14).** Rounds 1 (speed), 2 and 3 (accuracy) are measured. The two
 gradient corrections of round 2 are in the code (decision 119; forward values unchanged),
-with tests. Next: round 3, the same check for the cases a clear CHATS7 day does not cover.
+with tests. **Waiting for the maintainer: O77**, a forward-model error found in round 3
+(the two-stream `avmu` for PFTs with a negative leaf angle index: grasses and crops), a
+science change. After it: the check on sparse 1° patches.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
 
-**Open from round 2** (O76): the check for what this day does not cover (the remaining
-air-temperature mismatch, Medlyn and Ball-Berry, rain and snow, C4, other towers and padded
-layers, 1° patches with sparse canopies).
+**Open from rounds 2 and 3** (O76): 1° patches with sparse canopies (after O77); a day
+with real rain.
 
 **How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
 
@@ -222,3 +223,54 @@ at six stabilities (to 1e-6; the 1 m slope was 12 % off at L = −8 m) and of th
 gradient without a root (exactly 1; it was 0 before and 0.5 after the water-stress step);
 `tests/test_gradient_accuracy.py` in the gradient tier (four parameters, four fluxes, the
 four steps at sunrise, within 1e-3 of finite differences; fails on the old code by 5–50 %).
+
+## Round 3: the cases a clear CHATS7 day does not cover (2026-11-14)
+
+The check of round 2 (`gradcheck0.py`, parameters and forcing fields, 47 steps, 7 outputs)
+on the code with decision 119, for variants of the CHATS7 patch. No NaN and reverse equal
+to forward mode in every case (except the C4 case, below).
+
+| Case | Parameters within 0.1 % of FD | Forcing fields | Verdict |
+|---|---|---|---|
+| CHATS7, FD steps down to 1e-8 (the air-temperature leftover of round 2) | | 217 of 217 | sound: FD needed smaller steps |
+| Medlyn stomatal conductance | 168 of 168 | 204 of 217 | sound (the rest: air temperature, as above) |
+| Ball-Berry | 112 of 112 (49 negligible) | 200 of 217 | sound |
+| Coarse layers: 8 within and 6 above the canopy (36 of 50 slots padding) | 161 of 161 | 183 of 217 | sound; padding does not disturb the derivatives |
+| Invented showers (rain 0.36 mm/h in 3 of every 12 steps, snow in 2) | 152 of 161 (worst 0.5 %) | 169 of 231 | sound where the canopy is wet or dry; while it dries out (steps 8-10) FD is erratic and approaches AD only at its smallest step |
+| The patch as `c4_grass` | 110 of 133; **leaf angle index 75–99 % off at every step** | 189 of 210 | **a forward-model error: O77** |
+
+- **Air temperature** (and, less, wind and the layer count's effect on them): at a few
+  afternoon steps FD changes erratically with its step size and reaches AD only below a
+  relative step of 1e-6 (0.3 mK). The model has corners in air temperature there (the limits
+  of the roughness-sublayer functions switching within the step); AD gives the local slope.
+- **Rain:** with rain falling, AD and FD agree (1e-4). At zero rain no finite sensitivity
+  exists (round 2). As intercepted water runs out, the wetted fraction (water^(2/3)) makes
+  the fluxes non-smooth: sensitivities at those steps are large and local.
+
+### O77: `avmu` for a negative leaf angle index (forward model; science)
+
+For the C4 grass the finite differences with respect to the leaf angle index do not
+converge: they grow as the step shrinks. The forward model is a sawtooth in the leaf angle
+index (diffuse shortwave ±0.1 %, GPP ±0.25 %, period 7e-6 in χ_l), which is rounding noise
+amplified.
+
+- **Cause:** `solar_radiation.py::canopy_optics` computes the two-stream average inverse
+  diffuse optical depth `avmu = (1 − φ1/φ2 ln((φ1+φ2)/φ1)) / φ2` with φ2 replaced by
+  `max(φ2, 1e-10)`, a guard against dividing by zero. φ2 = 0.877 (1 − 2 φ1) is **negative
+  whenever χ_l < 0** (−0.281 for χ_l = −0.3), so for those PFTs the formula is evaluated at
+  φ2 = 1e-10: the result is the limit 1/(2 φ1) = 0.757 instead of 1.078, computed as a
+  difference of nearly equal numbers (hence the noise).
+- **Fortran and CTSM** use φ2 as it is (`MLSolarRadiationMod.F90` line 239;
+  `SurfaceAlbedoMod.F90` line 1446); the leaf angle index is kept away from 0 (|χ_l| ≥ 0.01)
+  so φ2 is never 0. The guard is the translation's.
+- **Who is affected:** the five PFTs with χ_l = −0.3 (`c3_arctic_grass`, `c3_grass`,
+  `c4_grass`, `c3_crop`, `c3_irrigated`), i.e. grass and crop patches of global runs. Not
+  CHATS7 (0.53) nor any tree or shrub (χ_l ≥ 0.01), so no validation against Fortran saw it.
+- **Size** (prototype with a signed guard, scratch copy `trees/grad_avmu`; the CHATS7 patch
+  run as `c4_grass`, one day): day-mean GPP 5.9 → 10.5 µmol m⁻² s⁻¹, latent heat 61 → 77
+  W m⁻², sensible heat 18 → 27, ground heat flux 30 → 5; net radiation unchanged in the mean
+  (up to 16 W m⁻² at a step). With the prototype all 158 parameter derivatives of the C4
+  case are within 0.1 % of FD, and reverse equals forward mode to 7e-10 (1e-3 before).
+- **Proposal:** keep the guard only against φ2 = 0 (signed), as Fortran computes. CHATS7 and
+  the regression reference are untouched (χ_l > 0: same arithmetic to be confirmed bit for
+  bit); 1° runs with grass or crops change. A science fix: the maintainer's decision.
