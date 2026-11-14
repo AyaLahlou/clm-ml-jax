@@ -769,6 +769,25 @@ Reason: differentiating through iterations gives wrong or exploding gradients; a
 would change the forward value.
 Source: numerics §2; CLAUDE.md "Iterative solvers".
 
+**119. Exact slope for the Obukhov gradient; `gs_min` keeps its gradient without a root**
+2026-11-14 · gradients (O76) · maintainer · in force · Departure from Fortran: no
+Two corrections to the gradients of iterative solvers (decision 59), neither changing a
+forward value. (1) `turbulence.py::obukhov_length`: the slope of the residual at the
+solution, which divides the implicit-function gradient, is the exact derivative
+(`jax.jvp` of the residual, inputs held constant) instead of a central difference with a
+fixed 1 m step. (2) `photosynthesis.py::solve_gs_bisection`: where the WUE optimization has
+no root, the conductance `gs_min` is returned with its gradient, not through `stop_gradient`.
+Reason: against finite differences over a CHATS7 day (7 outputs at 47 steps), only 20 of
+161 parameter derivatives were within 0.1 %: the 1 m slope was up to 49 % off where |L| is
+~10 m (stable nights, sunrise, strongly unstable afternoons; e.g. the sensitivity of latent
+heat to vcmax25 at sunrise 3.6 times too small), and the sensitivity to `gs_min` was half
+its value at every step. With both corrections all 161 are within 6e-5, forcing derivatives
+within 1.9 % (from 20 %), and the forward values of the day are bit for bit the same.
+Tests: unit tests of both (`test_processes_turbulence.py`, `test_processes_photosynthesis.py`)
+and `tests/test_gradient_accuracy.py` (gradient tier: four steps at sunrise against finite
+differences). Bit-for-bit and noise-twin tests unchanged.
+Source: maintainer, 2026-11-14; `gradient_progress.md` round 2.
+
 **60. Roughness length with Fortran's bisection stopping rule**
 2026-10-28 · Phase 3 · implementation · in force · Departure from Fortran: no
 The traceable bisection stops as Fortran's (bracket < 0.001 m, last midpoint), as a fixed-length

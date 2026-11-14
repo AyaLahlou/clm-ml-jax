@@ -461,8 +461,10 @@ def obukhov_length(
 ):
     """The Obukhov length (m): ``OBU_ITERATIONS`` secant steps from 100 m and -100 m on
     ``obu_new(obu) - obu``. The forward value is the solver's answer; its gradient is the
-    implicit-function one, ``-dF/dtheta / dF/dobu`` (``dF/dobu`` by central differences
-    with a 1 m step, the correction skipped where ``|dF/dobu| <= 1e-6``), applied as
+    implicit-function one, ``-dF/dtheta / dF/dobu`` (``dF/dobu`` exactly, by forward-mode
+    differentiation of the residual at the solution, decision 119: a finite difference with
+    a 1 m step was up to 49 % off where ``|obu|`` is ~10 m; the correction skipped where
+    ``|dF/dobu| <= 1e-6``), applied as
     ``obu - (step - stop_gradient(step))`` so it never changes the forward value
     (numerics_and_regression.md §2). Differentiating through the iterations instead gives
     exploding gradients (|J|^25, ~1e144 observed). ``unroll``: the secant steps written out
@@ -487,15 +489,15 @@ def obukhov_length(
     )
 
     # Implicit-function gradient: the residual's dependence on the inputs, divided by its
-    # (constant) slope in obu
+    # slope in obu at the solution (exact, with the inputs held constant; decision 119)
     f0 = _obu_residual(obu, inp, tables, sparse_canopy, table_search)
-    delta = jnp.asarray(1.0, dtype=obu.dtype)  # obu is O(100-10000 m)
+    held = ObuInputs(*(jax.lax.stop_gradient(v) for v in inp))
     df_dobu = jax.lax.stop_gradient(
-        (
-            _obu_residual(obu + delta, inp, tables, sparse_canopy, table_search)
-            - _obu_residual(obu - delta, inp, tables, sparse_canopy, table_search)
-        )
-        / (2.0 * delta)
+        jax.jvp(
+            lambda x: _obu_residual(x, held, tables, sparse_canopy, table_search),
+            (obu,),
+            (jnp.ones_like(obu),),
+        )[1]
     )
     apply = jnp.abs(df_dobu) > jnp.asarray(1e-6)
     newton = jnp.where(apply, f0, jnp.zeros_like(f0)) / jnp.where(

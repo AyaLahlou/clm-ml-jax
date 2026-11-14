@@ -173,6 +173,26 @@ def test_low_light_gives_minimum_conductance():
     np.testing.assert_allclose(np.asarray(r.gspot)[LEAFY, 0], float(PARAMS.gs_min))
 
 
+def test_minimum_conductance_gradient_without_a_root():
+    """Where the WUE optimization has no root (no light) the conductance is gs_min: its
+    derivative with respect to gs_min is 1, before and after the water-stress step
+    (decision 119; it was 0 and 0.5)."""
+    f = _inputs(apar_sun=0.0)
+
+    def conductance(gs_min, name, water_stress):
+        r = ps.leaf_photosynthesis(
+            _layers(), f["dpai"], f["eair"], f["cair"], f["tleaf"], f["vcmax25"], f["jmax25"],
+            f["rd25"], f["kp25"], f["apar"], f["gbc"], f["gbv"], f["lwp"], 209.0, 101325.0,
+            293.0, iota=PARAMS.iota, gs_min=gs_min, psi50_gs=PARAMS.psi50_gs,
+            shape_gs=PARAMS.shape_gs, c3=True, water_stress=water_stress,
+        )  # fmt: skip
+        return getattr(r, name)[LEAFY, 0]
+
+    for name, water_stress in (("gspot", False), ("gs", True)):
+        jac = jax.jacfwd(conductance)(PARAMS.gs_min, name, water_stress)
+        np.testing.assert_allclose(jac, 1.0, rtol=1e-12, err_msg=name)
+
+
 def test_water_stress():
     f = _inputs(lwp=-1.4)
     r = _run(f)

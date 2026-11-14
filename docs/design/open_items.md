@@ -563,11 +563,11 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   `gs_min`. Causes: the Obukhov solver's slope is a finite difference with a fixed 1 m step
   (wrong when |L| is ~10 m); `gs_min` passes through `stop_gradient` where the WUE
   optimization has no root. A prototype of both corrections (forward values bit for bit
-  the same) brings every parameter derivative within 6e-5 of finite differences. Waiting
-  for the maintainer's go-ahead to make them.
+  the same) brings every parameter derivative within 6e-5 of finite differences. **Both
+  corrections made (decision 119)**, with unit tests and `tests/test_gradient_accuracy.py`.
 - **Open:**
-  - the two corrections of round 2, a test for them, and the check extended to rain and
-    snow, Medlyn and Ball-Berry, C4, other towers, padded layers, 1° patches;
+  - the check extended to the remaining air-temperature mismatch, Medlyn and Ball-Berry,
+    rain and snow, C4, other towers, padded layers, 1° patches;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
     step for all 27 parameters on the CPU) or reverse mode (one number, every input);
   - the checkpoint layout as a setting (the step is computed three times for a gradient;

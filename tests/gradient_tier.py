@@ -5,7 +5,7 @@ With JAX 0.9.2, compiled CPU gradients of a CHATS7 chunk segfaulted in LLVM-opti
 them with the default optimization (rechecked 2026-11-02, cold compilation cache; decision
 105), so the script now only forces the CPU (a login node's GPUs would otherwise be used)::
 
-    python tests/gradient_tier.py            # all gradient tests (9, ~7 min on a login node)
+    python tests/gradient_tier.py            # all gradient tests (13, ~7 min on a login node)
     python tests/gradient_tier.py --focused  # the chunk derivative tests only (~5 min), after
                                              # moving a routine with a hand-written gradient
 
@@ -24,7 +24,11 @@ ROOT = Path(__file__).resolve().parents[1]
 FOCUSED = "tests/test_model_api.py"  # the chunk derivative tests (reverse and forward mode)
 # Files holding the tests marked ``gradient`` (named, not collected from all of tests/: other
 # modules set legacy module globals at import)
-GRADIENT_FILES = ["tests/test_model_api.py", "tests/test_differentiability.py"]
+GRADIENT_FILES = [
+    "tests/test_model_api.py",
+    "tests/test_differentiability.py",
+    "tests/test_gradient_accuracy.py",
+]
 
 
 def main(argv: list[str]) -> int:

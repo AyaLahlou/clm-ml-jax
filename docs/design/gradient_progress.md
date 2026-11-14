@@ -16,18 +16,18 @@ Words used here:
 
 ## Resume here
 
-**State (2026-11-14).** Round 1 (speed) and round 2 (accuracy) are measured; no model code
-has changed. The timing scripts are corrected (decision 118). **Waiting for the maintainer:**
-the two gradient corrections proposed at the end of round 2 (forward values unchanged).
+**State (2026-11-14).** Round 1 (speed) and round 2 (accuracy) are measured. The two
+gradient corrections of round 2 are in the code (decision 119; forward values unchanged),
+with tests. Next: round 3, the same check for the cases a clear CHATS7 day does not cover.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
 
-**Open from round 2** (O76): the two corrections; then the same check for what this day
-does not cover (rain and snow, Medlyn and Ball-Berry, C4, other towers and padded layers,
-1° patches with sparse canopies), and tests that keep it so.
+**Open from round 2** (O76): the check for what this day does not cover (the remaining
+air-temperature mismatch, Medlyn and Ball-Berry, rain and snow, C4, other towers and padded
+layers, 1° patches with sparse canopies).
 
 **How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
 
@@ -215,8 +215,10 @@ Both change gradients only: **the forward values of the day are bit for bit the 
   finite difference too, with a step of 1e-4), C4, other towers, padded layers beyond
   CHATS7's 4, sparse 1° patches (O7: the plant-area floor).
 
-### Proposal (for the maintainer)
+### Done (decision 119, maintainer 2026-11-14)
 
-Make the two corrections in `src/` (gradient-only; bit-for-bit and noise-twin tests must
-pass unchanged), with a test that compares AD with FD at a strongly stable step and for
-`gs_min`; then extend the check to the cases not covered.
+The two corrections are in `src/` as prototyped. Tests: unit tests of the Obukhov gradient
+at six stabilities (to 1e-6; the 1 m slope was 12 % off at L = −8 m) and of the `gs_min`
+gradient without a root (exactly 1; it was 0 before and 0.5 after the water-stress step);
+`tests/test_gradient_accuracy.py` in the gradient tier (four parameters, four fluxes, the
+four steps at sunrise, within 1e-3 of finite differences; fails on the old code by 5–50 %).

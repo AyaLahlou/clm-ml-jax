@@ -174,17 +174,22 @@ def test_table_search_follows_the_device():
     assert driver.table_search("auto") == expected
 
 
-def test_obukhov_gradient_is_the_implicit_one():
-    """d obu / d thref by jax.grad (implicit-function correction) vs central differences of
-    the solver's forward value."""
+# moderately stable .. strongly unstable; at 298.3 K the Obukhov length is -8 m, where the
+# residual bends within a metre (a slope by finite differences with a 1 m step was 12 % off
+# there, 0.5 % at 298.0 K: decision 119)
+@pytest.mark.parametrize("taf", [295.0, 295.8, 296.5, 297.5, 298.0, 298.3])
+def test_obukhov_gradient_is_the_implicit_one(taf):
+    """d obu / d thref and d ustar / d thref by jax.grad (implicit-function correction, with
+    the exact slope of the residual) vs central differences of the solver's forward value."""
+    for name in ("obu", "ustar"):
 
-    def obu(thref):
-        return _run(thref=thref, taf=294.0).obu
+        def value(thref):
+            return getattr(_run(thref=thref, taf=taf), name)
 
-    g = float(jax.grad(obu)(296.0))
-    h = 1e-3
-    fd = (float(obu(296.0 + h)) - float(obu(296.0 - h))) / (2 * h)
-    assert np.isfinite(g) and g == pytest.approx(fd, rel=1e-3)
+        g = float(jax.grad(value)(296.0))
+        h = 1e-4
+        fd = (float(value(296.0 + h)) - float(value(296.0 - h))) / (2 * h)
+        assert np.isfinite(g) and g != 0.0 and g == pytest.approx(fd, rel=1e-6), name
 
 
 def test_registry():

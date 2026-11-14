@@ -479,7 +479,7 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
     ``gs_min`` and :data:`GS_UPPER`, the midpoint after ``n_iter`` halvings, then one Newton
     step with the derivative (central difference, 1e-4) held constant (the implicit-function
     gradient, where the derivative exceeds 1e-6 in magnitude); elsewhere (low light)
-    ``gs_min``, with no gradient through the solver.
+    ``gs_min``, whose gradient is that of ``gs_min`` (decision 119).
 
     Fortran reference: MLLeafPhotosynthesisMod.F90::StomataOptimization and
     MLMathToolsMod.F90::bisection (tol = 0.001; here fixed halvings,
@@ -499,7 +499,8 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
 
     init = (jnp.broadcast_to(gs_min, shape), jnp.full(shape, GS_UPPER), fa)
     a, b, _ = jax.lax.fori_loop(0, n_iter, body, init)
-    gs0 = jax.lax.stop_gradient(jnp.where(bracket_ok, 0.5 * (a + b), gs_min))
+    # Without a root the conductance is gs_min itself, with its gradient (decision 119)
+    gs0 = jnp.where(bracket_ok, jax.lax.stop_gradient(0.5 * (a + b)), gs_min)
 
     f0 = f(gs0)
     delta = jnp.asarray(1e-4, dtype=gs0.dtype)
