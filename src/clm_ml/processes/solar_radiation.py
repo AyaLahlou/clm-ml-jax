@@ -141,9 +141,12 @@ def canopy_optics(
     # Fortran stops if fracsun or fracsha is not positive (recorded, checked on the host)
     bad = jnp.any(leafy & ((fracsun_v <= 0.0) | ((1.0 - fracsun_v) <= 0.0)))
 
-    # Two-stream avmu
+    # Two-stream avmu. p2 is negative for a negative leaf angle index (grasses, crops) and
+    # is used with its sign, as Fortran does; |chil| >= 0.01 keeps it away from 0, and the
+    # guard only keeps the division finite (decision 120: max(p2, 1e-10) replaced every
+    # negative p2 by 1e-10)
     p1_safe = jnp.maximum(p1, 1.0e-10)
-    p2_safe = jnp.maximum(p2, 1.0e-10)
+    p2_safe = jnp.where(p2 < 0.0, jnp.minimum(p2, -1.0e-10), jnp.maximum(p2, 1.0e-10))
     avmu_s = (1.0 - p1_safe / p2_safe * jnp.log((p1_safe + p2_safe) / p1_safe)) / p2_safe
 
     # betad, betab (layer, band)

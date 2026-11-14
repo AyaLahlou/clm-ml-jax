@@ -46,7 +46,7 @@ Guidance for Claude (and other contributors) working in this repository.
   `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
   `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/`. Ask the
   maintainer before going on.
-- **Gradients (O76, decisions 118-119):** branch `gpu_grad` (from `gpu_opt`): speed first, then
+- **Gradients (O76, decisions 118-120):** branch `gpu_grad` (from `gpu_opt`): speed first, then
   quality and accuracy, for sensitivity experiments (parameters, states, forcings; a tower
   first, global later). Gradient times before 2026-11-14 were of the unsteady second call:
   time from the third call. A tower is 4–5× faster on the CPU than on a GPU. A solver's

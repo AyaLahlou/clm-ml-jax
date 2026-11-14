@@ -16,19 +16,17 @@ Words used here:
 
 ## Resume here
 
-**State (2026-11-14).** Rounds 1 (speed), 2 and 3 (accuracy) are measured. The two
-gradient corrections of round 2 are in the code (decision 119; forward values unchanged),
-with tests. **Waiting for the maintainer: O77**, a forward-model error found in round 3
-(the two-stream `avmu` for PFTs with a negative leaf angle index: grasses and crops), a
-science change. After it: the check on sparse 1° patches.
+**State (2026-11-14).** Rounds 1 (speed), 2 and 3 (accuracy) are measured. In the code:
+the two gradient corrections of round 2 (decision 119; forward values unchanged) and the
+`avmu` fix of round 3 (decision 120; forward values of grass and crop PFTs change, as
+Fortran computes). Next: round 4, the check on real 1° patches.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
 
-**Open from rounds 2 and 3** (O76): 1° patches with sparse canopies (after O77); a day
-with real rain.
+**Open from rounds 2 and 3** (O76): 1° patches with sparse canopies; a day with real rain.
 
 **How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
 
@@ -258,7 +256,7 @@ amplified.
   diffuse optical depth `avmu = (1 − φ1/φ2 ln((φ1+φ2)/φ1)) / φ2` with φ2 replaced by
   `max(φ2, 1e-10)`, a guard against dividing by zero. φ2 = 0.877 (1 − 2 φ1) is **negative
   whenever χ_l < 0** (−0.281 for χ_l = −0.3), so for those PFTs the formula is evaluated at
-  φ2 = 1e-10: the result is the limit 1/(2 φ1) = 0.757 instead of 1.078, computed as a
+  φ2 = 1e-10: the result is the limit 1/(2 φ1) = 0.757 instead of 1.077, computed as a
   difference of nearly equal numbers (hence the noise).
 - **Fortran and CTSM** use φ2 as it is (`MLSolarRadiationMod.F90` line 239;
   `SurfaceAlbedoMod.F90` line 1446); the leaf angle index is kept away from 0 (|χ_l| ≥ 0.01)
@@ -271,6 +269,7 @@ amplified.
   W m⁻², sensible heat 18 → 27, ground heat flux 30 → 5; net radiation unchanged in the mean
   (up to 16 W m⁻² at a step). With the prototype all 158 parameter derivatives of the C4
   case are within 0.1 % of FD, and reverse equals forward mode to 7e-10 (1e-3 before).
-- **Proposal:** keep the guard only against φ2 = 0 (signed), as Fortran computes. CHATS7 and
-  the regression reference are untouched (χ_l > 0: same arithmetic to be confirmed bit for
-  bit); 1° runs with grass or crops change. A science fix: the maintainer's decision.
+- **Fixed (decision 120, maintainer 2026-11-14):** the guard keeps the sign of φ2 and only
+  acts at |φ2| < 1e-10, which never occurs: the Fortran formula for every PFT. Bit for bit
+  and all of `tests/regression` (216) pass without a new reference; unit tests for eight
+  leaf angle indices. Not compared with a Fortran run of a grass patch (none exists).

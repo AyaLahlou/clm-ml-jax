@@ -751,6 +751,32 @@ twice with identical inputs).
 Reason: half the work, bit-for-bit results.
 Source: C11.
 
+**120. Two-stream `avmu` with phi2 as it is (negative leaf angle index)**
+2026-11-14 · gradients round 3 (O77) · maintainer · in force · Departure from Fortran: no (restores Fortran)
+`solar_radiation.py::canopy_optics` computes the average inverse diffuse optical depth
+`avmu = (1 - phi1/phi2 ln((phi1 + phi2)/phi1)) / phi2` with phi2 = 0.877 (1 - 2 phi1) as it
+is, as Fortran CLM-ml v2 (`MLSolarRadiationMod.F90` line 239) and CTSM
+(`SurfaceAlbedoMod.F90` line 1446). The translation's guard `max(phi2, 1e-10)` against a
+division by zero replaced every negative phi2, i.e. every leaf angle index below 0, by
+1e-10: `avmu` was the limit 1/(2 phi1) (0.757 instead of 1.077 at chi_l = -0.3), formed as
+a difference of nearly equal numbers, so with amplified rounding noise. The guard now keeps
+the sign and only acts for |phi2| < 1e-10, which |chi_l| >= 0.01 excludes.
+Affected: the five PFTs with chi_l = -0.3 (`c3_arctic_grass`, `c3_non-arctic_grass`,
+`c4_grass`, `c3_crop`, `c3_irrigated`), so grass and crop patches of grid runs. Not CHATS7
+(0.53) nor any tree or shrub: the regression reference is bit for bit unchanged and all of
+`tests/regression` passes without a new reference (the grid tests compare outputs through
+the night only).
+Size: the CHATS7 patch run as `c4_grass`, one day: day-mean GPP 5.9 -> 10.5 umol m-2 s-1,
+latent heat 61 -> 77 W m-2, sensible heat 18 -> 27, ground heat flux 30 -> 5.
+Found because finite differences with respect to the leaf angle index did not converge (the
+forward model was a sawtooth in it); with the fix all 158 parameter derivatives of that case
+are within 0.1 % of finite differences. Not compared with a Fortran run of a grass patch
+(the Fortran validation data are CHATS7 only). Global results computed before this decision
+are wrong in their shortwave for grass and crop patches.
+Tests: `test_processes_solar_radiation.py` (the formula for eight leaf angle indices,
+energy conservation, smoothness at -0.3).
+Source: maintainer, 2026-11-14; `gradient_progress.md` round 3; O77.
+
 ## F. Numerics, solvers and gradients
 
 **58. One traceable implementation per process**

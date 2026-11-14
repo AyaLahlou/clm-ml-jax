@@ -65,7 +65,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O73 | ~~The environment has no CUDA plugin: GPU jobs cannot see the GPUs~~ (closed: plugin 0.10.2 installed, `environment.yml`) | environment | closed | M |
 | O75 | `jax.grad` of `tridiag_2eq` with respect to only some of its coefficients fails inside JAX (was a second O74 until 2026-11-14) | bug (gradients, latent) | after 8 | I |
 | O76 | Gradients: speed, then quality and accuracy (branch `gpu_grad`) | performance / robustness (gradients) | after 8 | M |
-| O77 | Two-stream `avmu` wrong for PFTs with a negative leaf angle index (grasses, crops) | science issue (bug) | now (maintainer's decision) | M |
+| O77 | ~~Two-stream `avmu` wrong for PFTs with a negative leaf angle index (grasses, crops)~~ (closed: decision 120) | science issue (bug) | closed | M |
 | **4. Housekeeping and repository organization (8a)** |||||
 | O34 | ~~`.gitignore` names absent directories (`docs/` rule removed)~~ (closed: pruned) | housekeeping | closed | I |
 | O35 | ~~Empty `.gitmodules`; CONTRIBUTING describes a submodule~~ (closed: .gitmodules deleted) | housekeeping | closed | I |
@@ -548,11 +548,13 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   already taken by "Compsets separate from the grid"; renumbered O75 on 2026-11-14.
 
 ### O77. Two-stream `avmu` for a negative leaf angle index
+- **Closed 2026-11-14** (decision 120): phi2 is used with its sign, as Fortran; CHATS7 and
+  the regression references are unchanged.
 - **Kind:** science issue (bug, forward model) · **Target:** now · **Decides:** M
 - **What:** `solar_radiation.py::canopy_optics` guards φ2 with `max(φ2, 1e-10)` in the
   average inverse diffuse optical depth `avmu`. φ2 is negative for χ_l < 0, so for the five
   PFTs with χ_l = −0.3 (`c3_arctic_grass`, `c3_non-arctic_grass`, `c4_grass`, `c3_crop`,
-  `c3_irrigated`) `avmu` is 0.757 instead of 1.078 and carries amplified rounding noise.
+  `c3_irrigated`) `avmu` is 0.757 instead of 1.077 and carries amplified rounding noise.
   Fortran CLM-ml v2 and CTSM use φ2 as it is. CHATS7 and all trees and shrubs (χ_l ≥ 0.01)
   are not affected.
 - **Size:** the CHATS7 patch run as `c4_grass`, one day, with a signed guard: day-mean GPP
@@ -585,9 +587,9 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Round 3 (2026-11-14):** the check passes for Medlyn, Ball-Berry, a coarse layer grid
   (36 padding slots) and invented rain and snow; the air-temperature leftover was the finite
   differences (corners of the model in the unstable afternoon). The C4 grass case found a
-  forward-model error: O77.
+  forward-model error: O77, fixed (decision 120).
 - **Open:**
-  - the check on 1° patches with sparse canopies (after O77) and on a day with real rain;
+  - the check on 1° patches with sparse canopies and on a day with real rain;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
     step for all 27 parameters on the CPU) or reverse mode (one number, every input);
   - the checkpoint layout as a setting (the step is computed three times for a gradient;
