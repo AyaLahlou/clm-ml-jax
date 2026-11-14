@@ -557,7 +557,17 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   forward at 9.3 ms per step, one forward-mode derivative at 17, the reverse-mode gradient
   at 48; on an A100 the gradient is 3 times faster with the loops written out (219 ms per
   step) than with loops (659), not slower.
+- **Round 2 (2026-11-14, measurements only):** over a CHATS7 day no NaN and reverse equal
+  to forward mode, but AD is off against finite differences at stable-night, sunrise and
+  strongly unstable steps (parameters 0.1–9 %, at single steps more) and by half for
+  `gs_min`. Causes: the Obukhov solver's slope is a finite difference with a fixed 1 m step
+  (wrong when |L| is ~10 m); `gs_min` passes through `stop_gradient` where the WUE
+  optimization has no root. A prototype of both corrections (forward values bit for bit
+  the same) brings every parameter derivative within 6e-5 of finite differences. Waiting
+  for the maintainer's go-ahead to make them.
 - **Open:**
+  - the two corrections of round 2, a test for them, and the check extended to rain and
+    snow, Medlyn and Ball-Berry, C4, other towers, padded layers, 1° patches;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
     step for all 27 parameters on the CPU) or reverse mode (one number, every input);
   - the checkpoint layout as a setting (the step is computed three times for a gradient;

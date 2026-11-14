@@ -16,14 +16,18 @@ Words used here:
 
 ## Resume here
 
-**State (2026-11-14).** Round 1 of the speed work is measured (below); no model code has
-changed. The timing scripts are corrected (decision 118). Next, by the maintainer's choice:
-the quality and accuracy of the gradients.
+**State (2026-11-14).** Round 1 (speed) and round 2 (accuracy) are measured; no model code
+has changed. The timing scripts are corrected (decision 118). **Waiting for the maintainer:**
+the two gradient corrections proposed at the end of round 2 (forward values unchanged).
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
+
+**Open from round 2** (O76): the two corrections; then the same check for what this day
+does not cover (rain and snow, Medlyn and Ball-Berry, C4, other towers and padded layers,
+1° patches with sparse canopies), and tests that keep it so.
 
 **How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
 
@@ -36,6 +40,9 @@ qsub -v TAG=name,TREE=$SCRATCH/clm-ml-jax/trees/NAME,SL=unrolled jobs/gpu_probes
 # what the forward and gradient programs contain (static; CPU)
 JAX_PLATFORMS=cpu python jobs/gpu_probes/census_grad.py .   # operations by source function
 JAX_PLATFORMS=cpu python jobs/gpu_probes/loops_grad.py .    # every loop, with its trip count
+# accuracy: a day of outputs against finite differences (CPU; params 5 min, forcing 5, state 20)
+JAX_PLATFORMS=cpu python jobs/gpu_probes/gradcheck0.py . --wrt params|state|forcing [--h 1e-3,1e-5]
+python jobs/gpu_probes/gradcheck_report.py gradcheck_params.npz [-v]
 ```
 
 Modes of `grad0.py`: `grad`/`jvp` are called as a user would (not jitted), `jgrad`/`jjvp`
@@ -130,3 +137,86 @@ loops), worth perhaps 1.5×, not of one slow process.
   gradient program.
 - The CPU gradient with `numerics.solver_loops: unrolled` (forward: 17.8 ms per step, twice
   the loops' time) ended without a result or an error message.
+
+## Round 2: are the gradients right? (2026-11-14). No change to the model
+
+`jobs/gpu_probes/gradcheck0.py`: CHATS7, the 47 steps after the first (2007-05-01, a day
+with a stable night, a morning transition and an unstable afternoon; no rain). Seven
+outputs at every step (latent, sensible and ground heat flux, net radiation, GPP, canopy-top
+air temperature, friction velocity). Each derivative by automatic differentiation (AD;
+forward mode, with reverse mode checked against it) and by central finite differences (FD)
+at three to five step sizes. Inputs: each of the 27 parameter values; each of the 396
+state values in use; each forcing field (the field scaled at all steps together).
+Results in `$SCRATCH/clm-ml-jax/probe_grad1/`.
+
+### What is sound
+
+- **No NaN or infinite derivative** anywhere in the day, for any input.
+- **Reverse and forward mode agree** to 1e-9 (parameters, forcing) and 6e-10 (state).
+- **Nothing that matters has a zero derivative by mistake** (but see gs_min and rain below).
+  Zero where it should be: the Medlyn and Ball-Berry parameters (the run uses the WUE
+  optimization), the leaf state of layers without leaves, the CO2 state outside the canopy.
+
+### What is wrong: AD and FD disagree
+
+FD is steady across its step sizes at the steps in question, so the model is smooth there
+and it is the AD value that is off.
+
+| Input | Pairs (input, output) within 0.1 % of FD | Worst |
+|---|---|---|
+| Parameters (161 pairs with a dependence) | 20 | `gs_min`: half the true value at every step; the others 0.1–9 % of the day's largest value, at a few steps much more (vcmax25 on latent heat at sunrise: 3.6 times too small) |
+| Forcing fields (203 pairs, without the calendar day) | 10 | 4–20 % |
+| State (1 200 pairs above the FD noise) | 912 | 21 pairs beyond 5 % |
+
+The errors sit at particular steps: 17–18 and 20–21 (night), 25–28 (sunrise), 30–38
+(afternoon, mostly friction velocity). Two causes, both in how the gradient of an iterative
+solver is formed (decision 59: the forward value is the solver's answer, the gradient comes
+from the implicit-function rule, i.e. from the slope of the solved equation at the answer):
+
+1. **The Obukhov length's slope is a finite difference with a fixed 1 m step**
+   (`turbulence.py::obukhov_length`). Right when |L| is hundreds of metres, wrong when it is
+   ~10 m: at those steps L is 4–15 m at night and −7 to −14 m in the afternoon, and the
+   solved function bends within a metre (in the afternoon), or has a corner at the limit of
+   the roughness-sublayer functions, L = L_c ≈ 14.8 m (L_c/L ≤ 1; the step straddles it at
+   night and at sunrise). Printed from the solver for all 1 410 solves of the day: the 1 m
+   slope differs from the exact one by up to 49 %, at exactly the steps above; the solver
+   itself converges everywhere (residual below 1e-10 m).
+2. **`gs_min` loses half of its effect** (`photosynthesis.py::solve_gs_bisection`). Where
+   the WUE optimization has no root (dark or shaded leaves) the conductance is `gs_min`,
+   but returned through `stop_gradient`, so without its dependence on `gs_min`. The
+   water-stress step then takes `max(gspot f(psi), gs_min)` with both arguments equal, of
+   which JAX gives each half the derivative: half survives.
+
+### Prototype (scratch copy only: `$SCRATCH/clm-ml-jax/trees/grad_diag`)
+
+1. the slope of the Obukhov residual by forward-mode AD at the solution (exact; one
+   derivative evaluation instead of two residual evaluations);
+2. `gs_min` returned with its gradient where there is no root.
+
+Both change gradients only: **the forward values of the day are bit for bit the same.**
+
+| Input | Before | With the two corrections |
+|---|---|---|
+| Parameters | 20 of 161 pairs within 0.1 %; worst 50 % | **161 of 161; worst 6e-5** |
+| Forcing fields (without the calendar day) | 10 of 203; worst 20 % | 187 of 203; worst 1.9 % (air temperature only, steps 34, 35, 40) |
+| State | 912 of 1 200; 21 beyond 5 % | 1 171 of 1 200; 2 beyond 5 % (dependences near the FD noise) |
+
+### Left over, not errors of AD as far as seen
+
+- **Rain and snow at zero:** AD gives 0, FD grows without bound as its step shrinks. The
+  wetted fraction is (water / capacity)^(2/3): its slope at a dry canopy is infinite, so no
+  finite sensitivity to rain exists at rain = 0. A day with rain is needed to check rain.
+- **Air temperature** (the field shifted by a fraction at all steps): 0.1–2 % off at steps
+  34, 35 and 40 after the corrections. Not diagnosed.
+- **The calendar day** as an input is differentiated but is not a meaningful sensitivity.
+- **Roughness length `z0m`** (an output only): its bisection returns a midpoint of the fixed
+  bracket, so AD gives it no dependence on stability. Nothing in the model reads it.
+- Not covered by this day: rain, snow, Medlyn and Ball-Berry (their `solve_ci` slope is a
+  finite difference too, with a step of 1e-4), C4, other towers, padded layers beyond
+  CHATS7's 4, sparse 1° patches (O7: the plant-area floor).
+
+### Proposal (for the maintainer)
+
+Make the two corrections in `src/` (gradient-only; bit-for-bit and noise-twin tests must
+pass unchanged), with a test that compares AD with FD at a strongly stable step and for
+`gs_min`; then extend the check to the cases not covered.
