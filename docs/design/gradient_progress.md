@@ -263,7 +263,7 @@ amplified.
 - **Fortran and CTSM** use φ2 as it is (`MLSolarRadiationMod.F90` line 239;
   `SurfaceAlbedoMod.F90` line 1446); the leaf angle index is kept away from 0 (|χ_l| ≥ 0.01)
   so φ2 is never 0. The guard is the translation's.
-- **Who is affected:** the five PFTs with χ_l = −0.3 (`c3_arctic_grass`, `c3_grass`,
+- **Who is affected:** the five PFTs with χ_l = −0.3 (`c3_arctic_grass`, `c3_non-arctic_grass`,
   `c4_grass`, `c3_crop`, `c3_irrigated`), i.e. grass and crop patches of global runs. Not
   CHATS7 (0.53) nor any tree or shrub (χ_l ≥ 0.01), so no validation against Fortran saw it.
 - **Size** (prototype with a signed guard, scratch copy `trees/grad_avmu`; the CHATS7 patch

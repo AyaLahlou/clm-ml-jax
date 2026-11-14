@@ -551,7 +551,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Kind:** science issue (bug, forward model) · **Target:** now · **Decides:** M
 - **What:** `solar_radiation.py::canopy_optics` guards φ2 with `max(φ2, 1e-10)` in the
   average inverse diffuse optical depth `avmu`. φ2 is negative for χ_l < 0, so for the five
-  PFTs with χ_l = −0.3 (`c3_arctic_grass`, `c3_grass`, `c4_grass`, `c3_crop`,
+  PFTs with χ_l = −0.3 (`c3_arctic_grass`, `c3_non-arctic_grass`, `c4_grass`, `c3_crop`,
   `c3_irrigated`) `avmu` is 0.757 instead of 1.078 and carries amplified rounding noise.
   Fortran CLM-ml v2 and CTSM use φ2 as it is. CHATS7 and all trees and shrubs (χ_l ≥ 0.01)
   are not affected.
