@@ -777,6 +777,27 @@ Tests: `test_processes_solar_radiation.py` (the formula for eight leaf angle ind
 energy conservation, smoothness at -0.3).
 Source: maintainer, 2026-11-14; `gradient_progress.md` round 3; O77.
 
+**121. No water stress at or above zero leaf water potential**
+2026-11-14 · gradients round 4 (O79) · maintainer · in force · Departure from Fortran: yes (same values for the default parameters)
+The water-stress factor of stomatal conductance is
+`fpsi = 1 / (1 + max(psi_l/psi50, 0)^shape_gs)` (`photosynthesis.py::leaf_photosynthesis`):
+at psi_l >= 0 there is no water stress. Fortran CLM-ml v2 (`MLLeafPhotosynthesisMod.F90`
+line 438) has `(psi_l/psi50)^shape_gs` without a guard, as CTSM's vulnerability curve: no
+CLM precedent. With dew the transpiration term is negative and leaf water potential rises
+slightly above zero (seen: up to +0.03 MPa before dawn on 1 degree cerrado patches); the
+base is then negative, its derivative with respect to `shape_gs` is NaN (logarithm of a
+negative number), and one NaN made the gradient of every parameter NaN for the rest of
+the chunk. A `shape_gs` that is not a whole number (a calibrated 39.5) would have given NaN
+forward values there.
+Forward values: unchanged for the default parameters (`fpsi` was already exactly 1 there:
+0.02^40 = 1e-68); the regression reference is bit for bit the same. Derivatives of the
+stress factor at psi_l >= 0: 0 (the true value) instead of NaN.
+Checked: the cerrado box of round 4 again, 18 patches, 27 parameters: no NaN (9 patches
+were all NaN). Not changed: that leaf water potential can exceed zero under dew
+(`plant_hydraulics.py::leaf_water_potential`, as Fortran).
+Tests: `test_processes_photosynthesis.py::test_no_water_stress_at_positive_water_potential`.
+Source: maintainer, 2026-11-14; `gradient_progress.md` round 4; O79.
+
 ## F. Numerics, solvers and gradients
 
 **58. One traceable implementation per process**

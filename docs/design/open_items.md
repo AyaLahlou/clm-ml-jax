@@ -66,7 +66,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O75 | `jax.grad` of `tridiag_2eq` with respect to only some of its coefficients fails inside JAX (was a second O74 until 2026-11-14) | bug (gradients, latent) | after 8 | I |
 | O76 | Gradients: speed, then quality and accuracy (branch `gpu_grad`) | performance / robustness (gradients) | after 8 | M |
 | O78 | XLA aborts while writing the compilation cache when a second gradient test file compiles in one process | robustness (upstream JAX?) | after 8 | I |
-| O79 | NaN parameter gradients where leaf water potential is positive (dew): `(psi_l/psi50)^shape_gs` | science issue (differentiability) | now (maintainer's decision) | M |
+| O79 | ~~NaN parameter gradients where leaf water potential is positive (dew): `(psi_l/psi50)^shape_gs`~~ (closed: decision 121) | science issue (differentiability) | closed | M |
 | O77 | ~~Two-stream `avmu` wrong for PFTs with a negative leaf angle index (grasses, crops)~~ (closed: decision 120) | science issue (bug) | closed | M |
 | **4. Housekeeping and repository organization (8a)** |||||
 | O34 | ~~`.gitignore` names absent directories (`docs/` rule removed)~~ (closed: pruned) | housekeeping | closed | I |
@@ -561,6 +561,8 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Source:** gradient accuracy round 4 (`gradient_progress.md`).
 
 ### O79. NaN parameter gradients where leaf water potential is positive
+- **Closed 2026-11-14** (decision 121): no water stress at psi_l ≥ 0; forward values and the
+  regression reference unchanged; the cerrado box has no NaN.
 - **Kind:** science issue (differentiability) · **Target:** now · **Decides:** M
 - **What:** `fpsi = 1 / (1 + (psi_l/psi50)^shape_gs)` (`photosynthesis.py`; Fortran
   `MLLeafPhotosynthesisMod.F90` line 438). With dew, leaf water potential rises above zero
@@ -618,10 +620,11 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   forward-model error: O77, fixed (decision 120).
 - **Round 4 (2026-11-14):** two boxes of real 1° patches. Great Plains in winter (21
   patches, LAI 0.00-0.85): no NaN, all parameter derivatives within 1.3 % of finite
-  differences. Cerrado in the wet season (18 patches): 9 sound, 9 with NaN gradients: O79.
+  differences. Cerrado in the wet season (18 patches): 9 sound, 9 with NaN gradients: O79,
+  fixed (decision 121): no NaN, AD is the local slope everywhere looked at.
 - **Open:**
-  - O79 (NaN gradients with dew), then the 1° check repeated in other seasons and regions,
-    and for state and forcing derivatives;
+  - the 1° check repeated in other seasons and regions, and for state and forcing
+    derivatives;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
     step for all 27 parameters on the CPU) or reverse mode (one number, every input);
   - the checkpoint layout as a setting (the step is computed three times for a gradient;

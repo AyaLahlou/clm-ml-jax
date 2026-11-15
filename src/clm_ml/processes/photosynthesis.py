@@ -611,7 +611,7 @@ def leaf_photosynthesis(
     ``stomatal_conductance`` model (one of :data:`STOMATAL_CONDUCTANCE`; WUE by
     ``wue_solver``, one of :data:`WUE_SOLVER`); then, with ``water_stress``, the conductance
     reduced by leaf water potential ``lwp`` (MPa), ``gs = max(gspot / (1 + (lwp /
-    psi50_gs)^shape_gs), gs_min)``, and photosynthesis recomputed for it, with the humidity
+    psi50_gs)^shape_gs), gs_min)`` (no reduction for ``lwp >= 0``), and photosynthesis recomputed for it, with the humidity
     and vapor pressure deficit at the leaf surface. Soil water does not limit vcmax
     (Fortran's ``btran`` is 1).
 
@@ -686,7 +686,10 @@ def leaf_photosynthesis(
 
     # --- Water stress (Bonan et al. 2021, supplemental eq. 14) ----------------------------
     if water_stress:
-        fpsi = 1.0 / (1.0 + (lwp / psi50_gs) ** shape_gs)
+        # no stress at or above zero water potential (dew makes it slightly positive): the
+        # power of a negative base has no derivative in the exponent, and no value for an
+        # exponent that is not a whole number (decision 121)
+        fpsi = 1.0 / (1.0 + jnp.maximum(lwp / psi50_gs, 0.0) ** shape_gs)
     else:
         fpsi = jnp.ones_like(gspot)
     gs_new = jnp.maximum(gspot * fpsi, gs_min)

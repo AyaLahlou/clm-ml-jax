@@ -204,6 +204,38 @@ def test_water_stress():
     np.testing.assert_array_equal(unstressed.gs, unstressed.gspot)
 
 
+def test_no_water_stress_at_positive_water_potential():
+    """Dew can raise leaf water potential slightly above zero: there is no water stress
+    there, for any shape parameter, and the derivatives with respect to the water-stress
+    parameters and the water potential are zero, not NaN (decision 121)."""
+    f = _inputs(lwp=0.13)  # sunlit +0.13 MPa, shaded +0.03 MPa
+
+    def conductance(psi50_gs, shape_gs, lwp):
+        r = ps.leaf_photosynthesis(
+            _layers(), f["dpai"], f["eair"], f["cair"], f["tleaf"], f["vcmax25"], f["jmax25"],
+            f["rd25"], f["kp25"], f["apar"], f["gbc"], f["gbv"], lwp, 209.0, 101325.0,
+            293.0, iota=PARAMS.iota, gs_min=PARAMS.gs_min, psi50_gs=psi50_gs,
+            shape_gs=shape_gs, c3=True,
+        )  # fmt: skip
+        return r.gs[LEAFY], r.gspot[LEAFY]
+
+    for shape in (40.0, 39.5):
+        gs, gspot = conductance(PARAMS.psi50_gs, shape, f["lwp"])
+        np.testing.assert_array_equal(gs, gspot)
+        jac = jax.jacfwd(lambda *a: conductance(*a)[0], argnums=(0, 1, 2))(
+            PARAMS.psi50_gs, shape, f["lwp"]
+        )
+        for j in jac:
+            np.testing.assert_array_equal(j, 0.0)
+    # below zero the parameters keep their derivatives
+    stressed = _inputs(lwp=-1.4)["lwp"]
+    jac = jax.jacfwd(lambda *a: conductance(*a)[0], argnums=(0, 1))(
+        PARAMS.psi50_gs, PARAMS.shape_gs, stressed
+    )
+    for j in jac:
+        assert np.all(np.isfinite(j)) and np.all(np.asarray(j) != 0.0)
+
+
 def test_sun_and_shade_in_one_call_match_one_call_per_leaf():
     f = _inputs()
     both = jax.jit(_run)(f)

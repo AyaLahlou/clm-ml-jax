@@ -18,16 +18,17 @@ Words used here:
 
 **State (2026-11-14).** Rounds 1 (speed) and 2-4 (accuracy) are measured. In the code: the
 two gradient corrections of round 2 (decision 119; forward values unchanged) and the `avmu`
-fix of round 3 (decision 120). **Waiting for the maintainer: O79**, NaN parameter gradients
-where leaf water potential is positive (dew), found on 1° patches in round 4.
+fix of round 3 (decision 120), and no water stress at or above zero leaf water potential
+(decision 121; round 4's NaN gradients with dew, O79, closed). Nothing waits for the
+maintainer.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
 
-**Open from rounds 2-4** (O76): O79; the 1° check repeated after it, in other seasons and
-regions; state and forcing derivatives on 1° patches.
+**Open from rounds 2-4** (O76): the 1° check in other seasons and regions; state and
+forcing derivatives on 1° patches.
 
 **How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
 
@@ -317,13 +318,33 @@ amplified.
   forward value NaN wherever psi_l > 0; Fortran's `**` with a real exponent and a negative
   base is undefined there as well. CTSM's own vulnerability curve has the same form without
   a guard.
-- **Proposal (for the maintainer; a modelling choice):** no water stress at psi_l ≥ 0:
+- **Proposal (a modelling choice; accepted, see "Done" below):** no water stress at psi_l ≥ 0:
   `(max(psi_l/psi50, 0))^shape_gs`. For the default whole-number `shape_gs` the forward
   value does not change (`fpsi` is exactly 1 for |psi_l/psi50| < 0.4 either way: to be
   confirmed bit for bit), and the derivatives are 0 there instead of NaN.
 - **Behind it, not proposed to change now:** that leaf water potential can exceed zero at
   all (dew entering the plant-hydraulics balance as negative transpiration,
   `plant_hydraulics.py::leaf_water_potential`, as Fortran).
+
+### Done (decision 121, maintainer 2026-11-14)
+
+`fpsi = 1 / (1 + max(psi_l/psi50, 0)^shape_gs)`. Fast tier 468 pass; bit for bit and noise
+twin pass (forward values unchanged). The cerrado box again
+(`probe_grad1/r5_cerrado.npz`, `log_round5.txt`): **no NaN in any of the 18 patches**.
+
+- The nine patches that were NaN: three (tropical trees, C4 grass) within 0.3 % of FD
+  everywhere; the six crop patches have pairs that the report calls "bad" or "fair". None
+  is an error of AD as far as looked at:
+  - *Negligible derivatives* (patches 3 and 12; water-stress and root parameters): AD is
+    1e-10 of the output or less, and FD is rounding noise that grows as the step shrinks.
+  - *A corner at the sunset step* (patches 7 and 8, step 41; `iota`, leaf dimension,
+    emissivity, clumping, near-infrared optics): FD changes with its step. A scan in `iota`
+    (`probe_grad1/scan_r5.py`): the secants for relative shifts from −1e-5 to +3e-7 are
+    2.94-3.04 and AD is 2.959; from +1e-6 up they jump to 6-9. The model has a corner
+    within 1e-6 of the default value at that step, and AD is the slope on the side where
+    the default lies. Which line of the model makes the corner was not looked for.
+- A sensitivity study should know this: at sunrise and sunset steps a derivative can be
+  exact and still say little about a finite change of the parameter.
 
 ### O78: XLA aborts while writing the compilation cache in the gradient tier
 
