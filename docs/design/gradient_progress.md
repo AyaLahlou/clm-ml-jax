@@ -23,9 +23,12 @@ fix of round 3 (decision 120), and no water stress at or above zero leaf water p
 change): the corners are kinks, not jumps, but short canopies amplify round-off ~1e11 at the
 evening transition and their daily-mean latent heat gradient can be 10-40 % off a finite
 change. Round 6 (2026-11-15, prototype in scratch): a stable limit on zeta of 0.5 for the
-short PFTs removes that alternation, but on windy July days the derivatives explode (1e35)
-with or without it: not diagnosed. **Waiting for the maintainer:** the open points at the
-ends of rounds 5 and 6.
+short PFTs removes that alternation. Round 7 (2026-11-15, prototype in scratch): the
+exploding derivatives (1e35 in a day, 1e220 in five) are the water on the leaves, whose
+wetted fraction is taken from the water before the sub-step; with the wetted fraction of
+the water left at the end of the sub-step they are gone, and with both prototypes the
+daily-mean gradients agree with finite differences within 4 % on the four test days.
+**Waiting for the maintainer:** the open points at the ends of rounds 5, 6 and 7.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -546,3 +549,103 @@ With and without the limit:
   The definition of zeta (with `zref - zdisp`, as above) is part of the decision.
 - The exploding derivatives of windy days (above): to be diagnosed first; they matter more
   for gradients than the alternation.
+
+## Round 7: the exploding derivatives are the water on the leaves (2026-11-15). No change to the model
+
+Probes and results: `$SCRATCH/clm-ml-jax/probe_expl/` (`cfg.py`: a day or five with any
+setting, a twin, AD and ±1 % of `iota`; `eig.py`: the growth of a small difference of the
+state over one step, by power iteration on the step's Jacobian; `dump_h2o.py`). Prototype:
+`$SCRATCH/clm-ml-jax/trees/wet` (switch `CLM_WET=implicit`; off, CHATS7 is bit for bit the
+repository code) and `trees/both` (with round 6's zeta limit).
+
+### Diagnosis
+
+- **It is not the time stepping as such.** Great Plains, 1 July: Euler, the midpoint rule
+  and 60 s sub-steps all explode (1e22, 1e22, 1e154): the growth is per sub-step, whatever
+  its length.
+- **Each daytime step multiplies a small difference of the state by 100 to 36 000**
+  (`eig.py`; 1.0 at night). Restricted to one variable at a time, only the **intercepted
+  water** grows (the same factors alone; everything else without it: damped).
+- **With leaves that never get wet** (probe: maximum wetted fraction 0) nothing explodes:
+  twins 1e-14 apart stay within 3e-10 W m-2 (11 W m-2 before), the largest derivative is
+  190 (1e35 before). Water stress off changes nothing.
+- **The mechanism.** The wetted fraction is `(water / capacity)^0.67`, capped at 0.05, and
+  is computed from the water *before* the stage (Fortran the same:
+  `MLCanopyWaterMod::CanopyWettedFraction` in each Runge-Kutta stage; no floor at zero,
+  commented out). Below 1.1 % of the capacity the cap no longer holds and one 5-minute
+  sub-step would evaporate more water than there is: the water overshoots below zero, the
+  next stage sees a dry leaf and evaporates nothing, and so on. The slope of
+  `x^0.67` grows without bound as the water goes to zero. The canopy never quite dries
+  (0.01-0.02 kg m-2 stay through the afternoon), layers reach −0.003 kg m-2, and latent
+  heat flickers by several W m-2.
+- **Why all day.** The day starts with rain (0.35 mm per step until dawn), then the
+  6-hourly forcing gives a trace of drizzle (0.0001-0.015 mm per step) for the rest of the
+  day: the leaves are always almost dry and never dry. Dew after sunrise does the same:
+  this is the round-off amplification the 1° regression tests know (CLAUDE.md: 1e-15 in
+  LAI, ~8 W m-2 after sunrise).
+
+### Prototype: the wetted fraction of the water left at the end of the sub-step
+
+Backward Euler for the intercepted water, as the temperatures (implicit) and the leaf
+water potential (analytic) already are: the wetted fraction `w` solves
+
+    dewmx dpai w^(1/0.67) + dt E_wet w = water at the start + interception,   w <= 0.05
+
+with `E_wet` the evaporation of a fully wet layer from the stage's leaf temperature and
+vapour pressure (12 Newton steps from above, monotone; gradient by the implicit function,
+decision 119). The water budget is unchanged (`evaporation` as it is). The leaves cannot
+lose more than they hold, and the slope of the result is bounded (between 0 and 1).
+CLM does it differently (`CanopyFluxesMod`: `rpp = min(fwet, (h2ocan/dtime)/efpot)`, and
+the excess moved to sensible heat afterwards); that limiter with the stage structure here
+still leaves a dry leaf in the last pass, so it was not prototyped.
+
+| Great Plains, 1 July | repository | prototype |
+|---|---|---|
+| patches with a derivative above 1e4 | 15 of 21 (1e35) | 0 (190) |
+| twins 1e-14 apart, latent heat | 11 W m-2 | 4e-10 W m-2 |
+| daily-mean latent heat, AD against ±1 % of `iota` | meaningless | within 0.7 % |
+| lowest water of a layer | −3e-3 kg m-2 | −2e-9 kg m-2 |
+| mean latent / sensible heat | 86.2 / 24.3 | 84.0 / 25.7 W m-2 |
+| the same with 60 s sub-steps; Euler | 85.6; 84.3 (explode) | 84.0; 84.2 (0.3 %; 0.1 %) |
+
+- Forward change of the daily means: Great Plains July −2.2 W m-2 latent heat (worst
+  patch −7.1), cerrado July −0.35 (−1.3), cerrado January 0.00 (the leaves stay at the
+  cap all day), Great Plains January 0.00 (0.06). CHATS7 (dry leaves): 3e-10 W m-2.
+- All 27 parameters, Great Plains July, both prototypes: no NaN; every pair that
+  disagrees with finite differences is a sensitivity of ~1e-6 W m-2 (root and capacitance
+  parameters), where the finite difference is round-off.
+
+### The two prototypes together (daily-mean latent heat, AD against ±1 % of `iota`, worst patch)
+
+| | repository | zeta limit only | wet leaves only | both |
+|---|---|---|---|---|
+| Cerrado, 1 January | 40 % | 1.2 % | 40 % | 1.2 % |
+| Cerrado, 1 July | 1e5 % | 5e6 % | 123 % | 3.9 % |
+| Great Plains, 1 July | 1e37 % | (explodes) | 0.7 % | 0.7 % |
+| Great Plains, 1 January | 0.0 % | | 0.0 % | 0.0 % |
+
+Each is needed; they are the same kind of defect in two places: a quantity the fluxes
+react to strongly (the water on the leaves; the Obukhov length) is taken from before the
+solve instead of being part of it.
+
+### What is left (five days, both prototypes)
+
+- **Great Plains, 1-5 July:** no explosion (repository: 1e220, twins 39 W m-2 apart, all
+  21 patches), but crops and grasses are 3-15 % off at midday of days 4-5. With water
+  stress off: 0.2 %. A third lagged feedback: stomatal conductance is reduced by the leaf
+  water potential of before the stage with a very steep function (`shape_gs` 40). Not
+  prototyped; the same treatment would apply (the leaf water potential solved together
+  with its stress).
+- **Cerrado, 1-5 January:** on the evening of day 4 three patches have a local slope of
+  latent heat of −23 000 where ±1 % gives −164. AD is right there (a finite difference
+  with a 1e-6 step gives −22 804 against −22 805): the response itself has a narrow steep
+  place at that evening transition. Not diagnosed.
+
+### Open (maintainer to decide)
+
+- The wetted fraction (science and numerics; changes results wherever leaves dry, not
+  CHATS7): the implicit form above, or CLM's limiter.
+- The zeta limit of round 6 (unchanged proposal).
+- Whether to prototype the leaf water potential the same way, and to look at the steep
+  evening of the cerrado.
+
