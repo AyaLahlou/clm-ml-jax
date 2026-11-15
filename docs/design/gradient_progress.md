@@ -621,7 +621,7 @@ still leaves a dry leaf in the last pass, so it was not prototyped.
 |---|---|---|---|---|
 | Cerrado, 1 January | 40 % | 1.2 % | 40 % | 1.2 % |
 | Cerrado, 1 July | 1e5 % | 5e6 % | 123 % | 3.9 % |
-| Great Plains, 1 July | 1e37 % | (explodes) | 0.7 % | 0.7 % |
+| Great Plains, 1 July | 6e34 % | (explodes) | 0.7 % | 0.7 % |
 | Great Plains, 1 January | 0.0 % | | 0.0 % | 0.0 % |
 
 Each is needed; they are the same kind of defect in two places: a quantity the fluxes
