@@ -22,7 +22,10 @@ fix of round 3 (decision 120), and no water stress at or above zero leaf water p
 (decision 121; round 4's NaN gradients with dew, O79, closed). Round 5 (2026-11-15, no code
 change): the corners are kinks, not jumps, but short canopies amplify round-off ~1e11 at the
 evening transition and their daily-mean latent heat gradient can be 10-40 % off a finite
-change. **Waiting for the maintainer:** the three open points at the end of round 5.
+change. Round 6 (2026-11-15, prototype in scratch): a stable limit on zeta of 0.5 for the
+short PFTs removes that alternation, but on windy July days the derivatives explode (1e35)
+with or without it: not diagnosed. **Waiting for the maintainer:** the open points at the
+ends of rounds 5 and 6.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -461,3 +464,85 @@ fraction, the stability limits of L).
 - The alternation at the transitions: whether the lagged turbulence should be damped or
   iterated. Also a science and numerics question; nothing tried.
 - Scans in other parameters, and the freezing-point steps on the Great Plains winter box.
+
+## Round 6: a stable limit on zeta per PFT, prototype (2026-11-15). No change to the model
+
+Maintainer's idea for the first open point of round 5: CLM's `zetamaxstable` as a PFT
+parameter. Prototype in a scratch copy only (`$SCRATCH/clm-ml-jax/trees/zeta`): in
+`turbulence.py::obukhov_terms`, after the limit L >= Lc, in stable conditions also
+`L >= (zref - zdisp) / zeta_max`, with the displacement height of the Lc-limited length
+(CLM: `zeta = zldis/obu <= zetamaxstable`, 0.5 in CTSM 5.4, `FrictionVelocityMod.F90`);
+beta and the displacement height are then recomputed. The value is a per-PFT input (it
+rides in an unused parameter in the prototype), so one compiled program runs every value.
+Probes and results: `$SCRATCH/clm-ml-jax/probe_zeta/` (`eval_zeta.py`, `report.py`,
+`scan_lin_zeta.py`, `gradcheck_grid_zeta.py`). "Short": grasses, crops, shrubs.
+
+### It removes the alternation of round 5, if it is tight
+
+Cerrado box, 1 January (47 steps, 18 patches); AD against a ±1 % change of `iota`:
+
+| Limit | Alternations | Smallest u* (m/s) | Daily-mean LE, AD off by (worst patch) |
+|---|---|---|---|
+| off (the repository) | 307 | 0.0008 | 39 % |
+| 0.5, all PFTs | 1 | 0.022 | 0.5 % |
+| 1, all | 91 | 0.017 | 1.4 % |
+| 2, all | 305 | 0.012 | 12 % |
+| 5, all | 414 | 0.006 | 52 % |
+| 10, all | 354 | 0.004 | 358 % |
+| 0.5 short, trees off | 53 | 0.017 | 1.2 % |
+
+- Only values up to about 1 help; 2 and more leave the alternation. A value calibrated
+  upwards brings the roughness back.
+- Dense scan of `iota` (±5 %, 201 points) with 0.5 for the short PFTs: the worst step's
+  departure of latent heat from a smooth curve falls from 1.33 to 0.33 W m-2 (patch 3),
+  0.18 to 0.002 (patches 7, 8), 0.70 to 0.07 (patch 12); the daily-mean slope of AD
+  against the fitted one from +92 %, +26 %, −8 % off to −2.9 %, +0.2 %, −2.6 %. Trees
+  are unchanged (one tree patch is 3 % off with or without).
+- All 27 parameters against FD with 0.5 for the short PFTs: no NaN; 16 of 18 patches have
+  no "bad" pair (worst 5e-3); two crop patches (16, 17) keep 12 "bad" pairs each (not
+  looked at).
+- The limit's own derivative: no NaN; AD agrees with FD at a relative step of 1e-4 (within
+  1e-6 to 3e-3 of the largest sensitivity for 0.5; cerrado, plains, CHATS7).
+- With the limit off the prototype is bit for bit the repository code (CHATS7 day).
+
+### What it changes in the forward model (daily means, change from "off")
+
+| Case | Limit | LE (W m-2) | H (W m-2) | Canopy-top air, night (K) |
+|---|---|---|---|---|
+| CHATS7 (largest zeta of the day 0.95) | 1 and more, or trees off | 0 | 0 | 0 |
+| CHATS7 | 0.5 | +0.8 (a step: 17) | −1.2 | 0 |
+| Cerrado, January | 0.5 short | +1.1 (patch: +3.4) | −1.1 (−2.8) | +0.5 |
+| Cerrado, July | 0.5 short | +2.6 (+7.4) | −3.4 (−7.8) | +0.4 |
+| Great Plains, January | 0.5 short | +2.3 (+5.0) | −20 (−35) | +3.7 |
+| Great Plains, July | 0.5 short | +5.6 (+11.9) | −9.7 (−19) | +1.8 |
+
+Night friction velocity of the short canopies rises from 0.002 to ~0.03 m/s (cerrado) and
+from 0.07 to 0.30 m/s (Great Plains, January). The Great Plains January box had no
+gradient problem (2 alternations): there the limit is purely a change of the science.
+
+### It is not the whole problem: derivatives explode on the July days (new)
+
+With and without the limit:
+
+- **Great Plains, 1 July:** from step 27 (mid-morning) the derivative of latent heat with
+  respect to `iota` grows 10 to 1000 times per step, to 1e35 at the end of the day, on 15
+  of 21 patches (trees included). It is real: two runs whose `iota` differs by 1e-14 are
+  5-11 W m-2 apart in the afternoon. The ±1 % finite differences of the daily means stay
+  plausible (−35 to −5 W m-2). The day is windy (u* 0.5-1.0 m/s) and near neutral; the
+  Obukhov solves of the five stages of a sub-step differ strongly (u* 0.74, 0.69, 0.73,
+  0.63, 0.68 within one sub-step), also on patches that do not explode. This is very likely the
+  amplification the 1° grid tests know (1e-15 in LAI, ~8 W m-2 after sunrise), and not the
+  evening alternation of round 5. Not diagnosed.
+- **Cerrado, 1 July:** 2-3 patches with derivatives of 1e4 to 1e7 in the afternoon; the
+  others agree with FD where the sensitivity is not small.
+- A single pair of runs 1e-14 apart at the default parameters is not a measure of the
+  amplification (the cerrado January pair stays within 5e-9 W m-2 with the limit off): use
+  a scan, or the growth of AD through the day.
+
+### Open (maintainer to decide)
+
+- Whether to add the parameter, and its values: 0.5 for the short PFTs and no limit for
+  trees keeps CHATS7 and removes the alternation; 0.5 for all is CLM but changes CHATS7.
+  The definition of zeta (with `zref - zdisp`, as above) is part of the decision.
+- The exploding derivatives of windy days (above): to be diagnosed first; they matter more
+  for gradients than the alternation.
