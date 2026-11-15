@@ -19,8 +19,10 @@ Words used here:
 **State (2026-11-14).** Rounds 1 (speed) and 2-4 (accuracy) are measured. In the code: the
 two gradient corrections of round 2 (decision 119; forward values unchanged) and the `avmu`
 fix of round 3 (decision 120), and no water stress at or above zero leaf water potential
-(decision 121; round 4's NaN gradients with dew, O79, closed). Nothing waits for the
-maintainer.
+(decision 121; round 4's NaN gradients with dew, O79, closed). Round 5 (2026-11-15, no code
+change): the corners are kinks, not jumps, but short canopies amplify round-off ~1e11 at the
+evening transition and their daily-mean latent heat gradient can be 10-40 % off a finite
+change. **Waiting for the maintainer:** the three open points at the end of round 5.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -65,6 +67,8 @@ derivative of one process (its results pass through `stop_gradient`): an ablatio
   with respect to the whole parameter set (as `jax.grad` over `params` does) when looking
   for NaN; a NaN partial derivative times a zero tangent is NaN in every parameter.
 - **Run each gradient test file in its own process** (`tests/gradient_tier.py` does): O78.
+- **AD is the slope at a point: on short canopies (0.5 m crops and grasses) check it against
+  a finite change** at the sunrise and sunset steps before trusting a daily mean (round 5).
 
 ## Round 1: where a gradient's time goes (2026-11-14). No change to the model
 
@@ -355,3 +359,105 @@ new chunk in the pytest process that had already run `tests/test_differentiabili
 The same test alone passes, and so does the tier once the program is in the cache. Not
 diagnosed. `tests/gradient_tier.py` and `jobs/grad_gpu.pbs` now run each test file in its
 own process: 13 pass with an empty compilation cache.
+
+## Round 5: jumps, kinks and round-off amplification (2026-11-15). No change to the model
+
+Question (maintainer): are the corners at sunrise and sunset steps jumps (the output itself
+steps, which AD cannot see) or kinks (only the slope changes), and what do they do to the
+gradient of a daily mean? Probes and results: `$SCRATCH/clm-ml-jax/probe_jump/`
+(`scan_lin.py`: a dense linear scan of a day's outputs in one parameter; `find_jumps.py`;
+`refine.py`: 40 halvings of an interval towards the larger change; `obu_trace.py`,
+`obu_roots.py`: every Obukhov solve of a day, by a host callback in the probe only). Only
+`iota` was scanned (CHATS7 ±2 %, 801 points; cerrado box ±0.2 %, 401 points, and ±5 %, 201).
+
+### Not jumps
+
+- **The sunset corner of round 4 is a kink** (cerrado patch 7, step 41): latent heat is
+  continuous, its slope changes from about +125 to −39.5 at a relative shift of −3.5e-4 in
+  `iota`.
+- **Two rough features refined to an interval of 1e-15 are continuous** (patch 3, steps 40
+  and 41): the change shrinks with the interval, down to a floor that is round-off.
+- **Jumps exist but are negligible:** isolated steps of at most ~1e-3 W m-2 in every scan
+  (CHATS7 too); not traced (the stomatal bisection is the likely source).
+
+### Round-off is amplified ~1e11 at the evening transition of short canopies
+
+Two runs of the cerrado box whose `iota` differs by 4e-15 (relative), patch 3 (a crop,
+canopy height 0.5 m, LAI 3.15):
+
+| Steps | Largest relative difference of any field |
+|---|---|
+| 0-16 (night) | 0 |
+| 17-39 (day) | 1e-12 to 1e-10 |
+| 40 | 3e-7 |
+| 41 | 3e-3 (latent heat), 6e-5 (friction velocity) |
+| 42-46 | 1e-5, falling (GPP, near zero, order 1) |
+
+Inside that noise the response to `iota` is rough at every scale: slopes of 1 300-1 800
+W m-2 per unit relative change over intervals of 1e-6 (AD at the default: −290; the daily
+mean: about −10), and latent heat of step 40 wandering between 31.5 and 39.3 W m-2 over ±5 %.
+This is the amplification known from the 1° grid tests (1e-15 in LAI, ~8 W m-2 after
+sunrise). CHATS7 does not have it (noise twins within 4e-11).
+
+**What happens in those steps** (the 30 Obukhov solves of each step, patch 3):
+
+- The solver is not at fault: all 25 380 solves of the day (18 patches) end with a
+  residual below 1e-6 m (the ones listed: below 1e-12), and the residual has one root, or none where the answer is at
+  the stable limit.
+- Through the afternoon the canopy top is weakly unstable (L = −2 to −25 m, u* 0.04-0.05
+  m/s; the canopy-top air is slightly colder than the forcing, humidity makes it buoyant).
+- From the 24th solve of step 40 on, successive solves alternate between that state and
+  the stable limit: u* 0.046, 0.0008, 0.040, 0.0008, 0.057, 0.0097, ..., with the
+  canopy-top air temperature moving 0.3-0.6 K from one solve to the next. By step 42 the
+  patch stays at the limit.
+- The stable limit is L >= Lc (`LcL_max = 1`). For this patch Lc = 0.62 m and the forcing
+  height is 30.4 m, 49 Lc above the ground: at the limit u* is 0.0008 m/s for a wind of 0.5
+  m/s. Between neutral and the limit, u* falls by a factor 50 over ~0.1 K of canopy-top
+  air temperature. For the forest patches the forcing height is 2-3 Lc, for CHATS7 1.6.
+- So the turbulence is computed from the state before the solve, switches the canopy
+  between coupled and decoupled, and the state answers by crossing the switch again: an
+  alternation whose timing depends on the last digits. Not shown that this alone makes
+  the amplification, but the alternation and the growth are in the same two steps.
+
+Alternations (u* changing by more than 3× between successive solves) per patch: none to 16
+for the forests (canopy 10-20 m), 4 to 55 for the 0.5 m crops and grasses, at steps 19-21
+and 39-41. More than half of all solves of every patch (the night) are at the stable limit.
+
+### What it does to the gradient of a daily mean (`iota`)
+
+| | AD against the response to ±1 % |
+|---|---|
+| CHATS7: latent heat, sensible heat, GPP | within 0.3-0.8 % (±2 %: the same) |
+| Cerrado, GPP, 18 patches | within ~1 % |
+| Cerrado, latent heat, 14 patches | within ~1 % |
+| Cerrado, latent heat, patch 3 | AD −11.9, response −8.5 (±5 %: −5.9) |
+| Cerrado, latent heat, patches 7 and 8 | AD −6.6, response −5.9 |
+| Cerrado, latent heat, patch 12 | AD −5.3, response −5.5 |
+
+The gradient of a mean is the mean of the step gradients, so one step with an extreme
+local slope (−290 at patch 3, step 40) moves the daily value. A sensitivity study on short
+canopies under a high forcing level should compare AD with a finite change of the size it
+cares about, or leave the transition steps out.
+
+### Other places where the output can step (read from the code; none changed)
+
+| Where | What | Seen |
+|---|---|---|
+| `photosynthesis.py::solve_gs_bisection` | no sign change because opening always pays (both ends positive): `gs_min` is returned, next to solutions near the upper end 2 mol m-2 s-1. As Fortran | not in the cerrado day (largest conductance 0.84) |
+| `water_vapor.py` (latent heat) | vaporization above 0 °C, sublimation below: a 13 % step in temperature | not tested (warm cases) |
+| `soil.py` (thermal conductivity) | frozen and unfrozen Kersten number differ at 0 °C | not tested |
+| `water_vapor.py::sat_vap` | water and ice polynomials meet at 0 °C | not tested; expected tiny |
+| `plant_hydraulics.py` (`psis`) | the minimum potential when no layer takes up water | not tested; rare |
+| `solar_radiation.py` (leaf angle index) | values within ±0.01 become +0.01: a step at −0.01 | negligible |
+
+Everything else read is a kink (limits, minima and maxima, the drip cap, the wetted
+fraction, the stability limits of L).
+
+### Open (maintainer to decide)
+
+- The stable limit for short canopies under a high forcing level: L >= Lc allows a height
+  of 49 Lc, and u* of 0.0008 m/s. Friction velocity is below 0.0024 m/s in a quarter of
+  the cerrado patch-steps. A science question (CLM limits z/L instead: `zetamaxstable`).
+- The alternation at the transitions: whether the lagged turbulence should be damped or
+  iterated. Also a science and numerics question; nothing tried.
+- Scans in other parameters, and the freezing-point steps on the Great Plains winter box.
