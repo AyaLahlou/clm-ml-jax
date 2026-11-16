@@ -629,11 +629,12 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Rounds 12-13 (2026-11-16):** the derivative of L without the air of the stage's start
   is free but biased by 5-20 % (not used); round 11's treatment as a derivative rule,
   blended by the loop's gain, with round 10's water stress: forward unchanged, gradient
-  1.8 times, 30-day means within 7 % (Great Plains) and 12 % (cerrado). **Decision 124:**
-  the water-stress derivative adopted, the Obukhov rule a setting, off by default.
+  1.8 times, 30-day means within 7 % (Great Plains) and 12 % (cerrado). **Decision 124**
+  (the water-stress derivative adopted, the Obukhov rule a setting, off by default) is
+  **on hold** since the same day: a general solution is looked for first.
 - **Open:**
-  - build decision 124 (settings, tests, a reliability flag in the output, documentation;
-    list at the end of round 13);
+  - a general treatment of the lagged feedbacks for gradients over long simulations
+    (linearized approximations acceptable; round 14); decision 124 waits for it;
   - the 1° check repeated in other seasons and regions, and for state and forcing
     derivatives;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per

@@ -35,7 +35,7 @@ useless local slope.
 | consistent forward form | round 9: within 2.3 %; forward results change by 0.1 W m-2 in the mean; forward 1.45x, gradient 1.75x | not prototyped |
 | derivative-only form (forward bit for bit) | round 10: within 6 %, no measurable cost | round 11: Great Plains within 0.5 %; cerrado within 12 %, a third of daily means still > 5 % off; cost not yet meaningful |
 | derivative-only form, as decided (rounds 12-13) | round 10's form, on | a derivative rule, blended by the loop's gain: forward bit for bit and at its speed, gradient 1.7x; Great Plains within 0.5 %, cerrado within 12 % |
-| status | **decision 124: adopted, to be built** | **decision 124: a setting, off by default, to be built** |
+| status | decision 124, **on hold** (2026-11-16): not built | decision 124, **on hold**: not built |
 
 **Both together over 30 days (round 13):** Great Plains July 19 of 21 patches within 1.3 %
 (worst 6.6 %), cerrado January 14 of 18 within 5 % (worst 11.6 %; a third of the daily
@@ -47,7 +47,7 @@ link from the canopy-top air to L instead (free) is biased by 5-20 % (round 12).
 - Usable now: CHATS7-like towers, and 1° patches over a few days or without stress and
   without frequent stability flips. Check any new case against a finite change of the
   mean (the forward model is reproducible, so finite differences of means are sound).
-- With decision 124 built: month-long derivatives on water-stressed patches (within ~6 %)
+- With decision 124 (on hold) built: month-long derivatives on water-stressed patches (within ~6 %)
   and, with the Obukhov rule on, in regimes like the wet-season cerrado (monthly means
   within ~12 %, single days tens of percent). These are approximations: the gradient is
   then not the derivative of the forward values, and a finite difference at a single bad
@@ -91,10 +91,11 @@ derivative-only prototype removes the explosions but is only good to tens of per
 bad cerrado days. Round 12 (2026-11-16): the derivative of L without the canopy-top air
 of the stage's start (free) is biased by 5-20 %: not used. Round 13 (2026-11-16): round
 11's treatment as a derivative rule, blended by the loop's gain; with round 10's water
-stress, 30 days in both boxes; forward unchanged, gradient 1.8 times. **Decided (decision
-124, maintainer 2026-11-16): the derivative-only water stress is adopted; the Obukhov rule
-becomes a setting, off by default. Nothing of rounds 9-13 is in the code yet: next is to
-build decision 124** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
+stress, 30 days in both boxes; forward unchanged, gradient 1.8 times. Decision 124 (maintainer 2026-11-16: the
+derivative-only water stress adopted, the Obukhov rule a setting, off by default) was put
+**on hold the same day**: more such feedbacks are expected and one patch per feedback and
+regime is not wanted; a general solution is looked for first (round 14). **Nothing of
+rounds 9-13 is in the code** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
 round 11's tree in `probe_cut/obu_rule.diff`; settings, tests and a reliability flag as
 listed at the end of round 13). The overview is the summary just above.
 
@@ -1156,6 +1157,9 @@ clean day. The blend is as good as the switch and continuous: used below.
 | first gradient call (compile) | 47-80 s | 112-181 s | 118-179 s |
 
 ### Decided (decision 124, maintainer 2026-11-16)
+
+**Put on hold the same day (maintainer):** see decision 124 and round 14. The list below is
+what building it would take.
 
 Of three options (both on; the water stress on and the Obukhov rule a setting, off by
 default; the water stress only, finite differences of means elsewhere), the second:

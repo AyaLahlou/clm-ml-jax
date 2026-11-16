@@ -973,7 +973,13 @@ every other solver was already forward-mode safe (decision 59).
 Source: O71; maintainer, 2026-11-02.
 
 **124. Derivative-only treatments of the two lagged feedbacks: water stress adopted, the Obukhov rule a setting (off by default)**
-2026-11-16 · gradients rounds 10-13 (O76) · maintainer · in force (to be built) · Departure from Fortran: no (forward values bit for bit)
+2026-11-16 · gradients rounds 10-13 (O76) · maintainer · open (on hold since 2026-11-16, not built) · Departure from Fortran: no (forward values bit for bit)
+**On hold (maintainer, 2026-11-16, the same day):** not to be built for now. More feedbacks of
+this kind are expected in other processes, parameters and regimes, and one treatment per
+feedback and regime is not wanted; a general solution is looked for first (clipping, and
+the Runge-Kutta scheme itself, `gradient_progress.md` round 14). Gradients over long
+simulations remain the goal, and linearized approximations remain acceptable. What was
+decided, for the record:
 The forward model keeps Fortran's order (the stress function reads the leaf water potential
 of the stage's start; the Obukhov length is solved from the canopy-top air of the stage's
 start). Two quantities get another derivative, by a derivative rule (`jax.custom_jvp`):
