@@ -25,7 +25,9 @@ layout as a setting; GPU measurements of checkpointing and of batched forward mo
 jitted derivative as the first call on a model fails; the CPU gradient with written-out
 loops ended without a result.
 
-**How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
+**How to measure** (the probes are not in the repository: put them back with
+`git checkout b954677 -- jobs/gpu_probes`, see `gpu_progress.md`; results in
+`$SCRATCH/clm-ml-jax/probe_grad0/`):
 
 ```bash
 # CPU (login node): forward, one forward-mode derivative, gradient; any setting as an override

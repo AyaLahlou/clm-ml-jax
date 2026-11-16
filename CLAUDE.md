@@ -45,8 +45,8 @@ Guidance for Claude (and other contributors) working in this repository.
   reference). GPU gradients are faster too (decision 118). Forward work stopped by the maintainer
   2026-11-14. Plan
   `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
-  `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/` (README
-  there). Ask the maintainer before going on.
+  `docs/design/gpu_progress.md` ("Resume here"); the probe scripts are not in the
+  repository (how to get them back: there). Ask the maintainer before going on.
 - **Gradients (O76, decision 118):** branch `gpu_grad` (from `gpu_opt`, not merged): speed first, then
   quality and accuracy, for sensitivity experiments (parameters, states, forcings; a tower
   first, global later). Gradient times before 2026-11-14 were of the unsteady second call:
