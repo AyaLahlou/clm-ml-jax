@@ -43,12 +43,13 @@ def _forcing(thref=296.0, taf=294.0, uref=3.0):
     )  # fmt: skip
 
 
-def _run(ground="log_profile", unroll=False, **forcing):
+def _run(ground="log_profile", unroll=False, zeta_max_stable=turb.NO_ZETA_LIMIT, **forcing):
     f = _forcing(**forcing)
     return turb.harman_finnigan(
         _layers(), f["tair"], f["eair"], f["pref"], f["ztop"], f["lai"], f["sai"], f["zref"],
         f["uref"], f["thref"], f["thvref"], f["qref"], f["rhomol"], default_rsl_tables(),
         sparse_canopy=True, ground_conductance=ground, unroll=unroll,
+        zeta_max_stable=zeta_max_stable,
     )  # fmt: skip
 
 
@@ -68,6 +69,36 @@ def test_obukhov_length_is_the_root_or_the_limit(taf):
                          f["thvref"], f["qref"], f["rhomol"], t.taf, t.qaf)  # fmt: skip
     obu_new = turb.obukhov_terms(t.obu, inp, default_rsl_tables(), True).obu_new
     assert abs(float(obu_new - t.obu)) < 1e-9 * abs(float(t.obu))
+
+
+def test_stable_zeta_limit():
+    """Decision 123: in stable conditions the stability at the reference height,
+    (zref - zdisp)/L with the displacement height of the Lc-limited length, is at most the
+    PFT's zeta_max_stable; unstable conditions, and a limit that is not reached, change
+    nothing; the limit has a derivative that agrees with finite differences."""
+    strong = dict(taf=290.0, uref=1.0)
+    free = _run(**strong)  # at the theory's limit Lc/L = 1
+    zeta_free = float((ZREF - free.zdisp) / free.obu)
+    assert zeta_free > 0.5 and float(free.Lc / free.obu) == pytest.approx(1.0, rel=1e-12)
+    t = _run(**strong, zeta_max_stable=0.5)
+    assert float((ZREF - free.zdisp) / t.obu) == pytest.approx(0.5, rel=1e-12)
+    assert float(t.obu) > float(free.obu) and float(t.ustar) > float(free.ustar)
+    for taf in (294.0, 295.5, 295.8):
+        assert float((ZREF - _run(taf=taf).zdisp) / _run(taf=taf, zeta_max_stable=0.5).obu) <= 0.5
+    for kind, kw in (("not reached", dict(**strong, zeta_max_stable=2.0 * zeta_free)),
+                     ("unstable", dict(taf=297.0, zeta_max_stable=0.5))):  # fmt: skip
+        a = _run(**kw)
+        b = _run(**{k: v for k, v in kw.items() if k != "zeta_max_stable"})
+        for name in ("obu", "ustar", "beta", "zdisp", "z0m"):
+            assert float(getattr(a, name)) == float(getattr(b, name)), (kind, name)
+
+    def ustar(z):
+        return _run(**strong, zeta_max_stable=z).ustar
+
+    d = float(jax.grad(ustar)(0.5))
+    fd = float(ustar(0.5 + 1e-5) - ustar(0.5 - 1e-5)) / 2e-5
+    assert d < 0.0 and d == pytest.approx(fd, rel=1e-5)
+    assert float(jax.grad(ustar)(turb.NO_ZETA_LIMIT)) == 0.0
 
 
 def test_wind_profile_recovers_forcing_wind_and_is_continuous():

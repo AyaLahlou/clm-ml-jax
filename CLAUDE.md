@@ -54,7 +54,8 @@ Guidance for Claude (and other contributors) working in this repository.
   a power with a parameter as exponent needs a base that cannot turn negative (decision 121);
   the wetted fraction of the leaves is solved with the water left at the end of the sub-step
   (decision 122; `numerics.wetted_fraction: explicit` is Fortran's form, whose almost dry
-  leaves made derivatives explode);
+  leaves made derivatives explode); short PFTs have a stable limit on zeta, the PFT parameter
+  `zeta_max_stable` (decision 123: 0.5 for shrubs, grasses and crops, 1e30 = none for trees);
   check new derivatives against finite differences (`jobs/gpu_probes/gradcheck0.py`). Log and
   "Resume here": `docs/design/gradient_progress.md`.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).
@@ -114,6 +115,9 @@ using Harman & Finnigan (2007, 2008).
   - β = u*/U(h) uses the Harman (2012) form, Eq. 2 of the 2026 paper, with CHATS fit a₁=0.89,
     a₂=−0.07, a₃=2.19, β_N=0.35.
   - Applicability bounds −2 ≤ L_c/L ≤ 1 (L_c = (c_d a)⁻¹, canopy length scale).
+  - Not in CLM-ml v2 (decision 123): in stable conditions also (z_ref − d)/L ≤
+    `zeta_max_stable`, a PFT parameter (CLM's `zetamaxstable`; 0.5 for shrubs, grasses and
+    crops, no limit for trees).
   - Log-profile aerodynamic conductance in the lowest layer.
 - **Leaf processes.**
   - Leaf energy balance, including a heat-storage term.

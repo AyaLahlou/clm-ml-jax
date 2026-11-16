@@ -93,7 +93,8 @@ Photosynthesis/stomata: `vcmax25`, `iota`, `gs_min`, `g0/g1_ball_berry`, `g0/g1_
 `psi50_gs`, `shape_gs`; hydraulics/roots: `plant_conductance`, `plant_capacitance`,
 `root_radius`, `root_density`, `root_resistivity`; leaf/radiation: `leaf_dimension`,
 `leaf_angle_index`, `sla_top`, `leaf_emissivity`, `clumping_index`, `leaf/stem_reflectance`,
-`leaf/stem_transmittance` (spectral fields `[unused, vis, nir]`, legacy 1-based band layout).
+`leaf/stem_transmittance` (spectral fields `[unused, vis, nir]`, legacy 1-based band layout);
+turbulence: `zeta_max_stable` (decision 123).
 Read at setup only (not differentiable through the run): `root_profile_beta` (root fractions),
 `c3_photosynthesis` (C3/C4 group, static), PFT default canopy height / beta profiles.
 

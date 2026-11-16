@@ -36,7 +36,7 @@ from clm_ml.io.yaml_schema import (
     read_yaml,
     render,
 )
-from clm_ml.params import PFT_NAMES, Params
+from clm_ml.params import PFT_NAMES, Params, add_new_parameters
 from clm_ml.run import HEADER as RUN_HEADER
 from clm_ml.run import RunFile, TimeSection, parse_chunk, parse_every, parse_length
 
@@ -1013,6 +1013,8 @@ def upgrade_experiment(folder: Path | str) -> list[str]:
             recipe[key] = read_yaml(folder / name)
     for key in ("run", "domain", "model"):
         recipe[key] = _migrate(key, recipe[key], report)
+    if not isinstance(recipe["params"], Params):
+        recipe["params"] = add_new_parameters(recipe["params"], report)
     kind = (recipe["domain"] or {}).get("type")
     if kind not in ("towers", "grid"):
         raise ConfigError(f"{folder.name}/domain.yaml: type: {kind!r} is not one of [towers, grid]")

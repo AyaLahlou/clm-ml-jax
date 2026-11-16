@@ -342,6 +342,10 @@ def beta_stability(beta_neutral, LcL):
 # ---------------------------------------------------------------------------
 
 
+#: ``zeta_max_stable`` without a limit (CLM-ml v2)
+NO_ZETA_LIMIT = 1.0e30
+
+
 class ObuInputs(NamedTuple):
     """What the Obukhov length depends on (one patch)."""
 
@@ -357,6 +361,9 @@ class ObuInputs(NamedTuple):
     rhomol: Array  # molar density, mol/m3
     taf: Array  # air temperature at the canopy top, K
     qaf: Array  # specific humidity at the canopy top, kg/kg
+    #: largest (zref - zdisp)/obu in stable conditions (the PFT's ``zeta_max_stable``,
+    #: decision 123); NO_ZETA_LIMIT: none, as Fortran
+    zeta_max: Array = NO_ZETA_LIMIT
 
 
 class ObuTerms(NamedTuple):
@@ -385,6 +392,8 @@ def obukhov_terms(
 
     Fortran reference: MLCanopyTurbulenceMod.F90::ObuFunc (Bonan et al. 2018, eqs. A1-A9,
     Harman 2012 beta). Fortran's check ``zref > zdisp`` is left out (compiled code).
+    Not Fortran: the stable limit ``inp.zeta_max`` on the stability at the reference height
+    (decision 123).
     """
     eps = jnp.asarray(1e-30)
     obu_cur = jnp.where(
@@ -392,29 +401,41 @@ def obukhov_terms(
         jnp.maximum(obu_val, inp.Lc / LcL_max),
         jnp.minimum(obu_val, inp.Lc / LcL_min),
     )
-    obu_sign, obu_abs = _signed_floor(obu_cur, eps)
-    LcL = inp.Lc * obu_sign / obu_abs
-
-    # Neutral beta, and beta with the Harman (2012) blend in unstable conditions
+    # Neutral beta
     z0mg_safe = jnp.maximum(z0mg, eps)
     c1_n = (vkc / jnp.log((inp.ztop + z0mg_safe) / z0mg_safe)) ** 2
     beta_neutral = jnp.minimum(
         jnp.sqrt(c1_n + cr * (inp.lai + inp.sai)), jnp.asarray(beta_neutral_max)
     )
-    beta_HF = beta_stability(beta_neutral, LcL)
-    beta_norsl = beta_stability(jnp.asarray(vkc / 2.0), LcL)
-    beta = jnp.where(
-        LcL > _AH12_1,
-        beta_HF,
-        beta_norsl + (beta_HF - beta_norsl) / (1.0 + _AH12_0 * jnp.abs(LcL - _AH12_1) ** _AH12_2),
-    )
 
-    # Displacement height
-    hc_minus_d = beta**2 * inp.Lc
-    if sparse_canopy:
-        hc_minus_d = hc_minus_d * (1.0 - jnp.exp(-0.25 * (inp.lai + inp.sai) / beta**2))
-    hc_minus_d = jnp.minimum(hc_minus_d, jnp.asarray(inp.ztop))
-    zdisp = inp.ztop - hc_minus_d
+    def beta_and_displacement(obu_cur):
+        obu_sign, obu_abs = _signed_floor(obu_cur, eps)
+        LcL = inp.Lc * obu_sign / obu_abs
+        # Beta with the Harman (2012) blend in unstable conditions
+        beta_HF = beta_stability(beta_neutral, LcL)
+        beta_norsl = beta_stability(jnp.asarray(vkc / 2.0), LcL)
+        beta = jnp.where(
+            LcL > _AH12_1,
+            beta_HF,
+            beta_norsl
+            + (beta_HF - beta_norsl) / (1.0 + _AH12_0 * jnp.abs(LcL - _AH12_1) ** _AH12_2),
+        )
+        # Displacement height
+        hc_minus_d = beta**2 * inp.Lc
+        if sparse_canopy:
+            hc_minus_d = hc_minus_d * (1.0 - jnp.exp(-0.25 * (inp.lai + inp.sai) / beta**2))
+        hc_minus_d = jnp.minimum(hc_minus_d, jnp.asarray(inp.ztop))
+        return LcL, beta, inp.ztop - hc_minus_d
+
+    # In stable conditions also (zref - zdisp)/obu <= zeta_max, with the displacement height
+    # of the Lc-limited length (decision 123; CLM FrictionVelocityMod: zeta = zldis/obu <=
+    # zetamaxstable; not in Fortran CLM-ml); beta and the displacement height follow the
+    # limited length
+    _, _, zdisp_first = beta_and_displacement(obu_cur)
+    obu_cur = jnp.where(
+        obu_val >= 0.0, jnp.maximum(obu_cur, (inp.zref - zdisp_first) / inp.zeta_max), obu_cur
+    )
+    LcL, beta, zdisp = beta_and_displacement(obu_cur)
 
     PrSc = prandtl_schmidt(beta_neutral, LcL, sparse_canopy)
     psim, psic, _, _ = psi_rsl(inp.zref, inp.ztop, zdisp, obu_cur, beta, PrSc, tables, table_search)
@@ -721,6 +742,7 @@ def harman_finnigan(
     ground_conductance: str,
     table_search: str = "loop",
     unroll: bool = False,
+    zeta_max_stable=NO_ZETA_LIMIT,
 ) -> Turbulence:
     """Canopy turbulence from the roughness sublayer theory of Harman and Finnigan (2008):
     the canopy-top air (from the layer air temperature ``tair`` and vapour pressure ``eair``,
@@ -729,6 +751,8 @@ def harman_finnigan(
     ``thvref``, ``qref``, ``rhomol``. ``table_search``: how the psihat tables are searched
     (:data:`TABLE_SEARCH`). ``unroll``: the Obukhov and roughness-length iterations written
     out instead of compiled loops (``numerics.solver_loops``, decision 117).
+    ``zeta_max_stable``: the PFT's largest stability at the reference height in stable
+    conditions (decision 123; the default is no limit, as Fortran).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::HF2008 (Bonan et al. 2018).
     Reads: ``tair_profile``, ``eair_profile``, ``pref_forcing``, ``ztop_canopy``,
@@ -746,7 +770,9 @@ def harman_finnigan(
     taf = tair[layers.n_within - 1]
     qaf = mmh2o / mmdry * eair_top / (pref - (1.0 - mmh2o / mmdry) * eair_top)
 
-    inp = ObuInputs(Lc, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol, taf, qaf)
+    inp = ObuInputs(
+        Lc, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol, taf, qaf, zeta_max_stable
+    )
     obu = obukhov_length(inp, tables, sparse_canopy, table_search, unroll)
     t = obukhov_terms(obu, inp, tables, sparse_canopy, table_search)
     # Rounded as stored (Fortran's ustar(p), beta(p), ...; the legacy code wrote them to the

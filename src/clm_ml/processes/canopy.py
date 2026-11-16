@@ -788,6 +788,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         tables,
         sparse_canopy=opt.sparse_canopy, ground_conductance=opt.ground_conductance,
         table_search=opt.table_search, unroll=opt.unroll_loops,
+        zeta_max_stable=params.zeta_max_stable,
     )  # fmt: skip
     c = c._replace(
         obu_canopy=t.obu,

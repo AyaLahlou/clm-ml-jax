@@ -26,11 +26,11 @@ change. Round 6 (2026-11-15, prototype in scratch): a stable limit on zeta of 0.
 short PFTs removes that alternation. Round 7 (2026-11-15, prototype in scratch): the
 exploding derivatives (1e35 in a day, 1e220 in five) are the water on the leaves, whose
 wetted fraction is taken from the water before the sub-step; with the wetted fraction of
-the water left at the end of the sub-step they are gone. **That implicit wetted fraction is
-in the code (decision 122, maintainer 2026-11-15; `numerics.wetted_fraction`, `explicit`
-is Fortran's).** With it and round 6's zeta limit (still a prototype) the daily-mean
-gradients agree with finite differences within 4 % on the four test days.
-**Waiting for the maintainer:** the open points at the ends of rounds 5, 6 and 7.
+the water left at the end of the sub-step they are gone. **Both are in the code (maintainer 2026-11-15): the implicit wetted fraction (decision
+122; `numerics.wetted_fraction`, `explicit` is Fortran's) and the stable zeta limit as a
+PFT parameter `zeta_max_stable` (decision 123; 0.5 for shrubs, grasses and crops, 1e30 = no
+limit for trees).** With them the daily-mean gradients agree with finite differences
+within 2.3 % on the four test days. **Next: round 8 below** (what a 30-day window shows).
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -544,7 +544,21 @@ With and without the limit:
   amplification (the cerrado January pair stays within 5e-9 W m-2 with the limit off): use
   a scan, or the growth of AD through the day.
 
-### Open (maintainer to decide)
+### Done (decision 123, maintainer 2026-11-15)
+
+`zeta_max_stable` is a PFT parameter (params.yaml; `turbulence.py::obukhov_terms`): 0.5 for
+shrubs, grasses and crops, 1e30 (no limit) for trees in the three parameter compsets;
+`clm-ml upgrade` adds it to older params files. CHATS7 is bit for bit unchanged (the
+reference was not recorded again). The repository code differs from the prototype runs
+above only in the first step of a run, which the prototype's probe ran without the limit
+(the difference decays through the day). With decision 122, one day, daily-mean latent heat,
+AD against ±1 % of `iota`, worst patch: cerrado 1 January 2.3 %, cerrado 1 July 1.6 %,
+Great Plains 1 July 0.7 %, 1 January 0.0 %; no derivative above 1e3. Forward changes: as
+the table above (decision 123 has the numbers with decision 122). New gradient-tier test
+`tests/test_gradient_accuracy_grid.py` (a day of each box). All of `tests/regression` and
+the gradient tier pass.
+
+### Open at the time (decided: see "Done" above)
 
 - Whether to add the parameter, and its values: 0.5 for the short PFTs and no limit for
   trees keeps CHATS7 and removes the alternation; 0.5 for all is CLM but changes CHATS7.

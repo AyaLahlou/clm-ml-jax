@@ -1,6 +1,6 @@
 """Canopy water: wetted fraction of the leaves (from the water at the start of a stage as
-Fortran, or of the water left at the end of the sub-step: decision 122), interception and throughfall of precipitation,
-and evaporation and dew on the intercepted water.
+Fortran, or of the water left at the end of the sub-step: decision 122), interception and
+throughfall of precipitation, and evaporation and dew on the intercepted water.
 
 One patch. Layers are 0-based slots on axis 0; leaves 0 sunlit, 1 shaded. Every slot is
 computed; layers without plant area (``dpai == 0``, which includes the layers above the

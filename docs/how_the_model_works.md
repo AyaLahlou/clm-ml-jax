@@ -252,6 +252,13 @@ What differs is mostly how the code is written. The few science departures are l
   (after rain, in drizzle, with dew) then alternate between wet and dry, their water turns
   negative and latent heat flickers by several W m⁻². `numerics.wetted_fraction: explicit`
   keeps Fortran's choice (the May 2007 comparison uses it). Dry days are unchanged.
+- **A stable limit on zeta for short canopies** (decision 123): the PFT parameter
+  `zeta_max_stable` limits how stable the surface layer can become, as CLM's `zetamaxstable`:
+  0.5 for shrubs, grasses and crops, no limit (1e30) for trees. Without it the turbulence of
+  short canopies collapses on calm nights (friction velocity near zero) and switches on and
+  off within a time step. It raises their night-time friction velocity and warms their
+  canopy air at night. Trees, and so CHATS7, are unchanged; 1e30 for every PFT reproduces
+  CLM-ml v2.
 - **No water stress at or above zero leaf water potential** (decision 121): with dew, leaf
   water potential rises slightly above zero; the stress factor is then 1. Values are
   unchanged for the default parameters.

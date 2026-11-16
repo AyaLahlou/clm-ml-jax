@@ -840,6 +840,42 @@ magnitude, the cap, the explicit value without demand, the gradient against fini
 differences); all of `tests/regression` and the gradient tier pass.
 Source: maintainer, 2026-11-15; `gradient_progress.md` round 7.
 
+**123. A stable limit on zeta per PFT (`zeta_max_stable`)**
+2026-11-15 · gradients round 6 (O76) · maintainer · in force · Departure from Fortran: yes (1e30, no limit, reproduces CLM-ml v2)
+A PFT parameter `zeta_max_stable` (params.yaml) limits the stability at the reference
+height in stable conditions: after the theory's limit L >= Lc, also
+`L >= (zref - zdisp) / zeta_max_stable`, with the displacement height of the Lc-limited
+length; beta and the displacement height are then those of the limited length
+(`turbulence.py::obukhov_terms`). It is CLM's `zetamaxstable` (`FrictionVelocityMod.F90`:
+`zeta = zldis/obu <= zetamaxstable`, 0.5 in CTSM 5.4), which CLM-ml v2 does not have.
+Values in the three parameter compsets: 0.5 for shrubs, grasses and crops (PFTs 9-16);
+1e30 (no limit) for trees (PFTs 1-8), so CHATS7 and the Fortran comparison are unchanged
+(regression reference bit for bit the same). The parameter is differentiable and per PFT:
+one compiled program runs any values. `clm-ml upgrade` adds it to older params files at
+these values; a params file without it is refused (a params file is complete).
+Reason: on calm evenings and nights short canopies had two states of turbulence (collapsed
+at Lc/L = 1 with u* ~0.001 m/s, or recovered), and the Runge-Kutta stages alternated
+between them: round-off amplified ~1e11 at the evening transition and the daily-mean
+derivative of latent heat 10-40 % off a finite change (round 5). Only a tight limit helps:
+0.5 removes the alternation (307 -> 1 stage alternations in the cerrado box with 0.5 for
+all), 1 most of it, 2 and more none. A value calibrated upwards brings the roughness back.
+Size (1° boxes, one day, daily means, change from no limit, with decision 122): cerrado
+1 January latent heat +1.1 W m-2 (worst patch +3.5), sensible heat -1.2 (-2.8); cerrado
+1 July +2.4 (+6.9), -3.4 (-7.9); Great Plains 1 July +5.5 (+11.8), -9.8 (-19); Great
+Plains 1 January +2.4 (+5.1), -19 (-33), canopy-top air at night +3.7 K: there the limit
+is purely a change of the science (no gradient problem without it). Night friction
+velocity of short canopies rises from 0.002 to ~0.03 m/s (cerrado) and from 0.07 to 0.30
+(Great Plains, January). Trees: no change. With 0.5 for trees too (CLM), the CHATS7 day
+would change by +0.8 W m-2 in latent heat (its largest zeta is 0.95): not done.
+Gradients with decisions 122 and 123 (daily-mean latent heat, AD against ±1 % of `iota`,
+worst patch): cerrado 1 January 2.3 % (40 % before), cerrado 1 July 1.6 % (1e5 %), Great
+Plains 1 July 0.7 % (exploding), 1 January 0.0 %.
+Tests: `test_processes_turbulence.py::test_stable_zeta_limit`, `test_params.py`,
+`test_experiment.py` (upgrade), and the gradient tier's `tests/test_gradient_accuracy_grid.py`
+(a day of each box: bounded derivatives, daily mean within 3 % and 5 % of the finite change).
+Source: maintainer, 2026-11-15 (the per-PFT parameter is the maintainer's idea);
+`gradient_progress.md` rounds 5-6.
+
 ## F. Numerics, solvers and gradients
 
 **58. One traceable implementation per process**
