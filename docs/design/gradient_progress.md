@@ -14,6 +14,45 @@ Words used here:
   values of the forward run; a checkpoint recomputes them when needed instead of keeping
   them, trading time for memory.
 
+## Summary (2026-11-16)
+
+**What works.** Gradients are fast enough for tower experiments (CPU: forward 10 ms per
+step, gradient 52 ms). At CHATS7 every parameter derivative agrees with finite differences
+(rounds 2-3). On real 1° patches there are no NaNs, and after decisions 119-123 daily-mean
+derivatives agree within 2.3 % on the test days and to three or four digits over 30 days
+on the patches without the two problems below.
+
+**What is left: two defects of the same kind.** A quantity the fluxes react to strongly is
+taken from the start of a Runge-Kutta stage instead of being solved with the stage. The
+forward model then overshoots from stage to stage, and AD returns the true, huge and
+useless local slope.
+
+| | Water stress | Obukhov length |
+|---|---|---|
+| lagged quantity | leaf water potential in `1/(1+(psi/psi50)^40)` | L from the canopy-top air |
+| where | patches that reach stress (Great Plains July: 7 of 21, from day 4) | stability transitions, afternoon and evening; rare in the Great Plains (2 of 21 patches), frequent in the wet-season cerrado (10 of 18) |
+| effect on a 30-day mean derivative | 3 to 375 % off | up to 5e4 times too large |
+| consistent forward form | round 9: within 2.3 %; forward results change by 0.1 W m-2 in the mean; forward 1.45x, gradient 1.75x | not prototyped |
+| derivative-only form (forward bit for bit) | round 10: within 6 %, no measurable cost | round 11: Great Plains within 0.5 %; cerrado within 12 %, a third of daily means still > 5 % off; cost not yet meaningful |
+| status | documented, not adopted | documented, not adopted |
+
+**What it means for gradient-based science.**
+
+- Usable now: CHATS7-like towers, and 1° patches over a few days or without stress and
+  without frequent stability flips. Check any new case against a finite change of the
+  mean (the forward model is reproducible, so finite differences of means are sound).
+- Not usable now: month-long derivatives on water-stressed patches or in regimes like the
+  wet-season cerrado. One bad step can dominate a monthly mean, and calibration or
+  sensitivity maps would be led by those steps.
+- The derivative-only forms bound the derivatives without touching the forward model, but
+  they are approximations: good where the defect is rare, tens of percent on single days
+  where the forward model itself flips. The consistent forward forms give exact
+  derivatives because they remove the overshoot from the model; they change forward
+  results and cost time. That choice is open.
+
+**Not yet looked at:** state and forcing derivatives on 1° patches, other seasons and
+regions, both prototypes together, and the open points of round 1 (mode, checkpoints, GPU).
+
 ## Resume here
 
 **State (2026-11-14).** Rounds 1 (speed) and 2-4 (accuracy) are measured. In the code: the
@@ -37,8 +76,13 @@ Round 9 (2026-11-15, prototype in scratch): the stress taken from the leaf water
 of the end of the sub-step, solved with its own transpiration, removes the water-stress
 part (Great Plains, 30 days: 97 -> 27 patch-days off, as with water stress off) at a
 forward cost of 1.45x on a CHATS7 day as written (50 halvings). The cerrado is not water
-stress. **Waiting for the maintainer:** whether it goes into the code (and with which
-solver), and the diagnosis of what is left.
+stress. Round 10 (prototype, not adopted): a derivative-only form of the same, forward
+unchanged, approximate. Round 11 (2026-11-16, prototype, not adopted): what was left in
+both boxes is the Obukhov length, solved from the canopy-top air of the stage's start; a
+derivative-only prototype removes the explosions but is only good to tens of percent on
+bad cerrado days. **Nothing of rounds 9-11 is in the code. Waiting for the maintainer:**
+the choice at the end of round 11 (derivative-only, consistent forward forms, or neither).
+The overview is the summary just above.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -808,3 +852,177 @@ defect of the kind the noise-twin test finds, so this is not a finished alternat
   round-off.
 - The diagnosis of what is left (unchanged from round 8): the two Great Plains patches
   from day 13, and the cerrado (now known not to be water stress).
+
+## Round 10: a derivative-only treatment of the water stress, prototype (2026-11-15). Documented, not adopted
+
+The maintainer's question after round 9: is there a patch for the gradients that does not
+touch the forward model? Prototype: `$SCRATCH/clm-ml-jax/trees/lwp_grad` (commit 3f9e0f9
+plus `probe_lwp/lwp_damped.diff`; switch `CLM_LWP=damped`). Results in
+`$SCRATCH/clm-ml-jax/probe_lwp/` (`run5d.sh`, `run_damped2.sh`, `*_damped*.npz`).
+**Not adopted (maintainer, 2026-11-15: "not convinced this is the right solution").**
+
+### What it is
+
+The exploding derivative of round 8 is, as far as diagnosed, the true local slope of the
+forward model, which overshoots at the stress threshold. A derivative-only patch therefore
+computes the slope of a smoother model than the one that runs: an approximation by design.
+
+- `_stress_residual(psi, ...)`: `psi` minus the leaf water potential at the end of the
+  sub-step that the stress of `psi` gives (round 9's equation; 0 where `psi` is consistent
+  with its own transpiration).
+- `stress_potential_damped(lwp, ...)` (`jax.custom_jvp`): returns `lwp`, the potential of
+  the stage's start, unchanged (the forward program is the repository's). Its derivative
+  rule is the implicit function of the residual at `lwp`:
+  `d psi = -(d residual at fixed psi) / max(d residual / d psi, 1)`. The derivative with
+  respect to the stage's potential (the link that grows) is dropped; the one with respect
+  to `lwp_bef` and the other inputs is divided by a slope that is large where the stress
+  function is steep. No solver.
+- `leaf_photosynthesis` passes the potential through it before the stress line.
+
+A cut of the link (the stress factor as a constant in the derivative) was not built: it
+drops how a parameter changes the stress itself (maintainer: unacceptable).
+
+### Results (Great Plains July, latent heat, AD against ±1 % of `iota`)
+
+| | repository | derivative only (this round) | implicit forward (round 9) |
+|---|---|---|---|
+| forward results | reference | identical, bit for bit (5 and 30 days) | changed |
+| five days: patches with the mean within 1 % | 16 of 21 | 18 of 21 | 21 of 21 |
+| five days: worst patch | 15.8 % | 4.1 % | 0.15 % |
+| five days: largest derivative of a step | 1300 | 270 | 270 |
+| 30 days: patch-days off | 97 of 609 | 80 of 609 | 27 of 609 |
+| 30 days, the 19 patches without round 8's two: worst 30-day mean | 361 % | 6.2 % | 2.3 % |
+| the same: patches more than 1 % / 5 % off | 7 / 5 | 5 / 1 | 1 / 0 |
+| forward, per step (CHATS7, CPU) | 10.1 ms | 10.0-10.4 ms | 14.5-14.8 ms |
+| gradient, per step | 52 ms | 53-58 ms | 91-97 ms |
+
+- Means over 30 days come from "meaningless on the stressed patches" (35-360 %) to
+  within 0.1-6 %; daily means are often still more than 5 % off.
+- **Part of what is left is the reference, not the prototype:** with the forward model
+  unchanged it still overshoots at the threshold, and its response to a finite change
+  depends on the size of the change. Five days, ±0.3 % / ±1 % / ±3 % of `iota`: −27.96 /
+  −29.12 / −29.02 and −12.46 / −13.16 / −13.40 W m-2 on two stressed patches (4-7 %); the
+  prototype gives −27.93 and −13.03. The other part is the approximation (the slope is
+  taken at the stage's potential, not at the consistent one).
+- CHATS7: forward identical, gradient check unchanged (0.3 %).
+
+### What it does not do
+
+The forward overshoot stays (single steps differ by up to 29 W m-2 from the consistent
+form, round 9), and a finite difference with a very small step at a stressed step
+disagrees with this derivative by design.
+
+## Round 11: the rest is the Obukhov length taken from the stage's start; a derivative-only prototype (2026-11-16). Documented, not adopted
+
+Round 8 left two things undiagnosed: two Great Plains patches from day 13 ("issue 2") and
+the cerrado ("issue 3"). **They are one defect.** No change to the model; probes and results
+in `$SCRATCH/clm-ml-jax/probe_rest/`, prototype in `$SCRATCH/clm-ml-jax/trees/obu` (commit
+d73e558 plus `probe_rest/obu_damped.diff`; switch `CLM_OBU=damped`).
+
+### Diagnosis
+
+Each Runge-Kutta stage solves the Obukhov length L from the canopy-top air temperature and
+humidity of the stage's *start*, then computes new canopy-top air with that L. The loop
+"air -> L -> turbulence -> fluxes -> air" is therefore closed with a lag of one stage, like
+the wetted fraction (round 7) and the water stress (round 8). Near neutral, in a
+transition, a small change of the air changes L a lot, and the new air answers with the
+opposite sign and a larger size: an overshoot that alternates from stage to stage.
+
+Evidence (`eig.py`: growth of a small state difference over one step, by power iteration;
+`obu_probe.py`: every Obukhov solve of a step recorded):
+
+- **Great Plains.** The two patches are needleleaf evergreen temperate trees. Growth per
+  step 2.9 at step 601 and 2600 at step 602 (the other one: 2.4, 9, 26, 33, 3.1 at steps
+  619-623). Only the canopy air and leaf temperatures amplify; not the soil, the
+  intercepted water or the leaf water potential.
+- **Switching off the derivative of the Obukhov length alone** (`stop_gradient` on
+  `turbulence.obukhov_length`) gives growth 1.0 at every one of these steps, in both boxes.
+- **The record of one bad step:** L goes 110, 117, 111, 132, 116, 194, 142, 256, 74, 256,
+  100, 530, 63, -31 m from stage to stage and then flips between the stable limit
+  (Lc/L = 1, u* 0.06 m s-1) and the unstable limit (Lc/L = -2, u* 0.24). A difference of
+  1e-6 K in the air changes sign at every stage and grows to 7500 times its size.
+- **It is not the solver:** at every call the equation for L has one root and an ordinary
+  slope (no fold, no second solution). The gain of the lagged loop is about -2 to -3 per
+  stage; anything below -1 grows.
+- **Cerrado.** The bad steps are in the local afternoon and evening (18-21 UTC). Growth per
+  step 8850 (a C3 crop), 85 (a tree), 35 (C4 grass); 1 with the Obukhov derivative off.
+  Short PFTs do it too: the stable zeta limit of decision 123 removes the stable-night
+  alternation (round 6), not this one.
+- The forward model really does this (the flips are in the forward values), so the large
+  derivative is again the true local slope of a model that overshoots.
+
+### Prototype: the derivative of L damped by the loop's gain
+
+Forward values unchanged (checked bit for bit against the repository, one cerrado day,
+switch off and on). Only the derivative of L is replaced, in `canopy.py::_stage`:
+
+1. the stage's solve once with L's derivative cut: the new canopy-top air and its
+   derivative without L;
+2. the response of that air to L (one forward-mode pass), times the response of L to the
+   air: the **gain** of the loop;
+3. L's derivative is taken as if L had been solved with the new air, divided by
+   (1 - gain): the slope of the consistent solution instead of the lagged one. Applied
+   only where gain < -G; elsewhere the repository's derivative.
+
+Three forms were compared on five cerrado days (reference: ±1 % of `iota`; daily means of
+latent heat, 4 complete days x 18 patches):
+
+| | largest step derivative | patch-days > 5 % off | worst day-4 patches (repository: 58, 4750, 242, 172 %) |
+|---|---|---|---|
+| repository | 2.3e4 | 6 | as given |
+| every step, divisor at least 1 | 100 | 12 | 8, 30, 29, 30 % |
+| every step, divisor at least 0.2 | 420 | 12 | 8, 30, 29, 29 % |
+| only where gain < -0.8 | 100 | 11 | 8, 30, 29, 30 % |
+| only where gain < -2 (used below) | 100 | 10 | similar |
+| only where gain < -4 | 1400 | - | one patch back to 176 % |
+
+### Thirty days (gain < -2)
+
+| | repository | prototype |
+|---|---|---|
+| **Great Plains July**: the two patches, 30-day mean off by | 3764 % and 112 % | 0.1 % and 0.5 % |
+| their days off | 17 and 5 | 0 and 2 |
+| the other 19 patches | unchanged (what is off there is water stress, rounds 9-10) | |
+| **Cerrado January**: largest step derivative | 1.6e9 | 1.7e3 |
+| worst 30-day mean | 5.6e6 % | 11.7 % |
+| patches with the 30-day mean within 1 % / 5 % | 3 / 10 of 18 | 5 / 14 of 18 |
+| patch-days more than 5 % off | 211 of 522 | 170 of 522 |
+| patch-days more than 1 % off | 279 | 333 |
+| forward, per step (CHATS7, CPU), as prototyped | 9.9 ms | 46-47 ms |
+| gradient, per step, as prototyped | 52-53 ms | 176-192 ms |
+| memory | 3.3-3.6 GB | 8-9 GB |
+
+What this says:
+
+- **The explosions are gone**, and where the defect is rare (Great Plains) the result is
+  good: 0.1 and 0.5 % over 30 days.
+- **Where the defect is frequent (cerrado) the result is mediocre.** Monthly means are
+  within 12 %, most within 5 %, but a third of the daily means are still more than 5 %
+  off, and on days where the repository's derivative was right the prototype can be a
+  few percent worse (up to 12 % on two crop patches in the five-day test).
+- Why: where the forward model flips between the stable and the unstable limit from
+  stage to stage, its mean responds to a parameter through *how often* it flips. Neither
+  the true local slope nor the slope of a consistent solution describes that. The
+  ±1 % reference may itself depend on the size of the change there (measured for water
+  stress in round 10, not here).
+- **The cost is the prototype's, not the method's.** The extra passes were written as
+  ordinary code, so the forward run pays for them too (4.7x), and the gradient 3.5x. A
+  production form would be a derivative rule (as round 10), leaving the forward run
+  untouched; its gradient cost was not measured and would be about two extra derivative
+  passes of the stage.
+- Not run: both derivative-only prototypes (this one and round 10) together.
+
+### The forward alternative (not prototyped)
+
+As in rounds 7 and 9, the consistent form would solve L together with the canopy-top air
+of the stage (an outer iteration around the flux-profile solve), which removes the flips
+in the forward model. It changes forward results and costs several flux-profile solves
+per stage. It is a science change and the maintainer's decision.
+
+### Open (maintainer to decide)
+
+- Whether any derivative-only treatment is wanted (rounds 10 and 11: bounded, approximate,
+  forward unchanged), or the consistent forward forms (rounds 9 and this one's
+  alternative: exact derivatives of a model that no longer overshoots, at a forward
+  cost), or neither (use finite differences of means where AD is unreliable).
+- If derivative-only: write the Obukhov one as a derivative rule and measure its cost.

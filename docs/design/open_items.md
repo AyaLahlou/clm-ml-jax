@@ -622,7 +622,13 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   patches, LAI 0.00-0.85): no NaN, all parameter derivatives within 1.3 % of finite
   differences. Cerrado in the wet season (18 patches): 9 sound, 9 with NaN gradients: O79,
   fixed (decision 121): no NaN, AD is the local slope everywhere looked at.
+- **Rounds 5-11 (2026-11-15/16):** decisions 122 and 123; over 30 days two defects are
+  left, the water stress and the Obukhov length, both taken from the start of a stage.
+  Prototypes in scratch (a consistent forward form of the water stress; derivative-only
+  forms of both), none adopted. Summary at the top of `gradient_progress.md`.
 - **Open:**
+  - the choice for those two defects: derivative-only approximations, consistent forward
+    forms, or neither (round 11);
   - the 1° check repeated in other seasons and regions, and for state and forcing
     derivatives;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
