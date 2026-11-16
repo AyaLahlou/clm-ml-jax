@@ -30,7 +30,10 @@ the water left at the end of the sub-step they are gone. **Both are in the code 
 122; `numerics.wetted_fraction`, `explicit` is Fortran's) and the stable zeta limit as a
 PFT parameter `zeta_max_stable` (decision 123; 0.5 for shrubs, grasses and crops, 1e30 = no
 limit for trees).** With them the daily-mean gradients agree with finite differences
-within 2.3 % on the four test days. **Next: round 8 below** (what a 30-day window shows).
+within 2.3 % on the four test days. **Not yet over 30 days (round 8, at the end): good
+for the first three days, then single patches go wrong.** Next: the leaf water potential
+(water stress) treated like the leaf water, and the diagnosis of what is left.
+**Waiting for the maintainer:** whether to go on with these.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -682,4 +685,42 @@ needed by the implicit form, which gives a dry layer a zero gradient.
   evening alternation of round 5 is still there without the zeta limit).
 - Whether to prototype the leaf water potential the same way, and to look at the steep
   evening of the cerrado.
+
+## Round 8: thirty days (2026-11-15). No change to the model
+
+With decisions 122 and 123 in the code. `$SCRATCH/clm-ml-jax/probe_expl/` (`run_30d.sh`,
+`run_30d_b.sh`, `cfg.py` with `NSTEP=1439`; results `repo2_*_30d*.npz`): 30 days from the
+1st, forward-mode derivative of latent heat with respect to `iota` against ±1 %; a
+"patch-day" is one patch's daily mean, "off" more than 5 % from the finite change. One run
+takes 8-12 minutes on a login node; two at once were killed (memory).
+
+| Box, 30 days | Patches with the 30-day mean within 1 % | Patches with a derivative above 1e4 | Patch-days off | Twins (1e-14) apart at most |
+|---|---|---|---|---|
+| Great Plains, July | 12 of 21 (worst: 37 times too large) | 5 | 97 of 609 | 1e-5 W m-2 |
+| the same, water stress off | 19 of 21 (the same worst patch) | 2 | 24 of 609 | 1e-5 |
+| Cerrado, January | 3 of 18 (8 within 5 %; worst 5e4 times) | 7 | 211 of 522 | 4e-3 |
+
+- **The first three days are clean in both boxes** (no patch-day off); the first bad ones
+  are on day 4. The patches that stay good agree to three or four digits over the 30 days.
+- **Water stress (the third lagged feedback of round 7) is confirmed:** with
+  `water_stress: false` 19 of 21 Great Plains patches are within 0.5 % over 30 days and
+  nothing is off before day 13. Stomata take the leaf water potential of the stage's
+  start through `1/(1 + (psi/psi50)^40)`; once a patch reaches stress, single steps have
+  derivatives of 1e4 to 1e7. Not prototyped: the same idea as decision 122 (the leaf
+  water potential the stress uses solved with the transpiration of the stage).
+- **Something else is left:** two Great Plains patches from day 13 without water stress
+  (one 37 times off in the 30-day mean, from a few steps around step 601-622), and the
+  cerrado, where 10 of 18 patches are more than 5 % off (from the steep evening of day 4,
+  round 7). Not diagnosed; whether the cerrado is water stress too is not tested.
+- The forward model is now reproducible over 30 days (twins 1e-5 to 4e-3 W m-2 apart; before
+  decision 122: 39 W m-2 after five days), so **finite differences of means are sound**
+  where AD is not yet.
+
+### Open (maintainer to decide)
+
+- Prototype the leaf water potential treatment (scratch first, as rounds 6-7).
+- Diagnose the two Great Plains patches and the cerrado (power iteration by state block,
+  as round 7).
+- After those: state and forcing derivatives on 1° patches, other seasons and regions, and
+  a longer window in the gradient tier (a 30-day test costs ~10 minutes).
 
