@@ -33,7 +33,12 @@ limit for trees).** With them the daily-mean gradients agree with finite differe
 within 2.3 % on the four test days. **Not yet over 30 days (round 8, at the end): good
 for the first three days, then single patches go wrong.** Next: the leaf water potential
 (water stress) treated like the leaf water, and the diagnosis of what is left.
-**Waiting for the maintainer:** whether to go on with these.
+Round 9 (2026-11-15, prototype in scratch): the stress taken from the leaf water potential
+of the end of the sub-step, solved with its own transpiration, removes the water-stress
+part (Great Plains, 30 days: 97 -> 27 patch-days off, as with water stress off) at a
+forward cost of 1.45x on a CHATS7 day as written (50 halvings). The cerrado is not water
+stress. **Waiting for the maintainer:** whether it goes into the code (and with which
+solver), and the diagnosis of what is left.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -724,3 +729,82 @@ takes 8-12 minutes on a login node; two at once were killed (memory).
 - After those: state and forcing derivatives on 1° patches, other seasons and regions, and
   a longer window in the gradient tier (a 30-day test costs ~10 minutes).
 
+## Round 9: water stress from the leaf water potential of the end of the sub-step, prototype (2026-11-15). No change to the model
+
+Prototype: `$SCRATCH/clm-ml-jax/trees/lwp` (commit 3f9e0f9 plus `lwp_prototype.diff`;
+switch `CLM_LWP=implicit`, off: the repository code). Probes and results:
+`$SCRATCH/clm-ml-jax/probe_lwp/` (`cfg.py` as round 7, `cmp.py`, `run5.sh`, `run30.sh`,
+`newton_test.py`).
+
+### The defect and the prototype
+
+In each stage the stomata take the stress `f = 1 / (1 + (psi / psi50)^shape)` of the leaf
+water potential at the start of the stage, transpiration follows from them, and the
+potential is then updated from that transpiration (Fortran the same: `LeafPhotosynthesis`
+before `LeafWaterPotential`). Near the threshold the function is very steep (`shape_gs`
+40): a leaf that looks wet opens, transpires and falls below the threshold; in the next
+stage it looks dry and closes. The derivative of one step with respect to the potential
+is then far above 1 (round 8: 1e4 to 1e7).
+
+The prototype solves the potential the stress uses together with its transpiration, per
+leaf (as decision 122 for the water on the leaves):
+
+    psi = psi_bef + (psis - HEAD zs - 1000 tr(psi) / lsc - psi_bef) (1 - exp(-dt lsc / capac))
+    tr(psi) = fdry gleaf(max(gspot f(psi), gs_min)) max(esat(tleaf) - eair, 0) / pref
+
+`plant_hydraulics.leaf_water_potential` with the transpiration of
+`flux_profile.leaf_fluxes` at the stage's leaf temperature and vapour pressure. The left
+side minus the right rises with `psi` with a slope of at least 1: exactly one root,
+between the potentials of the unstressed and of the minimum conductance. 50 halvings of
+that interval; the gradient by the implicit function (decision 119), its slope bounded.
+The potential carried in the state is still updated after the flux solution from the
+transpiration it gives: the water budget is unchanged. Unstressed leaves (`f` = 1) are
+not changed.
+
+### Results (latent heat, AD against ±1 % of `iota`)
+
+| | repository | prototype | repository, water stress off |
+|---|---|---|---|
+| Great Plains, 1-5 July: patches with the mean within 1 % | 16 of 21 (worst 15.8 %) | 21 of 21 (worst 0.15 %) | |
+| Great Plains, 30 days: patches within 1 % | 12 of 21 | 18 of 21 | 19 of 21 |
+| the same: patch-days off | 97 of 609 | 27 of 609 | 24 of 609 |
+| the same: first day with a patch off | 4 | 13 | 13 |
+| the same: patches with a derivative above 1e4 | 5 | 2 | 2 |
+| the same: twins (1e-14) apart at most | 1e-5 W m-2 | 3.5e-6 | 1e-5 |
+| Cerrado, January, 30 days: patch-days off | 211 of 522 | 211 of 522 | |
+| CHATS7, one day | 0.3 % | 0.3 % | |
+
+- **The water-stress part is removed:** with the prototype the Great Plains are where
+  they are with water stress switched off. Left: the two patches of round 8 from day 13
+  (37 and 2 times too large in the 30-day mean) and one patch 2.3 % off; the other 18
+  within 0.3 %.
+- **The cerrado is not water stress:** the prototype changes its forward run by 3e-6
+  W m-2 and nothing in the gradients; the prototype with water stress off gives the same
+  211 patch-days.
+- **Forward change** (a science change): Great Plains 30 days −0.10 W m-2 latent heat
+  (worst patch −0.58; single steps up to 29 W m-2 where the stress sets in), five days
+  −0.04 (−0.30); CHATS7 −0.013 W m-2 (largest step 0.5).
+
+### Cost (`timing/time_model.py --steps 47`, CHATS7, CPU, two runs each)
+
+| | switch off | prototype |
+|---|---|---|
+| forward, per step | 9.9-10.4 ms | 14.5-14.8 ms (1.45 times) |
+| gradient, per step | 52-57 ms | 91-97 ms (1.75 times) |
+
+The cost is the 50 evaluations of the power `(psi / psi50)^shape` per leaf and stage.
+Fewer evaluations were tried on random leaves only (`newton_test.py`, not in the model):
+with the two corners taken out exactly (unstressed; minimum conductance), 8 halvings and
+8 Newton steps are within 1e-13 MPa for all but ~5 of 400 000 leaves (those within 1e-7),
+which would be about a third of the evaluations; Newton alone crawls (the function is
+almost a step). A solver that does not reach round-off on every leaf is a discrete
+defect of the kind the noise-twin test finds, so this is not a finished alternative.
+
+### Open (maintainer to decide)
+
+- Whether the implicit stress potential goes into the code (a science change; a setting
+  with Fortran's form as the other choice, as decision 122), and at which cost: as
+  written (1.45 times forward), or after work on a cheaper solver that still reaches
+  round-off.
+- The diagnosis of what is left (unchanged from round 8): the two Great Plains patches
+  from day 13, and the cerrado (now known not to be water stress).
