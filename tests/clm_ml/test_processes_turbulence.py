@@ -43,12 +43,12 @@ def _forcing(thref=296.0, taf=294.0, uref=3.0):
     )  # fmt: skip
 
 
-def _run(ground="log_profile", **forcing):
+def _run(ground="log_profile", unroll=False, **forcing):
     f = _forcing(**forcing)
     return turb.harman_finnigan(
         _layers(), f["tair"], f["eair"], f["pref"], f["ztop"], f["lai"], f["sai"], f["zref"],
         f["uref"], f["thref"], f["thvref"], f["qref"], f["rhomol"], default_rsl_tables(),
-        sparse_canopy=True, ground_conductance=ground,
+        sparse_canopy=True, ground_conductance=ground, unroll=unroll,
     )  # fmt: skip
 
 
@@ -115,6 +115,65 @@ def test_lookup_psihat_on_nodes_and_outside():
     )
 
 
+@pytest.mark.parametrize("search", ["unrolled", "compare_all"])
+def test_lookup_psihat_search_methods_agree(search):
+    """Every table search (numerics.table_search, decision 114) finds the same grid cell:
+    the lookup is identical inside the grid, on its nodes, on its edges and outside."""
+    m = default_rsl_tables().momentum
+    rng = np.random.default_rng(0)
+    zdt = np.concatenate([rng.uniform(-1.0, 52.0, 500), m.zdt, m.zdt[:1] + 1.0, [0.0]])
+    dtl = np.concatenate([rng.uniform(-3.0, 3.0, 500), m.dtl, m.dtl[-1:] + 1.0, [0.0]])
+    zz, ll = (jnp.asarray(a) for a in np.meshgrid(zdt, dtl, indexing="ij"))
+    lookup = jax.vmap(jax.vmap(turb.lookup_psihat, (0, 0, None, None)), (0, 0, None, None))
+    np.testing.assert_array_equal(lookup(zz, ll, m, search), lookup(zz, ll, m, "loop"))
+
+
+def test_psi_rsl_shares_the_table_searches():
+    """psi_rsl finds the places of its two heights and of (h - d)/L once for the four
+    lookups (decision 115): the same psihat values as four separate lookups."""
+    tables = default_rsl_tables()
+    za, hc, disp, obu, beta, PrSc = 23.0, 10.0, 7.3, -41.0, 0.33, 0.6
+    psim, psic, _, psim_hat2 = turb.psi_rsl(za, hc, disp, obu, beta, PrSc, tables)
+    dt = hc - disp
+    hat = [
+        turb.lookup_psihat(zdt, dt / obu, table)
+        for table in (tables.momentum, tables.scalar)
+        for zdt in ((za - hc) / dt, 0.0)
+    ]
+    c1_m = (1.0 - vkc / (2.0 * beta * turb.phim_monin_obukhov(dt / obu))) * jnp.exp(0.5 * turb.c2)
+    c1_c = (1.0 - PrSc * vkc / (2.0 * beta * turb.phic_monin_obukhov(dt / obu))) * jnp.exp(
+        0.5 * turb.c2
+    )
+    assert float(psim_hat2) == float(hat[1] * c1_m)
+    mo_m = -turb.psim_monin_obukhov((za - disp) / obu) + turb.psim_monin_obukhov(dt / obu)
+    mo_c = -turb.psic_monin_obukhov((za - disp) / obu) + turb.psic_monin_obukhov(dt / obu)
+    assert float(psim) == float(mo_m + hat[0] * c1_m - hat[1] * c1_m + vkc / beta)
+    assert float(psic) == float(mo_c + hat[2] * c1_c - hat[3] * c1_c)
+
+
+def test_tables_must_share_their_grids(tmp_path):
+    """The momentum and scalar tables are on one pair of grids (decision 115): a file where
+    they differ is refused."""
+    import xarray as xr
+
+    from clm_ml.io.rsl_tables import read_rsl_tables, rsl_table_file
+
+    with xr.open_dataset(rsl_table_file()) as ds:
+        ds = ds.load()
+    ds["dtLgridH"] = ds["dtLgridH"] * 1.5
+    ds.to_netcdf(tmp_path / "psihat.nc")
+    with pytest.raises(ValueError, match="same grids"):
+        read_rsl_tables(tmp_path / "psihat.nc")
+
+
+def test_table_search_follows_the_device():
+    from clm_ml import driver
+
+    assert driver.table_search("compare_all") == "compare_all"
+    expected = "unrolled" if jax.default_backend() == "gpu" else "loop"
+    assert driver.table_search("auto") == expected
+
+
 def test_obukhov_gradient_is_the_implicit_one():
     """d obu / d thref by jax.grad (implicit-function correction) vs central differences of
     the solver's forward value."""
@@ -130,3 +189,19 @@ def test_obukhov_gradient_is_the_implicit_one():
 
 def test_registry():
     assert turb.ROUGHNESS_SUBLAYER == {"harman_finnigan": turb.harman_finnigan}
+
+
+def test_solver_loops_follow_the_device():
+    from clm_ml import driver
+
+    assert driver.solver_loops("unrolled") is True and driver.solver_loops("loop") is False
+    assert driver.solver_loops("auto") == (jax.default_backend() == "gpu")
+
+
+@pytest.mark.parametrize("taf", [294.0, 295.8, 296.5])
+def test_unrolled_iterations_match_the_loops(taf):
+    """The Obukhov and roughness-length iterations written out (numerics.solver_loops,
+    decision 117) are the loops' iterations."""
+    loop, unrolled = _run(taf=taf), _run(taf=taf, unroll=True)
+    for name in ("obu", "z0m", "ustar", "wind", "gac"):
+        np.testing.assert_allclose(getattr(unrolled, name), getattr(loop, name), rtol=1e-12)

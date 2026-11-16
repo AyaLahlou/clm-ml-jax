@@ -46,6 +46,7 @@ def norman(
     tg,
     layers: PatchLayers,
     leaf_emissivity,
+    unroll: bool = False,
 ) -> LongwaveFluxes:
     """Norman (1979) longwave radiative transfer for any layer counts.
 
@@ -55,7 +56,8 @@ def norman(
     are one tridiagonal system of ``2 * max_layers + 2`` rows: the real rows in Fortran order
     (ground, then two rows per leafy layer), the sky row right after them, then identity rows
     (x = 0) for the unused leafy slots. The sky row has no upper coupling, so the identity
-    rows do not change the solution.
+    rows do not change the solution. ``unroll``: the solve's loops over rows written out
+    (``math.tridiag``).
 
     Fortran reference: MLLongwaveRadiationMod.F90::Norman.
     Reads: ``tleaf_leaf``, ``fracsun_profile``, ``td_profile``, ``dpai_profile``,
@@ -110,7 +112,7 @@ def norman(
     ctri = jnp.where(is_sky, 0.0, ctri)
     dtri = jnp.where(is_sky, lwsky, dtri)
 
-    u = tridiag(atri, btri, ctri, dtri)
+    u = tridiag(atri, btri, ctri, dtri, unroll=unroll)
 
     # Unknowns: up(ground), dn(ground), then up, dn of each leafy layer (level = slot + 1)
     lev_out = jnp.where(valid, ics + 1, n_slots + 1)  # unused slots write a dropped entry

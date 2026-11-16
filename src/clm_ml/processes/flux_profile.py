@@ -211,7 +211,12 @@ def soil_fluxes(tair1, eair1, ground: Ground, ref: Reference) -> SoilFluxes:
 
 
 def implicit(
-    canopy: Canopy, ground: Ground, ref: Reference, layers: PatchLayers, dtime
+    canopy: Canopy,
+    ground: Ground,
+    ref: Reference,
+    layers: PatchLayers,
+    dtime,
+    unroll: bool = False,
 ) -> FluxProfile:
     """Implicit flux-profile solution (Bonan et al. 2018): leaf temperatures and the ground
     temperature are linear in the air temperature and water vapor of their layer
@@ -219,7 +224,8 @@ def implicit(
     of all layers solve one coupled tridiagonal system (``tridiag_2eq``), with the ground
     below the first layer and the reference height above the top layer. The leaf and soil
     fluxes are then those of :func:`leaf_fluxes` and :func:`soil_fluxes` at the solved
-    profiles; vertical fluxes between layers and the air storage follow.
+    profiles; vertical fluxes between layers and the air storage follow. ``unroll``: the
+    solve's loops over layers written out (``math.tridiag``).
 
     Fortran reference: MLFluxProfileSolutionMod.F90::ImplicitFluxProfileSolution (with
     ``LeafFluxes`` and ``SoilFluxes``; the CO2 profile set to ``co2ref`` stays in the adapter).
@@ -336,7 +342,7 @@ def implicit(
     b11, b22 = jnp.where(use, b11, one), jnp.where(use, b22, one)
 
     # Air temperature (K) and water vapor (mol/mol); padding: the top layer's (finite)
-    t_sol, q_sol = tridiag_2eq(a1, b11, b12, c1, d1, a2, b21, b22, c2, d2, n_slots)
+    t_sol, q_sol = tridiag_2eq(a1, b11, b12, c1, d1, a2, b21, b22, c2, d2, n_slots, unroll)
     tair = pad(jnp.stack(t_sol))
     qair = pad(jnp.stack(q_sol))
 

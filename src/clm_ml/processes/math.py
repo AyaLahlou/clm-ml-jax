@@ -39,8 +39,10 @@ def is_concrete(*values) -> bool:
 # ---------------------------------------------------------------------------
 
 
-@functools.partial(jax.jit, static_argnames=("func", "tol", "itmax"))
-def bisection_traceable(func, xa, xb, tol: float, itmax: int, c_init=None, args=()):
+@functools.partial(jax.jit, static_argnames=("func", "tol", "itmax", "unroll"))
+def bisection_traceable(
+    func, xa, xb, tol: float, itmax: int, c_init=None, args=(), unroll: bool = False
+):
     """
     JAX-traceable bisection with the Fortran stopping rule.
 
@@ -69,6 +71,8 @@ def bisection_traceable(func, xa, xb, tol: float, itmax: int, c_init=None, args=
         c_init: Value returned if no halving is done (Fortran leaves ``c``
             undefined; defaults to ``xa`` as in :func:`bisection_scalar`).
         args: Further arguments of ``func`` (traced).
+        unroll: The halvings written out instead of a compiled loop (the same halvings;
+            model.yaml ``numerics.solver_loops``, decision 117).
 
     Returns:
         The last midpoint.
@@ -90,7 +94,8 @@ def bisection_traceable(func, xa, xb, tol: float, itmax: int, c_init=None, args=
         c = jnp.where(active, c_new, c)
         return a, b, fa, c, jnp.logical_not(active)
 
-    _, _, _, c, _ = jax.lax.fori_loop(0, itmax, body, (a, b, fa, c0, jnp.asarray(False)))
+    init = (a, b, fa, c0, jnp.asarray(False))
+    _, _, _, c, _ = jax.lax.fori_loop(0, itmax, body, init, unroll=unroll or None)
     return c
 
 
@@ -153,7 +158,14 @@ def quadratic(a: float, b: float, c: float) -> Tuple[float, float]:
 # ---------------------------------------------------------------------------
 
 
-def tridiag(a: Array, b: Array, c: Array, r: Array, min_pivot: float | None = None) -> Array:
+def tridiag(
+    a: Array,
+    b: Array,
+    c: Array,
+    r: Array,
+    min_pivot: float | None = None,
+    unroll: bool = False,
+) -> Array:
     """
     Solve a tridiagonal system with the Thomas algorithm, as ``lax.scan`` loops.
 
@@ -161,7 +173,7 @@ def tridiag(a: Array, b: Array, c: Array, r: Array, min_pivot: float | None = No
 
     Row ``j`` (0-based) reads ``a[j] u[j-1] + b[j] u[j] + c[j] u[j+1] = r[j]``; ``a[0]`` and
     ``c[-1]`` are not used. The arithmetic per row is Fortran's; the loops are scans, so the
-    compiled program does not grow with the number of rows.
+    compiled program does not grow with the number of rows (unless ``unroll``).
 
     Args:
         a, b, c: Lower, main and upper diagonals, shape ``(n,)``.
@@ -169,6 +181,9 @@ def tridiag(a: Array, b: Array, c: Array, r: Array, min_pivot: float | None = No
         min_pivot: If given, every pivot ``bet`` is replaced by ``max(|bet|, min_pivot)``
             (the guard the solar radiation and soil temperature solves have used since the
             translation; not in Fortran). ``None``: Fortran's unguarded pivots.
+        unroll: The rows written out one after another instead of compiled loops (the same
+            operations in the same order; faster on a GPU, where every loop iteration is
+            a separate command; model.yaml ``numerics.solver_loops``, decision 117).
 
     Returns:
         The solution ``u``, shape ``(n,)``.
@@ -188,14 +203,15 @@ def tridiag(a: Array, b: Array, c: Array, r: Array, min_pivot: float | None = No
 
     one, zero = jnp.ones((), dtype=b.dtype), jnp.zeros((), dtype=b.dtype)
     # First row: gam = 0 / 1 = 0, bet = b[0] - a[0] * 0, u = (r[0] - a[0] * 0) / bet
-    _, (gam, u) = jax.lax.scan(_forward, (one, zero, zero), (a.at[0].set(0.0), b, c, r))
+    rows = (a.at[0].set(0.0), b, c, r)
+    _, (gam, u) = jax.lax.scan(_forward, (one, zero, zero), rows, unroll=unroll or 1)
 
     def _back(u_next, row):
         u_j, gam_next = row
         u_j = u_j - gam_next * u_next
         return u_j, u_j
 
-    _, u_head = jax.lax.scan(_back, u[-1], (u[:-1], gam[1:]), reverse=True)
+    _, u_head = jax.lax.scan(_back, u[-1], (u[:-1], gam[1:]), reverse=True, unroll=unroll or 1)
     return jnp.concatenate([u_head, u[-1:]])
 
 
@@ -216,6 +232,7 @@ def tridiag_2eq(
     c2: list[float],
     d2: list[float],
     n: int,
+    unroll: bool = False,
 ) -> Tuple[Array, Array]:
     """
     Solve the coupled tridiagonal system for air temperature ``t`` and
@@ -252,6 +269,7 @@ def tridiag_2eq(
         a2, b21, b22, c2, d2: Coefficients for the water vapour equation,
             each length at least ``n``, 0-indexed.
         n: Number of layers.
+        unroll: The rows written out instead of compiled loops (as :func:`tridiag`).
 
     Returns:
         Tuple ``(t, q)`` of solution vectors, each of length ``n``, 0-indexed.
@@ -263,8 +281,10 @@ def tridiag_2eq(
     return jax.lax.custom_linear_solve(
         functools.partial(_tridiag_2eq_matvec, coefficients),
         (d1, d2),
-        solve=lambda _, d: _tridiag_2eq_solve(a1, b11, b12, c1, d[0], a2, b21, b22, c2, d[1], n),
-        transpose_solve=lambda _, g: _tridiag_2eq_transpose_solve(coefficients, g),
+        solve=lambda _, d: _tridiag_2eq_solve(
+            a1, b11, b12, c1, d[0], a2, b21, b22, c2, d[1], n, unroll
+        ),
+        transpose_solve=lambda _, g: _tridiag_2eq_transpose_solve(coefficients, g, unroll),
     )
 
 
@@ -290,7 +310,7 @@ def _tridiag_2eq_matvec(coefficients, x):
     )
 
 
-def _tridiag_2eq_transpose_solve(coefficients, g):
+def _tridiag_2eq_transpose_solve(coefficients, g, unroll: bool = False):
     """Solve ``A^T z = g`` for the reverse-mode derivative of :func:`tridiag_2eq`, with
     the same block Thomas algorithm.
 
@@ -304,7 +324,7 @@ def _tridiag_2eq_transpose_solve(coefficients, g):
     a1T, a2T = _shift_down(c1), _shift_down(c2)
     c1T, c2T = _shift_up(a1), _shift_up(a2)
     return _tridiag_2eq_solve(
-        a1T, b11, b21, c1T, _as_array(g[0]), a2T, b12, b22, c2T, _as_array(g[1]), None
+        a1T, b11, b21, c1T, _as_array(g[0]), a2T, b12, b22, c2T, _as_array(g[1]), None, unroll
     )
 
 
@@ -325,12 +345,14 @@ def _tridiag_2eq_solve(
     c2,
     d2,
     n,
+    unroll: bool = False,
 ):
     """Core Thomas algorithm for the block-2x2 tridiagonal system.
 
     Accepts lists of scalars or 1-D arrays (0-based rows); returns ``(t, q)`` arrays. The
     forward elimination and the back substitution are ``lax.scan`` loops (the per-row
-    arithmetic as before), so the compiled program does not grow with the number of rows.
+    arithmetic as before), so the compiled program does not grow with the number of rows;
+    ``unroll`` writes the rows out instead (as :func:`tridiag`).
     """
     rows = tuple(_as_array(x) for x in (a1, b11, b12, c1, d1, a2, b21, b22, c2, d2))
     _eps_det = jnp.asarray(1.0e-10)
@@ -357,7 +379,9 @@ def _tridiag_2eq_solve(
         return out, out
 
     zero = jnp.zeros((), dtype=rows[0].dtype)
-    _, (e11, e12, e21, e22, f1, f2) = jax.lax.scan(_eliminate, (zero,) * 6, rows)
+    _, (e11, e12, e21, e22, f1, f2) = jax.lax.scan(
+        _eliminate, (zero,) * 6, rows, unroll=unroll or 1
+    )
 
     # Back substitution from the top row: t = f1 - e11 t_next - e12 q_next (the top row has
     # no row above: t = f1, q = f2)
@@ -374,6 +398,7 @@ def _tridiag_2eq_solve(
         top,
         (e11[:-1], e12[:-1], e21[:-1], e22[:-1], f1[:-1], f2[:-1]),
         reverse=True,
+        unroll=unroll or 1,
     )
     return jnp.concatenate([t, f1[-1:]]), jnp.concatenate([q, f2[-1:]])
 

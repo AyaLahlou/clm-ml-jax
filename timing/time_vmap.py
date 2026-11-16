@@ -5,9 +5,13 @@ patch axis as a domain runs (``clm_ml.model.Model``; Phase 7.4).
 
 Measures, for one N per process (so peak device memory is per N):
 
-- forward: one compiled chunk of ``--steps`` steps over N patches, run twice (the second run is
-  the steady cost); patch-steps per second;
-- gradient (``--grad``): d(mean latent heat of the CHATS7 patch)/d(parameters);
+- forward: one compiled chunk of ``--steps`` steps over N patches, called four times (the
+  first call compiles; the steady cost is the fastest of the third and fourth); patch-steps
+  per second;
+- gradient (``--grad``): d(mean latent heat of the CHATS7 patch)/d(parameters), likewise.
+  The second call of an un-jitted ``jax.grad`` is not steady (``gradient_second_s``): until
+  2026-11-14 this script reported it as the steady cost, so older gradient lines of the
+  results file are too high;
 - peak device memory (``memory_stats``; GPU only) and peak resident set size;
 - check: the CHATS7 patch equals its one-patch run (largest relative difference).
 
@@ -55,7 +59,12 @@ def main() -> None:
     first, n, npatch = 1, args.steps, args.patches
     # the CHATS7 patch and N - 1 padded copies of it (execution.patch_count; weight 0 for the
     # copies, which compute everything all the same): one batched program, as a domain runs
-    extra = [f"run.execution.patch_count={npatch}"] if npatch > 1 else []
+    # (with one padding gridcell for the copies, as execution.patch_count requires)
+    extra = (
+        [f"run.execution.patch_count={npatch}", "run.execution.gridcell_count=2"]
+        if npatch > 1
+        else []
+    )
     if args.devices > 1:
         extra.append(f"run.execution.devices={args.devices}")
     model = Model.from_experiment(load_experiment(tmp, extra))
@@ -75,14 +84,16 @@ def main() -> None:
     fns = [("forward", forward)] + ([("gradient", jax.grad(loss))] if args.grad else [])
     for name, fn in fns:
         times = []
-        for _ in range(2):
+        for _ in range(4):
             t = time.perf_counter()
             out = jax.block_until_ready(fn(params))
             times.append(time.perf_counter() - t)
+        steady = min(times[2:])
         result[f"{name}_first_s"] = round(times[0], 2)
-        result[f"{name}_steady_s"] = round(times[1], 4)
-        result[f"{name}_steady_per_step_ms"] = round(1000 * times[1] / n, 2)
-        result[f"{name}_patch_steps_per_s"] = round(npatch * n / times[1], 1)
+        result[f"{name}_second_s"] = round(times[1], 4)
+        result[f"{name}_steady_s"] = round(steady, 4)
+        result[f"{name}_steady_per_step_ms"] = round(1000 * steady / n, 2)
+        result[f"{name}_patch_steps_per_s"] = round(npatch * n / steady, 1)
         if name == "forward":
             _, ref = single.run_chunk(single.initial_state(), single.forcing(first, n), first,
                                       streams=[stream])  # fmt: skip

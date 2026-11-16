@@ -63,6 +63,8 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O71 | ~~Forward-mode gradients (`jax.jvp`, `jax.jacfwd`) fail: `tridiag_2eq` has a reverse-only custom rule~~ (closed: decision 104) | bug (gradients) | closed | I (approach agreed with M) |
 | O72 | ~~Environment now has JAX 0.10.2; the regression reference and the JAX workarounds are from 0.9.2~~ (closed: decision 105, keep 0.10.2) | testing / environment | closed | M |
 | O73 | ~~The environment has no CUDA plugin: GPU jobs cannot see the GPUs~~ (closed: plugin 0.10.2 installed, `environment.yml`) | environment | closed | M |
+| O75 | `jax.grad` of `tridiag_2eq` with respect to only some of its coefficients fails inside JAX (was a second O74 until 2026-11-14) | bug (gradients, latent) | after 8 | I |
+| O76 | Gradients: speed, then quality and accuracy (branch `gpu_grad`) | performance / robustness (gradients) | after 8 | M |
 | **4. Housekeeping and repository organization (8a)** |||||
 | O34 | ~~`.gitignore` names absent directories (`docs/` rule removed)~~ (closed: pruned) | housekeeping | closed | I |
 | O35 | ~~Empty `.gitmodules`; CONTRIBUTING describes a submodule~~ (closed: .gitmodules deleted) | housekeeping | closed | I |
@@ -379,7 +381,11 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Kind:** bug (reproducibility) · **Target:** after 8 (GPU work) · **Decides:** I
 - **What:** on the GPU about one fresh compile in five gives a program whose results differ
   by ~1e-11 (within the noise twin). Diagnosis unfinished (setup programs get different
-  cache keys in each process). Bit for bit is a CPU-only test.
+  cache keys in each process). Bit for bit is a CPU-only test. On the 1° globe (GPU steps
+  1 and 2a, `gpu_progress.md`): two variants of the unchanged program are 5e-14 apart after
+  two steps and more than 1e-6 apart after a day in 5.8 % of the patches; with the loops
+  written out (decision 117) one variant differs after two steps by up to 4.4e-8 in 199
+  patches.
 - **Source:** C4 ("Open"); CLAUDE.md gotchas.
 
 ### O28. A failing patch still enters its chunk's gridcell sums
@@ -527,6 +533,44 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **Next:** install the plugin matching JAX (`pip install "jax[cuda12]==0.10.2"`), then run
   the GPU gradient tier (`jobs/grad_gpu.pbs`) once.
 - **Source:** found while closing O72 (2026-11-02).
+
+### O75. `tridiag_2eq`: gradient with respect to only some coefficients
+- **Kind:** bug (gradients, latent) · **Target:** after 8 · **Decides:** I
+- **What:** `jax.grad` of `math.py::tridiag_2eq` with respect to one coefficient array, the
+  others held constant, raises inside JAX's `custom_linear_solve` (an `AssertionError` in its
+  transpose rule for `a1` alone, a `TypeError` in its JVP for `d1` alone; JAX 0.10.2). With
+  all coefficients differentiated together, as the model always does, both modes work and
+  are tested (`test_processes_math.py`). Not diagnosed: seen while writing the decision-117
+  test, with and without written-out loops. It would matter if a caller ever passed a
+  constant coefficient array.
+- **Source:** GPU step 2a, 2026-11-13 (`gpu_progress.md`). Numbered O74 at first, a number
+  already taken by "Compsets separate from the grid"; renumbered O75 on 2026-11-14.
+
+### O76. Gradients: speed, then quality and accuracy
+- **Kind:** performance / robustness (gradients) · **Target:** after 8 · **Decides:** M
+- **What:** the maintainer's use is sensitivity experiments (parameters, states, forcings),
+  at a tower first and globally later. Speed first, then the quality and accuracy of the
+  gradients (zeros, NaNs, agreement with finite differences). Branch `gpu_grad` (from
+  `gpu_opt`); log [`gradient_progress.md`](gradient_progress.md).
+- **Round 1 (2026-11-14, measurements only):** the gradient timings up to 2026-11-13 were of
+  the second call, which is not steady (decision 118). Steady state: a tower on the CPU runs
+  forward at 9.3 ms per step, one forward-mode derivative at 17, the reverse-mode gradient
+  at 48; on an A100 the gradient is 3 times faster with the loops written out (219 ms per
+  step) than with loops (659), not slower.
+- **Open:**
+  - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
+    step for all 27 parameters on the CPU) or reverse mode (one number, every input);
+  - the checkpoint layout as a setting (the step is computed three times for a gradient;
+    without checkpoints the CPU gradient is 16 % faster and needs ~6 times the memory per
+    step);
+  - GPU measurements of checkpointing and of batched forward mode;
+  - a jitted derivative (`jax.jit(jax.grad(...))`, `jax.jit(jax.jvp(...))`) of
+    `Model.run_chunk` as the very first call on a model fails with a tracer error
+    (`driver.output_shapes` fills its host cache inside the trace); it works after one
+    plain call;
+  - the CPU gradient with `numerics.solver_loops: unrolled` (not the default) ended without
+    a result or a message; not investigated.
+- **Source:** maintainer, 2026-11-14.
 
 ## 4. Housekeeping and repository organization (8a)
 
@@ -722,6 +766,19 @@ Kernel count per step (Phase 6 step 1c), C3/C4 groups traced twice in mixed batc
 (decision 22, D10), the decision-33 GPU check, a full-year global run; a chunk is 11 %
 slower than in Phase 6b (program 2.32 GB → 4 MB, compile 840 s → 61 s in Phase 7).
 **Source:** plan "After Phase 8: GPU performance"; D10; `phase7_progress.md` timing.
+Plan (2026-11-13, branch `gpu_opt`): `gpu_optimization_plan.md`; target and scope in
+decision 113; open there: unrolling budget, padded-step skipping. Step 0 measured (2026-11-13,
+`gpu_progress.md`): the psihat table search is 94 % of the GPU commands; a prototype reaches 1.86×.
+Step 1 done (decisions 114-116): 1.87× (1.06 s per step, 68 500 patch-steps/s), padded steps
+free. Paused 2026-11-13 by the maintainer and resumed the same evening. Step 2a done
+(decision 117): the layer and turbulence loops written out on GPUs, **2.85× (0.70 s per
+step, 104 300 patch-steps/s); the 2× target is met**. The forward work was
+stopped there by the maintainer (2026-11-14); `gpu_opt` goes to `main` as a pull request
+(2026-11-16). The
+gradient slowdown reported with step 2a was a timing error (decision 118): with the loops
+written out GPU gradients are 1.6–3× faster; their compile is 4–5× longer (6–8 min, once).
+Gradient work continues as O76. Open (`gpu_progress.md` "Resume here"): the round-off amplification
+between GPU compiles (O27), now also seen after two steps in 199 patches.
 
 ### O56. Unsupported variants
 Well-mixed flux profile and dataset profiles (fail on traced layer counts), Norman solar

@@ -68,10 +68,30 @@ class PsihatTable(NamedTuple):
 
 
 class RSLTables(NamedTuple):
-    """The psihat lookup tables for momentum and scalars."""
+    """The psihat lookup tables for momentum and scalars, on one pair of grids (as in
+    CLM-ml v2's ``psihat.nc``; decision 115): a place found on the grids serves both tables."""
 
-    momentum: PsihatTable
-    scalar: PsihatTable
+    zdt: Array  # (nZ,) (z - h) / (h - d), decreasing
+    dtl: Array  # (nL,) (h - d) / L, increasing
+    psi_momentum: Array  # (nZ, nL) psihat for momentum
+    psi_scalar: Array  # (nZ, nL) psihat for scalars
+
+    @property
+    def momentum(self) -> PsihatTable:
+        return PsihatTable(self.zdt, self.dtl, self.psi_momentum)
+
+    @property
+    def scalar(self) -> PsihatTable:
+        return PsihatTable(self.zdt, self.dtl, self.psi_scalar)
+
+
+#: How the psihat tables are searched, by name (model.yaml ``numerics.table_search``) -> the
+#: ``jnp.searchsorted`` method: ``loop`` is a binary search as a compiled loop (fastest on the
+#: CPU), ``unrolled`` the same binary search without the loop, ``compare_all`` a comparison
+#: with every grid value. All return the same indices. On a GPU every loop iteration is a
+#: separate command, and these searches were 89 % of a step's loop iterations
+#: (docs/design/gpu_progress.md, decision 114).
+TABLE_SEARCH = {"loop": "scan", "unrolled": "scan_unrolled", "compare_all": "compare_all"}
 
 
 # ---------------------------------------------------------------------------
@@ -150,23 +170,23 @@ def psic_monin_obukhov(zeta):
 # ---------------------------------------------------------------------------
 
 
-def lookup_psihat(zdt, dtl, table: PsihatTable):
-    """Bilinear interpolation of the unscaled psihat ``A[(z-h)/(h-d), (h-d)/L]`` in
-    ``table`` (multiplied by ``c1`` it is psihat). Outside the grid, both neighbours are the
-    edge value (weights 1/2 each, as Fortran).
+class _Bracket(NamedTuple):
+    """A value's place on one grid of the psihat tables: its two neighbours and their
+    weights (both the edge value, 1/2 each, outside the grid)."""
 
-    Fortran reference: MLCanopyTurbulenceMod.F90::LookupPsihat (Bonan et al. 2018,
-    eq. A21).
-    """
+    i1: Array
+    i2: Array
+    w1: Array
+    w2: Array
+
+
+def _dtl_bracket(dtl, dtLg, method: str) -> _Bracket:
+    """The place of ``(h - d)/L`` on its grid ``dtLg`` (increasing)."""
     dtl = jnp.asarray(dtl)
-    zdt = jnp.asarray(zdt)
-    dtLg, zdtg, pg = (jnp.asarray(a) for a in (table.dtl, table.zdt, table.psi))
+    dtLg = jnp.asarray(dtLg)
     nL = dtLg.shape[0]
-    nZ = zdtg.shape[0]
-
-    # (h - d)/L bracket (grid increasing)
     at_bnd_L = (dtl <= dtLg[0]) | (dtl > dtLg[-1])
-    L2_raw = jnp.clip(jnp.searchsorted(dtLg, dtl, side="right"), 0, nL - 1)
+    L2_raw = jnp.clip(jnp.searchsorted(dtLg, dtl, side="right", method=method), 0, nL - 1)
     L1_raw = jnp.maximum(L2_raw - 1, 0)
     # jnp.maximum avoids select op -> prevents XLA select_divide_fusion bug
     denom_L = jnp.maximum(dtLg[L2_raw] - dtLg[L1_raw], 1.0e-30)
@@ -174,10 +194,17 @@ def lookup_psihat(zdt, dtl, table: PsihatTable):
     wL2 = 1.0 - wL1
     L1 = jnp.where(dtl <= dtLg[0], 0, jnp.where(dtl > dtLg[-1], nL - 1, L1_raw))
     L2 = jnp.where(dtl <= dtLg[0], 0, jnp.where(dtl > dtLg[-1], nL - 1, L2_raw))
+    return _Bracket(L1, L2, wL1, wL2)
 
-    # (z - h)/(h - d) bracket (grid decreasing: searched as its negative)
+
+def _zdt_bracket(zdt, zdtg, method: str) -> _Bracket:
+    """The place of ``(z - h)/(h - d)`` on its grid ``zdtg`` (decreasing: searched as its
+    negative)."""
+    zdt = jnp.asarray(zdt)
+    zdtg = jnp.asarray(zdtg)
+    nZ = zdtg.shape[0]
     at_bnd_Z = (zdt > zdtg[0]) | (zdt < zdtg[-1])
-    Z1_raw = jnp.clip(jnp.searchsorted(-zdtg, -zdt, side="right") - 1, 0, nZ - 2)
+    Z1_raw = jnp.clip(jnp.searchsorted(-zdtg, -zdt, side="right", method=method) - 1, 0, nZ - 2)
     Z2_raw = Z1_raw + 1
     # jnp.maximum avoids select op -> prevents XLA select_divide_fusion bug
     denom_Z = jnp.maximum(zdtg[Z1_raw] - zdtg[Z2_raw], 1.0e-30)
@@ -185,12 +212,32 @@ def lookup_psihat(zdt, dtl, table: PsihatTable):
     wZ2 = 1.0 - wZ1
     Z1 = jnp.where(zdt > zdtg[0], 0, jnp.where(zdt < zdtg[-1], nZ - 1, Z1_raw))
     Z2 = jnp.where(zdt > zdtg[0], 0, jnp.where(zdt < zdtg[-1], nZ - 1, Z2_raw))
+    return _Bracket(Z1, Z2, wZ1, wZ2)
 
+
+def _interpolate_psihat(psi, z: _Bracket, L: _Bracket):
+    """Bilinear interpolation in the table ``psi`` (nZ, nL) at the places ``z`` and ``L``."""
+    pg = jnp.asarray(psi)
     return (
-        wZ1 * wL1 * pg[Z1, L1]
-        + wZ2 * wL1 * pg[Z2, L1]
-        + wZ1 * wL2 * pg[Z1, L2]
-        + wZ2 * wL2 * pg[Z2, L2]
+        z.w1 * L.w1 * pg[z.i1, L.i1]
+        + z.w2 * L.w1 * pg[z.i2, L.i1]
+        + z.w1 * L.w2 * pg[z.i1, L.i2]
+        + z.w2 * L.w2 * pg[z.i2, L.i2]
+    )
+
+
+def lookup_psihat(zdt, dtl, table: PsihatTable, table_search: str = "loop"):
+    """Bilinear interpolation of the unscaled psihat ``A[(z-h)/(h-d), (h-d)/L]`` in
+    ``table`` (multiplied by ``c1`` it is psihat). Outside the grid, both neighbours are the
+    edge value (weights 1/2 each, as Fortran). ``table_search``: how the grids are searched
+    (:data:`TABLE_SEARCH`; the same indices either way).
+
+    Fortran reference: MLCanopyTurbulenceMod.F90::LookupPsihat (Bonan et al. 2018,
+    eq. A21).
+    """
+    method = TABLE_SEARCH[table_search]
+    return _interpolate_psihat(
+        table.psi, _zdt_bracket(zdt, table.zdt, method), _dtl_bracket(dtl, table.dtl, method)
     )
 
 
@@ -213,7 +260,7 @@ def prandtl_schmidt(beta_neutral, LcL, sparse_canopy: bool):
     return PrSc
 
 
-def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables):
+def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables, table_search: str = "loop"):
     """RSL-modified stability functions from the canopy top ``hc`` to height ``za`` (m)
     for displacement height ``disp``, Obukhov length ``obu``, ``beta = u*/u(h)`` and
     Prandtl number ``PrSc``. Returns ``(psim, psic, psim2, psim_hat2)``: psi for momentum
@@ -228,11 +275,19 @@ def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables):
     zdt_hc = 0.0  # (hc - hc) / dt
     dtL = dt / obu
 
+    # The places of the two heights and of dtL on the tables' grids, found once: the four
+    # lookups below (two heights, momentum and scalars) share them (Fortran's LookupPsihat
+    # searches for each; the places are the same)
+    method = TABLE_SEARCH[table_search]
+    at_za = _zdt_bracket(zdt_za, tables.zdt, method)
+    at_hc = _zdt_bracket(zdt_hc, tables.zdt, method)
+    at_dtL = _dtl_bracket(dtL, tables.dtl, method)
+
     # Momentum
     phim = phim_monin_obukhov((hc - disp) / obu)
     c1_m = (1.0 - vkc / (2.0 * beta * phim)) * jnp.exp(0.5 * c2)
-    psim_hat1 = lookup_psihat(zdt_za, dtL, tables.momentum) * c1_m
-    psim_hat2 = lookup_psihat(zdt_hc, dtL, tables.momentum) * c1_m
+    psim_hat1 = _interpolate_psihat(tables.psi_momentum, at_za, at_dtL) * c1_m
+    psim_hat2 = _interpolate_psihat(tables.psi_momentum, at_hc, at_dtL) * c1_m
     psim1 = psim_monin_obukhov((za - disp) / obu)
     psim2 = psim_monin_obukhov((hc - disp) / obu)
     psim = -psim1 + psim2 + psim_hat1 - psim_hat2 + vkc / beta
@@ -240,8 +295,8 @@ def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables):
     # Scalars
     phic = phic_monin_obukhov((hc - disp) / obu)
     c1_c = (1.0 - PrSc * vkc / (2.0 * beta * phic)) * jnp.exp(0.5 * c2)
-    psic_hat1 = lookup_psihat(zdt_za, dtL, tables.scalar) * c1_c
-    psic_hat2 = lookup_psihat(zdt_hc, dtL, tables.scalar) * c1_c
+    psic_hat1 = _interpolate_psihat(tables.psi_scalar, at_za, at_dtL) * c1_c
+    psic_hat2 = _interpolate_psihat(tables.psi_scalar, at_hc, at_dtL) * c1_c
     psic1 = psic_monin_obukhov((za - disp) / obu)
     psic2 = psic_monin_obukhov((hc - disp) / obu)
     psic = -psic1 + psic2 + psic_hat1 - psic_hat2
@@ -249,8 +304,12 @@ def psi_rsl(za, hc, disp, obu, beta, PrSc, tables: RSLTables):
     return psim, psic, psim2, psim_hat2
 
 
-#: :func:`psi_rsl` at many heights (vector ``za``), the other arguments shared
-psi_rsl_at = jax.vmap(psi_rsl, in_axes=(0, None, None, None, None, None, None))
+def psi_rsl_at(za, hc, disp, obu, beta, PrSc, tables: RSLTables, table_search: str = "loop"):
+    """:func:`psi_rsl` at many heights (vector ``za``), the other arguments shared."""
+    f = functools.partial(psi_rsl, table_search=table_search)
+    return jax.vmap(f, in_axes=(0, None, None, None, None, None, None))(
+        za, hc, disp, obu, beta, PrSc, tables
+    )
 
 
 def beta_stability(beta_neutral, LcL):
@@ -318,7 +377,9 @@ def _signed_floor(x, eps):
     return jnp.where(x < 0.0, jnp.asarray(-1.0), jnp.asarray(1.0)), jnp.maximum(jnp.abs(x), eps)
 
 
-def obukhov_terms(obu_val, inp: ObuInputs, tables: RSLTables, sparse_canopy: bool) -> ObuTerms:
+def obukhov_terms(
+    obu_val, inp: ObuInputs, tables: RSLTables, sparse_canopy: bool, table_search: str = "loop"
+) -> ObuTerms:
     """Beta, displacement height, Prandtl number, u*, T*, q* and the Obukhov length they
     give, for a trial Obukhov length ``obu_val``.
 
@@ -356,7 +417,7 @@ def obukhov_terms(obu_val, inp: ObuInputs, tables: RSLTables, sparse_canopy: boo
     zdisp = inp.ztop - hc_minus_d
 
     PrSc = prandtl_schmidt(beta_neutral, LcL, sparse_canopy)
-    psim, psic, _, _ = psi_rsl(inp.zref, inp.ztop, zdisp, obu_cur, beta, PrSc, tables)
+    psim, psic, _, _ = psi_rsl(inp.zref, inp.ztop, zdisp, obu_cur, beta, PrSc, tables, table_search)
 
     # u*, T*, q*, and the conductance from the canopy top to zref
     zlog = jnp.log(jnp.maximum((inp.zref - zdisp) / jnp.maximum(inp.ztop - zdisp, eps), eps))
@@ -374,12 +435,12 @@ def obukhov_terms(obu_val, inp: ObuInputs, tables: RSLTables, sparse_canopy: boo
     return ObuTerms(obu_cur, beta, zdisp, PrSc, ustar, gac_to_hc, obu_new)
 
 
-def _obu_residual(obu, inp, tables, sparse_canopy):
+def _obu_residual(obu, inp, tables, sparse_canopy, table_search="loop"):
     """``obu_new(obu) - obu``: zero at the Obukhov length."""
-    return obukhov_terms(obu, inp, tables, sparse_canopy).obu_new - obu
+    return obukhov_terms(obu, inp, tables, sparse_canopy, table_search).obu_new - obu
 
 
-def _secant_step(tables, sparse_canopy, _, carry):
+def _secant_step(tables, sparse_canopy, table_search, _, carry):
     """One secant step (``fori_loop`` body; patch inputs in the carry)."""
     x0, x1, f0, f1, inp = carry
     df_sign, df_abs = _signed_floor(f1 - f0, jnp.asarray(1e-30))
@@ -388,17 +449,24 @@ def _secant_step(tables, sparse_canopy, _, carry):
     # converged iterate far away (e.g. Obukhov length 73.6 m -> -128 m).
     dx = jnp.where(f1 - f0 == 0.0, 0.0, -f1 * (x1 - x0) * df_sign / df_abs)
     x_new = x1 + dx
-    return x1, x_new, f1, _obu_residual(x_new, inp, tables, sparse_canopy), inp
+    return x1, x_new, f1, _obu_residual(x_new, inp, tables, sparse_canopy, table_search), inp
 
 
-def obukhov_length(inp: ObuInputs, tables: RSLTables, sparse_canopy: bool):
+def obukhov_length(
+    inp: ObuInputs,
+    tables: RSLTables,
+    sparse_canopy: bool,
+    table_search: str = "loop",
+    unroll: bool = False,
+):
     """The Obukhov length (m): ``OBU_ITERATIONS`` secant steps from 100 m and -100 m on
     ``obu_new(obu) - obu``. The forward value is the solver's answer; its gradient is the
     implicit-function one, ``-dF/dtheta / dF/dobu`` (``dF/dobu`` by central differences
     with a 1 m step, the correction skipped where ``|dF/dobu| <= 1e-6``), applied as
     ``obu - (step - stop_gradient(step))`` so it never changes the forward value
     (numerics_and_regression.md §2). Differentiating through the iterations instead gives
-    exploding gradients (|J|^25, ~1e144 observed).
+    exploding gradients (|J|^25, ~1e144 observed). ``unroll``: the secant steps written out
+    instead of a compiled loop (the same steps; ``numerics.solver_loops``, decision 117).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::GetObu (Fortran solves with the hybrid
     secant/Brent ``MLMathToolsMod::hybrid``, tol = 0.1 m; 25 fixed secant steps here,
@@ -409,21 +477,23 @@ def obukhov_length(inp: ObuInputs, tables: RSLTables, sparse_canopy: bool):
     carry = (
         obu0,
         obu1,
-        _obu_residual(obu0, inp, tables, sparse_canopy),
-        _obu_residual(obu1, inp, tables, sparse_canopy),
+        _obu_residual(obu0, inp, tables, sparse_canopy, table_search),
+        _obu_residual(obu1, inp, tables, sparse_canopy, table_search),
         inp,
     )
-    step = functools.partial(_secant_step, tables, sparse_canopy)
-    obu = jax.lax.stop_gradient(jax.lax.fori_loop(0, OBU_ITERATIONS, step, carry)[1])
+    step = functools.partial(_secant_step, tables, sparse_canopy, table_search)
+    obu = jax.lax.stop_gradient(
+        jax.lax.fori_loop(0, OBU_ITERATIONS, step, carry, unroll=unroll or None)[1]
+    )
 
     # Implicit-function gradient: the residual's dependence on the inputs, divided by its
     # (constant) slope in obu
-    f0 = _obu_residual(obu, inp, tables, sparse_canopy)
+    f0 = _obu_residual(obu, inp, tables, sparse_canopy, table_search)
     delta = jnp.asarray(1.0, dtype=obu.dtype)  # obu is O(100-10000 m)
     df_dobu = jax.lax.stop_gradient(
         (
-            _obu_residual(obu + delta, inp, tables, sparse_canopy)
-            - _obu_residual(obu - delta, inp, tables, sparse_canopy)
+            _obu_residual(obu + delta, inp, tables, sparse_canopy, table_search)
+            - _obu_residual(obu - delta, inp, tables, sparse_canopy, table_search)
         )
         / (2.0 * delta)
     )
@@ -445,14 +515,25 @@ def _z0m_residual(trial, obu, hc_minus_d, exp1, exp2, psim_hc):
     return hc_minus_d * exp1 * jnp.exp(-psim_hc + psim_t) * exp2 - trial
 
 
-def roughness_length(ztop, zdisp, obu, beta, PrSc, zref, tables: RSLTables):
+def roughness_length(
+    ztop,
+    zdisp,
+    obu,
+    beta,
+    PrSc,
+    zref,
+    tables: RSLTables,
+    table_search: str = "loop",
+    unroll: bool = False,
+):
     """Roughness length for momentum (m), by bisection on ``[ztop, 0]`` with the Fortran
     stopping rule (bracket narrower than 0.001 m, at most 20 halvings; the last midpoint).
+    ``unroll``: the halvings written out instead of a compiled loop.
 
     Fortran reference: MLCanopyTurbulenceMod.F90::RoughnessLength (Bonan et al. 2018,
     eq. A14 solved for z0m).
     """
-    _, _, psim_hc, psim_hat_hc = psi_rsl(zref, ztop, zdisp, obu, beta, PrSc, tables)
+    _, _, psim_hc, psim_hat_hc = psi_rsl(zref, ztop, zdisp, obu, beta, PrSc, tables, table_search)
     hc_minus_d = ztop - zdisp
     exp1 = jnp.exp(-vkc / beta)
     exp2 = jnp.exp(psim_hat_hc)
@@ -464,10 +545,14 @@ def roughness_length(ztop, zdisp, obu, beta, PrSc, zref, tables: RSLTables):
         itmax=20,
         c_init=0.0,
         args=(obu, hc_minus_d, exp1, exp2, psim_hc),
+        unroll=unroll,
     )
 
 
-def wind_profile(layers: PatchLayers, ztop, zdisp, obu, beta, PrSc, ustar, lm_over_beta, tables):
+def wind_profile(
+    layers: PatchLayers, ztop, zdisp, obu, beta, PrSc, ustar, lm_over_beta, tables,
+    table_search: str = "loop",
+):  # fmt: skip
     """Wind speed (m/s) of every layer slot (layer,) and at the canopy top: the RSL profile
     above the canopy, ``u(h) exp((z - h) / (lm/beta))`` within it.
 
@@ -477,7 +562,7 @@ def wind_profile(layers: PatchLayers, ztop, zdisp, obu, beta, PrSc, ustar, lm_ov
     zs = pad_with_top(layers, layers.zs)
 
     zs_above = jnp.where(layers.above_canopy, zs, jnp.take(zs, layers.n_layers - 1))
-    psim, _, _, _ = psi_rsl_at(zs_above, ztop, zdisp, obu, beta, PrSc, tables)
+    psim, _, _, _ = psi_rsl_at(zs_above, ztop, zdisp, obu, beta, PrSc, tables, table_search)
     zlog_m = jnp.log(jnp.maximum((zs_above - zdisp) / jnp.maximum(ztop - zdisp, 1e-30), 1e-30))
     wind_above = ustar / vkc * (zlog_m + psim)
 
@@ -512,6 +597,7 @@ def aerodynamic_conductance(
     lm_over_beta,
     tables: RSLTables,
     ground_conductance: str,
+    table_search: str = "loop",
 ) -> Conductances:
     """Aerodynamic conductances of every layer slot: above the canopy from the RSL profile
     (the top layer to ``zref``), within it from the exponential profile, its top layer the
@@ -534,7 +620,7 @@ def aerodynamic_conductance(
 
     # Above the canopy: layer i spans zs(i) to zs(i+1), the top layer to zref
     z_psi = jnp.concatenate([zs, jnp.stack([zref, ztop])])
-    _, psic_z, _, _ = psi_rsl_at(z_psi, ztop, zdisp, obu, beta, PrSc, tables)
+    _, psic_z, _, _ = psi_rsl_at(z_psi, ztop, zdisp, obu, beta, PrSc, tables, table_search)
     psic_zs, psic_zref, psic_ztop = psic_z[:-2], psic_z[-2], psic_z[-1]
     psic_next = jnp.where(is_top_layer, psic_zref, jnp.concatenate([psic_zs[1:], psic_zs[-1:]]))
     psic_d = psic_next - psic_zs
@@ -631,12 +717,16 @@ def harman_finnigan(
     *,
     sparse_canopy: bool,
     ground_conductance: str,
+    table_search: str = "loop",
+    unroll: bool = False,
 ) -> Turbulence:
     """Canopy turbulence from the roughness sublayer theory of Harman and Finnigan (2008):
     the canopy-top air (from the layer air temperature ``tair`` and vapour pressure ``eair``,
     (layer,)), the Obukhov length, roughness length, wind and momentum flux profiles and the
     aerodynamic conductances. Forcing at ``zref``: ``pref`` (Pa), ``uref``, ``thref``,
-    ``thvref``, ``qref``, ``rhomol``.
+    ``thvref``, ``qref``, ``rhomol``. ``table_search``: how the psihat tables are searched
+    (:data:`TABLE_SEARCH`). ``unroll``: the Obukhov and roughness-length iterations written
+    out instead of compiled loops (``numerics.solver_loops``, decision 117).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::HF2008 (Bonan et al. 2018).
     Reads: ``tair_profile``, ``eair_profile``, ``pref_forcing``, ``ztop_canopy``,
@@ -655,12 +745,13 @@ def harman_finnigan(
     qaf = mmh2o / mmdry * eair_top / (pref - (1.0 - mmh2o / mmdry) * eair_top)
 
     inp = ObuInputs(Lc, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol, taf, qaf)
-    t = obukhov_terms(obukhov_length(inp, tables, sparse_canopy), inp, tables, sparse_canopy)
+    obu = obukhov_length(inp, tables, sparse_canopy, table_search, unroll)
+    t = obukhov_terms(obu, inp, tables, sparse_canopy, table_search)
     # Rounded as stored (Fortran's ustar(p), beta(p), ...; the legacy code wrote them to the
     # container): otherwise XLA may fold e.g. (a / b) / beta in u(h) = u*/beta into
     # a / (b beta), 1 ulp off (Phase 7 decision C15)
     t = jax.lax.optimization_barrier(t)
-    z0m = roughness_length(ztop, t.zdisp, t.obu, t.beta, t.PrSc, zref, tables)
+    z0m = roughness_length(ztop, t.zdisp, t.obu, t.beta, t.PrSc, zref, tables, table_search, unroll)
 
     # Mixing length lm and lm/beta
     lm = 2.0 * t.beta**3 * Lc
@@ -668,7 +759,7 @@ def harman_finnigan(
     lm_over_beta = ztop / eta
 
     wind, uaf = wind_profile(
-        layers, ztop, t.zdisp, t.obu, t.beta, t.PrSc, t.ustar, lm_over_beta, tables
+        layers, ztop, t.zdisp, t.obu, t.beta, t.PrSc, t.ustar, lm_over_beta, tables, table_search
     )
 
     # Momentum flux at the layer tops
@@ -681,7 +772,7 @@ def harman_finnigan(
 
     g = aerodynamic_conductance(
         layers, ztop, t.zdisp, t.obu, t.beta, t.PrSc, t.ustar, rhomol, zref, wind[0],
-        lm_over_beta, tables, ground_conductance,
+        lm_over_beta, tables, ground_conductance, table_search,
     )  # fmt: skip
     return Turbulence(
         Lc=Lc, taf=taf, qaf=qaf, obu=t.obu, beta=t.beta, zdisp=t.zdisp, PrSc=t.PrSc,

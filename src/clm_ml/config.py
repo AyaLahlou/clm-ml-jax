@@ -196,6 +196,27 @@ class NumericsOptions:
         "compute. Results are the same either way.",
         "",
     )
+    table_search: Literal["auto", "loop", "unrolled", "compare_all"] = option(
+        "auto",
+        "How the psihat lookup tables are searched: loop (a binary search as a compiled loop, "
+        "fastest on the CPU), unrolled (the same binary search without the loop, fastest on a "
+        "GPU, where every loop iteration is a separate command) or compare_all. auto: "
+        "unrolled on a GPU, loop on the CPU. The table indices are the same either way "
+        "(decision 114).",
+        "",
+        hidden=True,
+    )
+    solver_loops: Literal["auto", "loop", "unrolled"] = option(
+        "auto",
+        "How the loops over canopy layers (shortwave sweeps, longwave and flux-profile "
+        "tridiagonal solves) and the Obukhov and roughness-length iterations are compiled: "
+        "loop (compiled loops: small programs, fastest on the CPU) or unrolled (the same "
+        "operations written out one after another: faster on a GPU, about three times the "
+        "compile time). auto: unrolled on a GPU, loop on the CPU. Results agree to round-off; "
+        "the stomatal solvers, sub-steps and soil always stay loops (decision 117).",
+        "",
+        hidden=True,
+    )
     on_patch_error: Literal["stop", "exclude"] = option(
         "stop",
         "A patch that fails a conservation check or whose state becomes unhealthy: stop the "
@@ -394,7 +415,9 @@ class ModelConfig:
         """
         return [
             k for k in changed_options(self)
-            if k.split(".")[0] in ("processes", "numerics") and k != "numerics.checkpoint_steps"
+            if k.split(".")[0] in ("processes", "numerics")
+            and k not in ("numerics.checkpoint_steps", "numerics.table_search",
+                          "numerics.solver_loops")
             and not (k == "processes.photosynthesis.temperature_acclimation"
                      and self.processes.photosynthesis.temperature_acclimation == "run_mean")
         ]  # fmt: skip

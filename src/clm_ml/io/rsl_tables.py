@@ -28,7 +28,9 @@ def rsl_table_file() -> Path:
 def read_rsl_tables(path=None) -> RSLTables:
     """The psihat tables in ``path`` (default: :func:`rsl_table_file`) as float64 numpy
     arrays. Fortran checks fixed sizes (nZ = 276, nL = 41); here each table's grids must
-    match its psihat array."""
+    match its psihat array, and the momentum and scalar tables must be on the same grids
+    (as CLM-ml v2's are): the model finds a place on the grids once for both (decision 115).
+    """
 
     path = rsl_table_file() if path is None else Path(path)
     tables = {}
@@ -47,7 +49,15 @@ def read_rsl_tables(path=None) -> RSLTables:
                     f"({table.zdt.size}, {table.dtl.size})"
                 )
             tables[kind] = table
-    return RSLTables(momentum=tables["M"], scalar=tables["H"])
+    m, h = tables["M"], tables["H"]
+    for grid in ("zdt", "dtl"):
+        if not np.array_equal(getattr(m, grid), getattr(h, grid)):
+            name = {"zdt": "zdtgrid", "dtl": "dtLgrid"}[grid]
+            raise ValueError(
+                f"{path}: {name}M and {name}H differ; the momentum and scalar psihat tables "
+                "must be on the same grids"
+            )
+    return RSLTables(zdt=m.zdt, dtl=m.dtl, psi_momentum=m.psi, psi_scalar=h.psi)
 
 
 @functools.lru_cache(maxsize=None)

@@ -66,13 +66,14 @@ def canopy_optics(
     taus: Array,
     leaf_angle_index,
     clumping_index,
+    unroll: bool = False,
 ) -> CanopyOptics:
     """Optical properties of the canopy layers for the solar zenith angle ``solar_zen``.
 
     Leaf and stem optics (``rhol``, ``taul``, ``rhos``, ``taus``; per band) are weighted by
     the layer's leaf and stem area (Fortran ``leaf_optics_type = 0``, constant with height);
     Ross-Goudriaan leaf angle distribution from ``leaf_angle_index``; diffuse transmittance
-    by 9-angle integration.
+    by 9-angle integration. ``unroll``: the loop over layers written out (``math.tridiag``).
 
     Fortran reference: MLSolarRadiationMod.F90::SolarRadiation (optical properties).
     Reads: ``solar_zen_forcing``, ``dlai_profile``, ``dsai_profile``, ``dpai_profile``, the
@@ -132,7 +133,7 @@ def canopy_optics(
     def _tbi_step(carry, tb_above):
         return carry * tb_above, carry
 
-    _, tbi_v = jax.lax.scan(_tbi_step, jnp.ones(()), tb_eff, reverse=True)
+    _, tbi_v = jax.lax.scan(_tbi_step, jnp.ones(()), tb_eff, reverse=True, unroll=unroll or 1)
 
     # Sunlit fraction. When kb*dpai = 0 the exp term is 0 too, so fracsun = 0.
     kb_dp_safe = jnp.maximum(kb_v * dpai_v, 1.0e-30)
@@ -205,6 +206,7 @@ def two_stream(
     albsoib: Array,
     albsoid: Array,
     layers: PatchLayers,
+    unroll: bool = False,
 ) -> SolarFluxes:
     """Two-stream radiative transfer integrated over each canopy layer, both bands at once.
 
@@ -213,7 +215,8 @@ def two_stream(
     beneath); a top-to-bottom sweep then propagates the sky's direct beam ``swskyb`` and
     diffuse ``swskyd`` radiation down. Both sweeps are ``lax.scan`` loops over every slot:
     slots outside the leafy layers get the top leafy layer's inputs and pass the sweep's
-    values through unchanged (their results are discarded).
+    values through unchanged (their results are discarded). ``unroll``: the sweeps written
+    out instead of compiled loops (``math.tridiag``).
 
     Fortran reference: MLSolarRadiationMod.F90::TwoStream.
     Reads: ``swskyb_forcing``, ``swskyd_forcing``, ``albsoib_soil``, ``albsoid_soil``,
@@ -324,7 +327,7 @@ def two_stream(
         col(_in(optics.tbi)),
     )
     _, (iupwb0, idwnb, iabsb_sun, iabsb_sha, iupwd0, idwnd, iabsd_sun, iabsd_sha) = jax.lax.scan(
-        _upward, (albsoib, albsoid), xs_up
+        _upward, (albsoib, albsoid), xs_up, unroll=unroll or 1
     )
 
     # Top-to-bottom sweep
@@ -349,7 +352,7 @@ def two_stream(
     xs_down = (leafy, iupwd0, iupwb0, iabsb_sun, iabsb_sha, iabsd_sun, iabsd_sha, idwnb, idwnd,
                fs_in, dp_in, kb_in, cf_in)  # fmt: skip
     (dir_, dif), (beam_v, dwn_v, upw_v, sun_v, sha_v) = jax.lax.scan(
-        _downward, (swskyb, swskyd), xs_down, reverse=True
+        _downward, (swskyb, swskyd), xs_down, reverse=True, unroll=unroll or 1
     )
 
     # Ground
@@ -372,7 +375,9 @@ def two_stream(
         return (veg + sun + sha, vsun + sun, vsha + sha), None
 
     zero = jnp.zeros_like(swskyb)
-    (swveg, swvegsun, swvegsha), _ = jax.lax.scan(_sum, (zero, zero, zero), (sun_abs, sha_abs))
+    (swveg, swvegsun, swvegsha), _ = jax.lax.scan(
+        _sum, (zero, zero, zero), (sun_abs, sha_abs), unroll=unroll or 1
+    )
 
     # Conservation check (Fortran stops; recorded and checked on the host)
     sumabs = swveg + swsoi

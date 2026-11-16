@@ -517,6 +517,10 @@ class SubstepOptions(NamedTuple):
     wue_solver: str  # stomatal optimization solver
     dtime: float  # sub-step length, s
     integrator: str  # processes.integrators.TABLEAUS
+    table_search: str = "loop"  # psihat table search: processes.turbulence.TABLE_SEARCH
+    #: the loops over layers (radiation, longwave and flux-profile solves) and the Obukhov and
+    #: roughness-length iterations written out instead of compiled loops (decision 117)
+    unroll_loops: bool = False
 
 
 class SubstepInputs(NamedTuple):
@@ -680,7 +684,7 @@ def _radiation(c: Substep, x: SubstepInputs, params, calday, opt: SubstepOptions
         x.solar_zen, x.dlai, x.dsai, x.dpai, lay,
         params.leaf_reflectance, params.leaf_transmittance,  # [vis, nir]
         params.stem_reflectance, params.stem_transmittance,
-        params.leaf_angle_index, params.clumping_index,
+        params.leaf_angle_index, params.clumping_index, opt.unroll_loops,
     )  # fmt: skip
     errors = _record(errors, SUNLIT_FRACTION, optics.sunlit_fraction_error)
     c = c._replace(
@@ -693,8 +697,9 @@ def _radiation(c: Substep, x: SubstepInputs, params, calday, opt: SubstepOptions
         ),
     )
     s = solar_radiation.two_stream(
-        optics, x.dpai, c.swskyb_forcing, c.swskyd_forcing, x.albsoib, x.albsoid, lay
-    )
+        optics, x.dpai, c.swskyb_forcing, c.swskyd_forcing, x.albsoib, x.albsoid, lay,
+        opt.unroll_loops,
+    )  # fmt: skip
     errors = _record(errors, SOLAR, s.error)
     upto = jnp.arange(lay.dz.shape[0] + 1) <= lay.n_layers  # levels 0..ncan
     swleaf = _keep(use, s.swleaf, c.swleaf_leaf)
@@ -752,7 +757,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
     # Longwave radiation — Fortran LongwaveRadiation (layers and levels up to the canopy top)
     lw = longwave.norman(
         c.tleaf_leaf, c.fracsun_profile, c.td_profile, x.dpai, c.lwsky_forcing, c.tg_soil,
-        lay, params.leaf_emissivity,
+        lay, params.leaf_emissivity, opt.unroll_loops,
     )  # fmt: skip
     errors = _record(errors, LONGWAVE, lw.error)
     upto_top = jnp.arange(lay.dz.shape[0] + 1) <= lay.n_within  # levels 0..ntop
@@ -777,6 +782,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         c.uref_forcing, c.thref_forcing, c.thvref_forcing, c.qref_forcing, c.rhomol_forcing,
         tables,
         sparse_canopy=opt.sparse_canopy, ground_conductance=opt.ground_conductance,
+        table_search=opt.table_search, unroll=opt.unroll_loops,
     )  # fmt: skip
     c = c._replace(
         obu_canopy=t.obu,
@@ -836,6 +842,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         ),
         lay,
         opt.dtime,
+        opt.unroll_loops,
     )  # fmt: skip
     errors = _record(errors, SOIL_ENERGY, fp.soil.error)
     errors = _record(errors, LEAF_ENERGY, fp.leaf.error)

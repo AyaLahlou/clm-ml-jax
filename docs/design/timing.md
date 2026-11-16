@@ -7,6 +7,11 @@ compiled chunk and its gradient; `results_vmap.jsonl`: `time_vmap.py`, batched p
 `results_program.jsonl`: `time_program.py`, GPU program size and compile time), with a label
 naming the phase or commit; the progress logs quote the comparisons that mattered.
 
+**Gradient times recorded before 2026-11-14 are too high** (decision 118): the scripts timed
+the second gradient call, which is several times slower than the calls after it. From that
+date `gradient_steady_*` is the fastest of the third and fourth call, and the second call is
+recorded as `gradient_second_s`.
+
 A timing test measures wall-clock run time only. It does not check results (that is the
 regression test's job), runs on demand rather than in CI, and is only comparable between runs
 on the same machine.

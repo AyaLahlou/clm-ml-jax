@@ -1100,6 +1100,114 @@ allowed for speed (no fewer solver iterations, fewer sub-steps or another integr
 Reason: the science must not change for performance; structure first makes optimization easier.
 Source: plan Phase 6 step 1c; Phase 6b step 7; "After Phase 8: GPU performance".
 
+**113. GPU optimization targets global forward runs; round-off changes allowed**
+2026-11-13 · GPU optimization (O55) · maintainer · in force · Departure from Fortran: no
+The GPU effort (`gpu_optimization_plan.md`) optimizes global 1° forward runs on one A100.
+Target: a 2× speed-up, 1.0 s per 30-min step (2.0 s on 2026-11-05; to be confirmed after the
+plan's measuring step). Custom CUDA kernels are ruled out for now (the science would be
+written twice; the package would no longer be pure Python). Timing jobs run on the `develop` queue. Gradients use the same code: they must keep working, and their time and
+memory are reported at each step. Changes that alter only round-off (order of additions,
+library solvers, fusion) are part of the effort under the regression policy (noise twin,
+reference regenerated). This refines 87: "arithmetic-preserving" there means no
+science-adjacent changes (no fewer solver iterations, sub-steps or another integrator), which
+still holds. The compile-time and code-size budget for unrolling (plan §7): settled for the layer
+and turbulence loops by decision 117; padded steps: decision 116.
+Reason: global runs are the main use; calibration needs gradients.
+Source: maintainer, 2026-11-13.
+
+**114. The psihat table search is a setting chosen by device**
+2026-11-13 · GPU optimization step 1 (O55) · maintainer · in force · Departure from Fortran: no
+`numerics.table_search` (hidden; `auto`, `loop`, `unrolled`, `compare_all`): how
+`turbulence.py::lookup_psihat` finds its place in the psihat tables. `auto` (the default) is
+`unrolled` on a GPU (the binary search written out, no loop) and `loop` on the CPU
+(`jnp.searchsorted`'s default, a compiled loop). Every method returns the same table indices
+(unit test). Reason: on a GPU each loop iteration is a separate command, and these searches
+were 89 % of a step's loop iterations and 94 % of its GPU commands: the 1 degree globe ran at
+1.98 s per step with the loop and 1.06 s without (`gpu_progress.md`). On the CPU the loop is
+faster (the unrolled search is 24 % slower), and keeping it there keeps the regression
+reference bit for bit. With `unrolled` the CPU regression case differs from the reference at
+round-off level (largest relative difference 2.8e-11; one field, `stflx_air_canopy`, at 1.2
+times the noise-twin allowance), because the compiler arranges the surrounding arithmetic
+differently.
+Source: maintainer, 2026-11-13; `gpu_progress.md` step 0.
+
+**115. The momentum and scalar psihat tables are on one pair of grids**
+2026-11-13 · GPU optimization step 1 (O55) · maintainer · in force · Departure from Fortran: no
+`RSLTables` holds the two grids once (`zdt`, `dtl`) with the two psihat arrays
+(`psi_momentum`, `psi_scalar`); `read_rsl_tables` refuses a file whose momentum and scalar
+grids differ. `turbulence.py::psi_rsl` finds the places of its two heights and of (h - d)/L
+on the grids once and uses them for its four lookups: 3 searches per call instead of 8
+(Fortran's `LookupPsihat` searches in each lookup; the places and the interpolated values are
+the same: bit for bit on the CPU). A user-supplied table must therefore have one pair of
+grids, as CLM-ml v2's `psihat.nc` has.
+Reason: fewer GPU commands and less work (`gpu_progress.md`); no change of results.
+Source: maintainer, 2026-11-13.
+
+**116. Padded steps are not computed**
+2026-11-13 · GPU optimization step 1 (O55) · maintainer · in force · Departure from Fortran: n/a
+The padded steps of a short last chunk (decision 33: one program per run) are skipped with
+`lax.cond` on the step's `active` flag (`driver.py`), where `jnp.where` computed the whole
+step and discarded it. Still one program per run. A chunk that is half padding takes half
+the time (GPU, 1 degree globe: 25.4 s instead of 50.6 s for 48 steps with 24 real); a full
+chunk costs the same (1.061 against 1.057 s per step). The compiler arranges the step
+inside the branch differently, so results change in the last bits (CPU regression case: 73 of
+96 fields, largest relative difference 2.9e-11; noise twin passes): **the regression reference
+and its twins were regenerated** (`record_run.py --update-reference`). A run in padded chunks
+still equals the same run in one chunk bit for bit (`test_restart.py`). `Model` gradients do
+not use the flag.
+Reason: padding cost 25 % of a 31-day global run with 10-day chunks.
+Source: maintainer, 2026-11-13 (the reference regeneration approved the same day).
+
+**117. The layer and turbulence loops are written out on GPUs**
+2026-11-13 · GPU optimization step 2 (O55) · maintainer · in force · Departure from Fortran: no
+`numerics.solver_loops` (hidden; `auto`, `loop`, `unrolled`): how the fixed-length loops
+inside the canopy sub-step are compiled. `unrolled` writes the iterations out one after
+another in the compiled program (`unroll=` of `lax.scan` and `lax.fori_loop`; the Python
+source keeps one loop): the same operations in the same order, without a loop counter, an
+end test and copies of the carried values per iteration. It covers the loops over layers
+(shortwave sweeps and the beam transmittance in `solar_radiation.py`, the longwave solve
+`math.py::tridiag`, the flux-profile solve `math.py::tridiag_2eq`), the Obukhov iteration
+(`turbulence.py::obukhov_length`, 25 secant steps) and the roughness-length bisection
+(`turbulence.py::roughness_length`, 20 halvings). `auto` (the default) is `unrolled` on a GPU
+and `loop` on the CPU. Always loops: the stomatal solvers (`photosynthesis.py`: unrolled, the
+GPU program was still compiling after 34 minutes, and the bisection body is already one
+kernel), the sub-steps and Runge-Kutta stages, the steps of a chunk, and the soil temperature
+solve (once per step).
+Reason: in the prototype the 1 degree globe ran at 0.695 s per step instead of 1.06 s
+(2.85x the 1.98 s before the GPU work; layer loops alone 0.727 s), and a 21-patch box at 67 ms
+instead of 189 (`gpu_progress.md`, step 2). On the CPU the loops are faster (the unrolled
+small box ran 4 times slower) and keeping them keeps the regression reference bit for bit.
+Cost: the forward GPU program compiles in ~115 s instead of ~38 s (once; then cached), which
+the maintainer accepted (the compile budget of plan section 7 item 6 for this case).
+Results: round-off only. GPU, globe, after 2 steps: 3.7e-16 from the baseline of the same
+compile variant. CPU with `unrolled` forced: the regression case passes the noise-twin
+criterion (largest difference 0.76 times the allowance, largest relative difference 5e-11;
+32 of 96 fields bit for bit).
+Measured with the change (`c7f4a20`): 0.696 s per step, 104 300 patch-steps/s, the 10-day
+chunk in 334 s (508 s before), compile ~110 s; after one day the GPU results are 5e-16 from
+the code before. Another fresh compile differed after two steps by up to 4.4e-8 in 199 of
+72 575 patches (the compile variants of O27).
+Gradients (corrected 2026-11-14, decision 118): with the loops written out a GPU gradient
+is faster, 219 instead of 659 ms per step for one patch and 787 instead of 1294 for 4 096;
+its program compiles in 6-8 min instead of ~80 s (once; then cached). The slowdown of
+1.3-1.5x first written here came from timing the second gradient call. `auto` therefore
+also serves gradient programs.
+Source: maintainer, 2026-11-13; `gpu_progress.md` step 2a; `gradient_progress.md`.
+
+**118. Gradient timings are of the steady state, from the third call**
+2026-11-14 · gradients (O76) · implementation · in force · Departure from Fortran: n/a
+`timing/time_model.py` and `timing/time_vmap.py` call the forward chunk and the gradient
+four times and report the fastest of the third and fourth call as the steady cost (the
+second call is kept as `*_second_s`).
+Reason: the second call of an un-jitted `jax.grad` of `Model.run_chunk` is not steady: 1.7 s
+against 0.39 s on the CPU (8 steps), 8.2 against 5.3 s and 11.5 against 1.75 s on an A100
+(loops, loops written out); what it does was not tracked down, and a jitted gradient has no
+such call. The scripts reported the second call, so every gradient time recorded before
+2026-11-14 (the results files, the phase logs, `gpu_progress.md` steps 1 and 2a) is too
+high, by a factor that differs between programs: comparisons of gradient times across code
+versions made before that date are not reliable (the forward times are unaffected).
+Source: `gradient_progress.md` round 1.
+
 ## K. Scope deferred
 
 **88. Work deferred to after Phase 8**
