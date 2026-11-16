@@ -38,15 +38,16 @@ Guidance for Claude (and other contributors) working in this repository.
   decisions with the maintainer, on a new branch `phase9/docs` from `main`. Open items:
   `docs/design/open_items.md`; how the model works now: `docs/how_the_model_works.md` (users)
   and `docs/design/model_overview.md` (detail).
-- **GPU optimization (O55, decisions 113-117):** branch `gpu_opt` (from
-  `feature/latlon_output`, not merged): the 1° globe runs 2.85× faster on one A100 (0.70 s
+- **GPU optimization (O55, decisions 113-117):** branch `gpu_opt`, to `main` by pull request
+  (2026-11-16): the 1° globe runs 2.85× faster on one A100 (0.70 s
   per step; the 2× target is met, 2026-11-13). Hidden settings `numerics.table_search` and
   `numerics.solver_loops` follow the device (GPU: written out; CPU: loops, the regression
-  reference). Forward work stopped by the maintainer 2026-11-14 (they merge `gpu_opt`). Plan
+  reference). GPU gradients are faster too (decision 118). Forward work stopped by the maintainer
+  2026-11-14. Plan
   `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
-  `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/`. Ask the
-  maintainer before going on.
-- **Gradients (O76, decision 118):** branch `gpu_grad` (from `gpu_opt`): speed first, then
+  `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/` (README
+  there). Ask the maintainer before going on.
+- **Gradients (O76, decision 118):** branch `gpu_grad` (from `gpu_opt`, not merged): speed first, then
   quality and accuracy, for sensitivity experiments (parameters, states, forcings; a tower
   first, global later). Gradient times before 2026-11-14 were of the unsteady second call:
   time from the third call. A tower is 4–5× faster on the CPU than on a GPU. Log and

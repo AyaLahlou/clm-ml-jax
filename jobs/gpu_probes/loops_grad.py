@@ -63,7 +63,7 @@ def census(fn):
             if name == "scan":
                 L, p = e.params["length"], e.params
                 body = p["jaxpr"].jaxpr
-                ys = body.outvars[p["num_carry"]:]
+                ys = body.outvars[p["num_carry"] :]
                 key = inside or src(e)
                 stacked[key] += mult * L * size(ys)
                 loops[key] += mult * L
@@ -98,6 +98,7 @@ def census(fn):
 
 loss(params)  # fills the host caches (output shapes) outside a trace
 
+
 def count_flat(j):
     c = 0
     for e in j.eqns:
@@ -125,15 +126,38 @@ def loops(fn):
                 p = e.params
                 body = p["jaxpr"].jaxpr
                 nc, nk = p["num_consts"], p["num_carry"]
-                key = (depth, "scan", p["length"], "rev" if p["reverse"] else "fwd", f"consts={nc}",
-                       f"carry={nk}", f"xs={len(body.invars) - nc - nk}", f"ys={len(body.outvars) - nk}",
-                       f"ops={count_flat(body)}", f"ysize={size(body.outvars[nk:])}", frames(e))
+                key = (
+                    depth,
+                    "scan",
+                    p["length"],
+                    "rev" if p["reverse"] else "fwd",
+                    f"consts={nc}",
+                    f"carry={nk}",
+                    f"xs={len(body.invars) - nc - nk}",
+                    f"ys={len(body.outvars) - nk}",
+                    f"ops={count_flat(body)}",
+                    f"ysize={size(body.outvars[nk:])}",
+                    frames(e),
+                )
                 agg[key] += mult
                 walk(body, mult * p["length"], depth + 1)
             elif n == "while":
                 body = e.params["body_jaxpr"].jaxpr
-                agg[(depth, "while", "", "", "", f"carry={len(body.invars) - e.params['body_nconsts']}", "", "",
-                     f"ops={count_flat(body)}", "", frames(e))] += mult
+                agg[
+                    (
+                        depth,
+                        "while",
+                        "",
+                        "",
+                        "",
+                        f"carry={len(body.invars) - e.params['body_nconsts']}",
+                        "",
+                        "",
+                        f"ops={count_flat(body)}",
+                        "",
+                        frames(e),
+                    )
+                ] += mult
                 walk(body, mult, depth + 1)
             else:
                 for x in subs(e):

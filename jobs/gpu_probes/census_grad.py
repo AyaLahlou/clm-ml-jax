@@ -63,7 +63,7 @@ def census(fn):
             if name == "scan":
                 L, p = e.params["length"], e.params
                 body = p["jaxpr"].jaxpr
-                ys = body.outvars[p["num_carry"]:]
+                ys = body.outvars[p["num_carry"] :]
                 key = inside or src(e)
                 stacked[key] += mult * L * size(ys)
                 loops[key] += mult * L

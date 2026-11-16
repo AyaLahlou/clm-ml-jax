@@ -13,8 +13,9 @@ Where things are:
 **Status (2026-11-13, evening):** steps 0, 1 and 2a done. The 1° globe runs at **0.70 s per
 step, 2.85×** (target 2×, 0.99 s: met); padded steps cost nothing.
 
-**2026-11-14: the forward work stops here** (maintainer; `gpu_opt` will be merged by the
-maintainer). **Correction:** the gradient times in this log (steps 1 and 2a) are of the
+**2026-11-14: the forward work stops here** (maintainer). **2026-11-16:** `gpu_opt` goes to
+`main` as a pull request (cleaned up for it: this log, the probes' README and lint, the
+step 2a row in `timing/results_program.jsonl`). **Correction:** the gradient times in this log (steps 1 and 2a) are of the
 second gradient call, which is not steady (decision 118). Measured again in steady state,
 gradients are **faster** with the loops written out, not slower (table under "Gradients" of
 step 2a). Gradient work continues on branch `gpu_grad`:
@@ -22,7 +23,8 @@ step 2a). Gradient work continues on branch `gpu_grad`:
 
 ## Resume here
 
-**State.** Branch `gpu_opt` (made from `feature/latlon_output`, not merged anywhere), pushed.
+**State.** Branch `gpu_opt` (made from `feature/latlon_output`), merged into `main` by pull
+request (opened 2026-11-16).
 Steps 0, 1 and 2a of the plan are done, tested and committed. Nothing is half-finished: no
 uncommitted model changes, no jobs running. The work was paused by the maintainer after
 step 1 and resumed the same evening for step 2a.
@@ -85,7 +87,7 @@ linted and not part of the package):
 git worktree add --detach $SCRATCH/clm-ml-jax/trees/NAME COMMIT
 # 2. submit from scratch (PBS drops its own .o file where qsub is run)
 cd $SCRATCH/clm-ml-jax/probe_gpu0
-J=/glade/work/linnia/clm-ml-jax/jobs/gpu_probes/gpu0.pbs
+J=$REPO/jobs/gpu_probes/gpu0.pbs                        # REPO: your checkout (the job's default: /glade/work/$USER/clm-ml-jax)
 T=$SCRATCH/clm-ml-jax/trees/NAME
 qsub -v MODE=base,TAG=name,TREE=$T $J                    # yardstick: globe, 1 day, 3 repeats
 qsub -v MODE=save,TAG=name_2,TREE=$T,STEPS=2 $J          # saved output after 2 steps (fresh compile)

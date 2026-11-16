@@ -5,14 +5,18 @@ has. Static (from the jaxpr); run on the CPU with a small region.
     JAX_PLATFORMS=cpu python census.py TREE
 """
 
-import collections, json, sys
+import json
+import sys
 from pathlib import Path
 
 TREE = Path(sys.argv[1])
 sys.path.insert(0, str(TREE / "src"))
-import jax, jax.numpy as jnp, numpy as np
-from jax._src import source_info_util
-from clm_ml import driver as D, output_streams as S
+import jax
+import jax.numpy as jnp
+import numpy as np
+
+from clm_ml import driver as D
+from clm_ml import output_streams as S
 from clm_ml.experiment import load_experiment
 from clm_ml.processes import photosynthesis, turbulence
 
@@ -148,8 +152,8 @@ def walk(j, mult, depth, path):
 walk(closed.jaxpr, 1, 0, [])
 json.dump(loops, open("census.json", "w"), indent=1)
 print(f"{len(loops)} loops; top-level ops outside loops: {count_flat(closed.jaxpr)}")
-for l in loops:
+for lp in loops:
     print(
-        f"{'  ' * l['depth']}{l['kind']} trips={l['trips']} calls={l['calls']} carry={l['carry_n']} "
-        f"({l['carry_bytes'] / 1024:.1f} kB) ops={l['body_ops']} xs={l['xs_n']} ys={l['ys_n']}  {l['where']}"
+        f"{'  ' * lp['depth']}{lp['kind']} trips={lp['trips']} calls={lp['calls']} carry={lp['carry_n']} "
+        f"({lp['carry_bytes'] / 1024:.1f} kB) ops={lp['body_ops']} xs={lp['xs_n']} ys={lp['ys_n']}  {lp['where']}"
     )

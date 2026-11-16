@@ -21,7 +21,9 @@ ap.add_argument("overrides", nargs="*")
 ap.add_argument("--steps", type=int, default=8)
 ap.add_argument("--wrt", default="params", choices=["params", "state", "forcing"])
 ap.add_argument("--modes", default="fwd,jvp,grad")
-ap.add_argument("--stop", default="", help="ablation: module:function[+...] whose results get stop_gradient")
+ap.add_argument(
+    "--stop", default="", help="ablation: module:function[+...] whose results get stop_gradient"
+)
 ap.add_argument("--repeat", type=int, default=3)
 ap.add_argument("--label", default="")
 ap.add_argument("--out", default="results_grad0.jsonl")
@@ -104,7 +106,9 @@ for name in args.modes.split(","):
         res[f"{name}_nonzero"] = int(sum((a != 0).sum() for a in g))
     else:
         res[f"{name}_value"] = float(out)
-    print(name, res[f"{name}_first_s"], "s first,", res[f"{name}_ms_per_step"], "ms/step", flush=True)
+    print(
+        name, res[f"{name}_first_s"], "s first,", res[f"{name}_ms_per_step"], "ms/step", flush=True
+    )
 res["date"] = time.strftime("%Y-%m-%d %H:%M")
 print(json.dumps(res), flush=True)
 with open(args.out, "a") as fh:

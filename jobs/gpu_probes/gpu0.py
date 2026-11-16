@@ -28,7 +28,9 @@ parser.add_argument("--label", default="")
 parser.add_argument("--profile", action="store_true")
 parser.add_argument("--real", type=int, default=0, help="real steps; the rest of the chunk padded")
 parser.add_argument("--searchsorted", default="", help="prototype: jnp.searchsorted method")
-parser.add_argument("--unroll", default="", help="prototype: loop groups to unroll, e.g. layers+obukhov")
+parser.add_argument(
+    "--unroll", default="", help="prototype: loop groups to unroll, e.g. layers+obukhov"
+)
 parser.add_argument("--save", default="", help="save the output buffers and state (npz)")
 parser.add_argument("--out", default="results_gpu0.jsonl")
 args = parser.parse_args()
@@ -68,7 +70,9 @@ if args.unroll:
     def _patched_scan(f, init, xs=None, length=None, reverse=False, unroll=1, **kw):
         hit = _key(f) in _wanted
         _seen[_key(f)] = hit
-        return _scan(f, init, xs, length=length, reverse=reverse, unroll=True if hit else unroll, **kw)
+        return _scan(
+            f, init, xs, length=length, reverse=reverse, unroll=True if hit else unroll, **kw
+        )
 
     def _patched_fori(lower, upper, body_fun, init_val, **kw):
         hit = _key(body_fun) in _wanted

@@ -1,7 +1,11 @@
 """Kernel launches and GPU kernel time of an nsys profile, by what the kernel does (from the
 op_name metadata of XLA's optimized HLO dump). Usage: attribute.py PROFILE_PREFIX HLO_DIR"""
 
-import csv, glob, re, sys, collections
+import collections
+import csv
+import glob
+import re
+import sys
 
 prefix, hlo = sys.argv[1], sys.argv[2]
 f = max(glob.glob(hlo + "/*jit_run_chunk*gpu_after_optimizations.txt"), key=lambda p: len(p))

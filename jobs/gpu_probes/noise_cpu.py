@@ -3,25 +3,37 @@ compare_all) or with the solver loops written out (solver_loops; decision 117), 
 committed reference by the noise-twin criterion
 (tests/regression/test_end_to_end_regression.py)."""
 
-import sys, tempfile
+import sys
+import tempfile
 from pathlib import Path
+
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT)]
-from tests.regression.record_run import REFERENCE_FILE, TWIN_FILES, recorded_fields, run_case
 from clm_ml import driver
+from tests.regression.record_run import REFERENCE_FILE, TWIN_FILES, recorded_fields, run_case
 
 method = sys.argv[1]
 if method == "solver_loops":
     driver.solver_loops = lambda choice: True
 else:
     driver.table_search = lambda choice: method
-load = lambda p: {k: v for k, v in np.load(p).items() if not k.startswith("meta.")}
+
+
+def load(p):
+    return {k: v for k, v in np.load(p).items() if not k.startswith("meta.")}
+
+
 ref, plus, minus = load(REFERENCE_FILE), load(TWIN_FILES["plus"]), load(TWIN_FILES["minus"])
 run, out = run_case(Path(tempfile.mkdtemp()))
 new = recorded_fields(out["fields"].raw)
-valid = lambda v: np.isfinite(v) & (np.abs(v) < 1e30)
+
+
+def valid(v):
+    return np.isfinite(v) & (np.abs(v) < 1e30)
+
+
 worst, nbit, fails, rows = 0.0, 0, [], []
 for f, r in ref.items():
     n = new[f]

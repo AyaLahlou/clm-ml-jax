@@ -1,7 +1,9 @@
 """Compare two saved global outputs (gpu0.py --save): per leaf, the largest absolute and
 relative difference; relative to the leaf's largest magnitude. Usage: compare.py A.npz B.npz"""
 
-import sys, numpy as np
+import sys
+
+import numpy as np
 
 a, b = np.load(sys.argv[1]), np.load(sys.argv[2])
 rows, nid = [], 0

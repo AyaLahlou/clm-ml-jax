@@ -773,12 +773,12 @@ Step 1 done (decisions 114-116): 1.87× (1.06 s per step, 68 500 patch-steps/s),
 free. Paused 2026-11-13 by the maintainer and resumed the same evening. Step 2a done
 (decision 117): the layer and turbulence loops written out on GPUs, **2.85× (0.70 s per
 step, 104 300 patch-steps/s); the 2× target is met**. The forward work was
-stopped there by the maintainer (2026-11-14; `gpu_opt` to be merged by the maintainer). The
+stopped there by the maintainer (2026-11-14); `gpu_opt` goes to `main` as a pull request
+(2026-11-16). The
 gradient slowdown reported with step 2a was a timing error (decision 118): with the loops
 written out GPU gradients are 1.6–3× faster; their compile is 4–5× longer (6–8 min, once).
 Gradient work continues as O76. Open (`gpu_progress.md` "Resume here"): the round-off amplification
-between GPU compiles (O27), now also seen after two steps in 199 patches; the merge of
-`gpu_opt`.
+between GPU compiles (O27), now also seen after two steps in 199 patches.
 
 ### O56. Unsupported variants
 Well-mixed flux profile and dataset profiles (fail on traced layer counts), Norman solar

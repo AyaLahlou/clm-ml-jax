@@ -49,6 +49,7 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["F401"]
+"jobs/gpu_probes/**" = ["E402"]  # probes put the timed tree on sys.path first
 
 [tool.setuptools.package-data]
 clm_ml = ["data/*.nc", "compsets/*/*.yaml"]
