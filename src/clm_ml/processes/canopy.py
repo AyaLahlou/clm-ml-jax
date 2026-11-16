@@ -521,6 +521,9 @@ class SubstepOptions(NamedTuple):
     #: the loops over layers (radiation, longwave and flux-profile solves) and the Obukhov and
     #: roughness-length iterations written out instead of compiled loops (decision 117)
     unroll_loops: bool = False
+    #: wetted fraction of the leaves: of the water left at the end of the sub-step
+    #: (implicit, decision 122) or at the start of the stage (explicit, Fortran)
+    wetted_fraction: str = "implicit"
 
 
 class SubstepInputs(NamedTuple):
@@ -750,9 +753,11 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
     use = lay.in_use
     errors = c.balance_error
 
-    # Wetted fraction of the plant area — Fortran CanopyWettedFraction (every slot)
-    fwet, fdry = canopy_water.wetted_fraction(c.h2ocan_profile, x.dpai, x.dlai)
-    c = c._replace(fwet_profile=fwet, fdry_profile=fdry)
+    # Wetted fraction of the plant area from the stage's water — Fortran
+    # CanopyWettedFraction (every slot); the implicit one follows the leaf boundary layer
+    if opt.wetted_fraction == "explicit":
+        fwet, fdry = canopy_water.wetted_fraction(c.h2ocan_profile, x.dpai, x.dlai)
+        c = c._replace(fwet_profile=fwet, fdry_profile=fdry)
 
     # Longwave radiation — Fortran LongwaveRadiation (layers and levels up to the canopy top)
     lw = longwave.norman(
@@ -803,6 +808,20 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         c.rhomol_forcing, params.leaf_dimension, regime=opt.regime,
     )  # fmt: skip
     c = c._replace(gbh_leaf=gbh, gbv_leaf=gbv, gbc_leaf=gbc)
+
+    # Interception — Fortran CanopyInterception (every slot)
+    i = canopy_water.interception(
+        x.qflx_rain, x.qflx_snow, x.lai, x.sai, x.dpai, c.h2ocan_bef_profile, opt.dtime
+    )
+
+    # Wetted fraction of the water left at the end of the sub-step (decision 122; every slot)
+    if opt.wetted_fraction == "implicit":
+        demand = canopy_water.wet_leaf_demand(
+            c.tleaf_leaf, c.eair_profile, gbv, c.fracsun_profile, x.dpai, c.pref_forcing,
+            opt.dtime, use,
+        )  # fmt: skip
+        fwet, fdry = canopy_water.wetted_fraction_implicit(i.h2ocan, x.dpai, x.dlai, demand, use)
+        c = c._replace(fwet_profile=fwet, fdry_profile=fdry)
 
     # Photosynthesis and stomatal conductance — Fortran LeafPhotosynthesis (layers in use)
     stomatal = {}
@@ -873,10 +892,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         )
     )  # fmt: skip
 
-    # Intercepted water — Fortran CanopyInterception, CanopyEvaporation (every slot)
-    i = canopy_water.interception(
-        x.qflx_rain, x.qflx_snow, x.lai, x.sai, x.dpai, c.h2ocan_bef_profile, opt.dtime
-    )
+    # Intercepted water — Fortran CanopyEvaporation (every slot)
     c = c._replace(
         h2ocan_profile=canopy_water.evaporation(
             i.h2ocan, x.dpai, c.fracsun_profile, c.evleaf_leaf, c.trleaf_leaf, opt.dtime

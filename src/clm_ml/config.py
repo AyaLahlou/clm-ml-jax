@@ -189,6 +189,15 @@ class NumericsOptions:
         "in CLM-ml v2 (v1 used Euler).",
         "runge_kutta_type",
     )
+    wetted_fraction: Literal["implicit", "explicit"] = option(
+        "implicit",
+        "Wetted fraction of the leaves in a sub-step: implicit (of the intercepted water left "
+        "at the end of the sub-step, so leaves cannot evaporate more water than they hold; "
+        "decision 122) or explicit (of the water at the start of each Runge-Kutta stage, as "
+        "Fortran CLM-ml v2: almost dry leaves alternate between wet and dry and their water "
+        "turns negative; for comparison with Fortran).",
+        "",
+    )
     checkpoint_steps: bool = option(
         True,
         "Recompute each step when taking gradients instead of storing its intermediate values "

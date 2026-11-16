@@ -201,16 +201,19 @@ from the configuration).
      (`atm_forcing.atm_forcing`); two-stream solar radiation (`solar_radiation.canopy_optics`,
      `two_stream`; sunlit fraction, absorbed shortwave per leaf); leaf nitrogen / Vcmax25
      profile (`nitrogen_profile.canopy_nitrogen_profile`);
-   - **per Runge-Kutta stage** (`_stage`, 4 for `rk4`, a `lax.scan`): wetted fraction
-     (`canopy_water.wetted_fraction`) → Norman longwave (`longwave.norman`) → net radiation →
+   - **per Runge-Kutta stage** (`_stage`, 4 for `rk4`, a `lax.scan`): Norman longwave
+     (`longwave.norman`) → net radiation →
      Harman–Finnigan RSL turbulence (wind profile, u*, β, aerodynamic conductances, Obukhov
      length; `turbulence.harman_finnigan`, psihat tables) → leaf boundary layer
-     (`leaf_boundary_layer`) → photosynthesis and stomatal conductance (WUE optimization by
+     (`leaf_boundary_layer`) → interception and the wetted fraction of the water left at the
+     end of the sub-step (`canopy_water.interception`, `wetted_fraction_implicit`; decision
+     122; with `numerics.wetted_fraction: explicit` the wetted fraction of the stage's water
+     comes first, `canopy_water.wetted_fraction`, as Fortran) → photosynthesis and stomatal conductance (WUE optimization by
      bisection with the hydraulic constraint, or Medlyn/Ball–Berry; `photosynthesis.
      leaf_photosynthesis`) → implicit flux–profile solution (tridiagonal system for air T,
      vapour, leaf T, ground T; `flux_profile.implicit`) → leaf water potential
-     (`plant_hydraulics.leaf_water_potential`) → interception and evaporation
-     (`canopy_water`) → Runge–Kutta update of {air T, vapour, intercepted water, leaf T, leaf
+     (`plant_hydraulics.leaf_water_potential`) → evaporation of the intercepted water
+     (`canopy_water.evaporation`) → Runge–Kutta update of {air T, vapour, intercepted water, leaf T, leaf
      ψ, ground T} (`integrators.runge_kutta_update`);
    - the sub-step's fluxes added to the step's sums.
 
@@ -315,13 +318,13 @@ flowchart TB
   subgraph SUB[6 sub-steps of 5 min - scan]
     R[forcing interpolated 3-point<br/>two-stream solar, N/Vcmax profile]
     subgraph RK[RK4: 4 stages - scan]
-      W[wetted fraction<br/>reads intercepted_water] --> LW[Norman longwave<br/>reads leaf T, ground T]
-      LW --> T[RSL turbulence<br/>wind, u*, conductances, L]
+      LW[Norman longwave<br/>reads leaf T, ground T] --> T[RSL turbulence<br/>wind, u*, conductances, L]
       T --> BL[leaf boundary layer]
-      BL --> PS[photosynthesis + stomata<br/>reads leaf T, leaf psi]
+      BL --> W[interception, implicit wetted fraction<br/>reads intercepted_water]
+      W --> PS[photosynthesis + stomata<br/>reads leaf T, leaf psi]
       PS --> FP[implicit flux-profile solve<br/>air T, vapour, leaf T, ground T]
       FP --> LWP[leaf water potential]
-      LWP --> INT[interception + evaporation]
+      LWP --> INT[evaporation of intercepted water]
       INT --> UPD[RK update of air T, vapour,<br/>water, leaf T, leaf psi, ground T]
     end
     R --> RK

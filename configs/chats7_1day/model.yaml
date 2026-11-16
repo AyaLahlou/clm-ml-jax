@@ -120,6 +120,14 @@ numerics:
   # rk3_kutta | rk4; Fortran: runge_kutta_type; default: rk4.
   integrator: rk4
 
+  # Wetted fraction of the leaves in a sub-step: implicit (of the intercepted water left at the
+  # end of the sub-step, so leaves cannot evaporate more water than they hold; decision 122) or
+  # explicit (of the water at the start of each Runge-Kutta stage, as Fortran CLM-ml v2: almost
+  # dry leaves alternate between wet and dry and their water turns negative; for comparison with
+  # Fortran).
+  # choices: implicit | explicit; default: implicit.
+  wetted_fraction: implicit
+
   # Recompute each step when taking gradients instead of storing its intermediate values
   # (jax.checkpoint, as jax-gcm): much less memory for gradients over a chunk, some more compute.
   # Results are the same either way.

@@ -3,7 +3,7 @@
 # repository (the CHATS7 input files are not installed with the package).
 description: >-
   CHATS7, May 2007: the run compared with Fortran CLM-ml v2 (tests/test_fortran_python_comparison.py):
-  31 days with the Fortran acclimation temperature and the legacy .out files.
+  31 days with the Fortran acclimation temperature and wetted fraction, and the legacy .out files.
 run:
   time: {start: 2007-05-01T00:00, length: 31 days}
   forcing:
@@ -26,4 +26,5 @@ domain:
   towers: [chats7]                 # compsets/towers/chats7.yaml
 model:
   processes: {photosynthesis: {temperature_acclimation: run_mean}}
+  numerics: {wetted_fraction: explicit}
 params: chats                      # compsets/params/chats.yaml

@@ -52,6 +52,9 @@ Guidance for Claude (and other contributors) working in this repository.
   time from the third call. A tower is 4–5× faster on the CPU than on a GPU. A solver's
   gradient needs an exact slope and fallback values with their own gradient (decision 119);
   a power with a parameter as exponent needs a base that cannot turn negative (decision 121);
+  the wetted fraction of the leaves is solved with the water left at the end of the sub-step
+  (decision 122; `numerics.wetted_fraction: explicit` is Fortran's form, whose almost dry
+  leaves made derivatives explode);
   check new derivatives against finite differences (`jobs/gpu_probes/gradcheck0.py`). Log and
   "Resume here": `docs/design/gradient_progress.md`.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).

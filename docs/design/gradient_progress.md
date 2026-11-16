@@ -26,8 +26,10 @@ change. Round 6 (2026-11-15, prototype in scratch): a stable limit on zeta of 0.
 short PFTs removes that alternation. Round 7 (2026-11-15, prototype in scratch): the
 exploding derivatives (1e35 in a day, 1e220 in five) are the water on the leaves, whose
 wetted fraction is taken from the water before the sub-step; with the wetted fraction of
-the water left at the end of the sub-step they are gone, and with both prototypes the
-daily-mean gradients agree with finite differences within 4 % on the four test days.
+the water left at the end of the sub-step they are gone. **That implicit wetted fraction is
+in the code (decision 122, maintainer 2026-11-15; `numerics.wetted_fraction`, `explicit`
+is Fortran's).** With it and round 6's zeta limit (still a prototype) the daily-mean
+gradients agree with finite differences within 4 % on the four test days.
 **Waiting for the maintainer:** the open points at the ends of rounds 5, 6 and 7.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
@@ -596,8 +598,9 @@ vapour pressure (12 Newton steps from above, monotone; gradient by the implicit 
 decision 119). The water budget is unchanged (`evaporation` as it is). The leaves cannot
 lose more than they hold, and the slope of the result is bounded (between 0 and 1).
 CLM does it differently (`CanopyFluxesMod`: `rpp = min(fwet, (h2ocan/dtime)/efpot)`, and
-the excess moved to sensible heat afterwards); that limiter with the stage structure here
-still leaves a dry leaf in the last pass, so it was not prototyped.
+the excess moved to sensible heat afterwards). Not prototyped. (Later note: applied before
+the flux solve it would probably also stop the overshoot, with a new corner; its two
+branches are the limits the implicit solution joins smoothly.)
 
 | Great Plains, 1 July | repository | prototype |
 |---|---|---|
@@ -641,11 +644,28 @@ solve instead of being part of it.
   with a 1e-6 step gives −22 804 against −22 805): the response itself has a narrow steep
   place at that evening transition. Not diagnosed.
 
+### Done (decision 122, maintainer 2026-11-15)
+
+The implicit wetted fraction is the default (`canopy_water.py::wetted_fraction_implicit`,
+`wet_leaf_demand`; `numerics.wetted_fraction: explicit` is Fortran's form and bit for bit
+the code before, used by the Fortran comparison compset). The repository code gives the
+prototype's numbers on the test days (Great Plains 1 July: 83.98 W m-2, no exploding patch,
+twins 3e-10 W m-2, AD within 0.7 % of ±1 %; cerrado 1 July 123 % and 1 January 40 % as the
+prototype without the zeta limit). The regression reference was recorded again (CHATS7
+changes by 3e-10 W m-2, dew). All of `tests/regression` and the gradient tier pass; the
+forward run is about 7-12 % slower on a CHATS7 day (CPU), the gradient 4-12 %.
+
+What it does not change in earlier fixes: leaf water potential above zero under dew is the
+same (+0.031 MPa on the cerrado day, 7 of 18 patches, with either form: dew enters through
+the transpiration term, not the wetted fraction), so decision 121 is still needed. The tiny
+floor in the explicit `wetted_fraction` (against the infinite slope of 0^0.67) is not
+needed by the implicit form, which gives a dry layer a zero gradient.
+
 ### Open (maintainer to decide)
 
-- The wetted fraction (science and numerics; changes results wherever leaves dry, not
-  CHATS7): the implicit form above, or CLM's limiter.
 - The zeta limit of round 6 (unchanged proposal).
+- Whether the 1° regression tests can now compare daytime outputs too (not tried: the
+  evening alternation of round 5 is still there without the zeta limit).
 - Whether to prototype the leaf water potential the same way, and to look at the steep
   evening of the cerrado.
 

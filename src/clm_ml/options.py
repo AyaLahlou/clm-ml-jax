@@ -96,11 +96,11 @@ _WUE_SOLVER = {1: "brent", 2: "bisection"}
 
 
 def substep_options(
-    opts, table_search: str = "loop", unroll_loops: bool = False
+    opts, table_search: str = "loop", unroll_loops: bool = False, wetted_fraction: str = "implicit"
 ) -> canopy.SubstepOptions:
     """The sub-step's choices from the legacy options (``MLOptions``), ``table_search``
-    (how the psihat tables are searched) and ``unroll_loops`` (the solver loops written out;
-    neither is a Fortran option), with the legacy
+    (how the psihat tables are searched), ``unroll_loops`` (the solver loops written out) and
+    ``wetted_fraction`` (implicit, or explicit as Fortran; none is a Fortran option), with the legacy
     routines' checks: Norman solar radiation and the well-mixed flux-profile solution are
     registered but not supported (Phase 7 decision D8: ``clm_ml.run`` refuses them), the other codes must be
     valid."""
@@ -136,4 +136,5 @@ def substep_options(
         integrator=INTEGRATOR[opts.runge_kutta_type],
         table_search=table_search,
         unroll_loops=unroll_loops,
+        wetted_fraction=wetted_fraction,
     )

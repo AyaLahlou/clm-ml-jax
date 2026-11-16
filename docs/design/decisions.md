@@ -798,6 +798,48 @@ were all NaN). Not changed: that leaf water potential can exceed zero under dew
 Tests: `test_processes_photosynthesis.py::test_no_water_stress_at_positive_water_potential`.
 Source: maintainer, 2026-11-14; `gradient_progress.md` round 4; O79.
 
+**122. Wetted fraction of the leaves from the water left at the end of the sub-step**
+2026-11-15 · gradients round 7 (O76) · maintainer · in force · Departure from Fortran: yes (`numerics.wetted_fraction: explicit` reproduces CLM-ml v2)
+The wetted fraction of a layer's plant area is the one that matches the intercepted water
+left at the end of the 5-minute sub-step: the `fwet` with
+`dewmx dpai fwet^(1/0.67) + demand fwet = water after interception`, at most 0.05
+(`canopy_water.py::wetted_fraction_implicit`; `demand`: what the layer would evaporate in
+the sub-step if all wet, from the stage's leaf temperature, vapour pressure and boundary
+layer conductance, `wet_leaf_demand`; 12 Newton steps, gradient by the implicit function,
+decision 59). The relation between water and wetted fraction, its exponent and its cap are
+Fortran's; only the time at which the water is taken changes. Fortran
+(`MLCanopyWaterMod.F90::CanopyWettedFraction`) takes the water at the start of each
+Runge-Kutta stage and holds the wetted fraction through the sub-step: below about 1 % of
+the capacity a sub-step evaporates more water than there is, the water turns negative
+(no floor at 0), the next stage sees a dry leaf, and so on. `numerics.wetted_fraction:
+explicit` keeps that (the Fortran comparison compset `chats7_may2007_fortran` uses it; on
+CHATS7 it is bit for bit the code before this decision).
+Reason: on days when leaves are almost dry (after rain, in drizzle, with dew) the explicit
+form multiplied a small difference of the state by 100 to 36 000 at every step: derivatives
+of 1e35 after one day (1e220 after five), two runs 1e-14 apart 11 W m-2 apart in latent
+heat, and intercepted water down to -0.003 kg m-2. With the 0.67 exponent a leaf dries in
+a finite time, which a scheme that looks at the starting water steps past with any
+sub-step (Euler and 60 s sub-steps did the same). The implicit form is the model's own
+treatment of leaf temperature applied to leaf water. Not CLM's limiter
+(`CanopyFluxesMod.F90`, `min(fwet, water/(dtime demand))`, the two limits the implicit
+solution joins smoothly): it would add a corner, and was not tested.
+Size (1° boxes, one day, 2000): Great Plains 1 July: daily-mean latent heat 86.2 -> 84.0
+W m-2 (worst patch -7.1), sensible heat 24.3 -> 25.7, twins 4e-10 W m-2 apart, no
+exploding derivative (15 of 21 patches before), daily-mean AD within 0.7 % of a ±1 % change
+of `iota`, least intercepted water -2e-9 kg m-2; with 60 s sub-steps 84.0, with Euler 84.2
+(explicit: 84.1 to 86.2 with the time stepping). Cerrado 1 July -0.35 W m-2 (worst patch
+-1.3); January days of both boxes 0.00. CHATS7 day: latent heat changes by 3e-10 W m-2
+(dew), beyond the noise twins in three variables: the regression reference was recorded
+again. Time (CHATS7 day, CPU): forward 9.1-9.5 -> 9.7-10.6 ms per step, gradient
+47-53 -> 53-55.
+Unchanged by it: leaf water potential still rises above zero under dew (+0.031 MPa on the
+cerrado day with either form), so decision 121 stays as it is; the demand is the stage's,
+not solved with the fluxes (hence the -2e-9); the 0.05 cap is still a corner.
+Tests: `test_processes_canopy_water_hydraulics.py` (the water balance over 12 orders of
+magnitude, the cap, the explicit value without demand, the gradient against finite
+differences); all of `tests/regression` and the gradient tier pass.
+Source: maintainer, 2026-11-15; `gradient_progress.md` round 7.
+
 ## F. Numerics, solvers and gradients
 
 **58. One traceable implementation per process**

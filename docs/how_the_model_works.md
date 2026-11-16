@@ -89,7 +89,7 @@ src/clm_ml/
     turbulence.py     Harman-Finnigan roughness sublayer (with the psihat tables)
     leaf_boundary_layer.py photosynthesis.py plant_hydraulics.py nitrogen_profile.py
     flux_profile.py   the implicit solution for air T, vapour, leaf T, ground T
-    canopy_water.py   interception and evaporation
+    canopy_water.py   interception, wetted fraction of the leaves, evaporation
     soil.py           soil water from the prescribed record, soil properties, soil temperature
     integrators.py    Euler and Runge-Kutta tableaus and the state update
     constants.py orbit.py math.py layers.py water_vapor.py leaf_heat_capacity.py
@@ -138,11 +138,12 @@ COMPILED       │   │   ├─ scan over 6 sub-steps (5 min):          proces
 COMPILED       │   │   │   ├─ forcing interpolated in time (previous, current, next record)
 COMPILED       │   │   │   ├─ two-stream solar radiation, Vcmax25 profile
 COMPILED       │   │   │   ├─ scan over 4 Runge-Kutta stages:     canopy._stage
-COMPILED       │   │   │   │   wetted fraction -> Norman longwave -> net radiation
+COMPILED       │   │   │   │   Norman longwave -> net radiation
 COMPILED       │   │   │   │   -> RSL turbulence (wind, u*, conductances, Obukhov length)
-COMPILED       │   │   │   │   -> leaf boundary layer -> photosynthesis and stomata
+COMPILED       │   │   │   │   -> leaf boundary layer -> interception, wetted fraction
+COMPILED       │   │   │   │   -> photosynthesis and stomata
 COMPILED       │   │   │   │   -> implicit flux-profile solution (air T, vapour, leaf T,
-COMPILED       │   │   │   │      ground T) -> leaf water potential -> interception
+COMPILED       │   │   │   │      ground T) -> leaf water potential -> leaf evaporation
 COMPILED       │   │   │   │   -> Runge-Kutta update of the canopy state
 COMPILED       │   │   │   └─ fluxes added to the step's sums
 COMPILED       │   │   ├─ averages over the sub-steps, canopy totals, energy checks
@@ -245,6 +246,15 @@ What differs is mostly how the code is written. The few science departures are l
   reproduces CLM-ml v2. CHATS7 is unchanged.
 - **Canopy-top latent heat** (decision 50): averaged per sub-step, so the reported value is
   right when the air crosses 0 °C. This changes a diagnostic only.
+- **Wetted fraction of the leaves** (decision 122): taken from the intercepted water left at
+  the end of each 5-minute sub-step, so leaves cannot evaporate more water than they hold.
+  Fortran takes it from the water at the start of each Runge–Kutta stage: almost dry leaves
+  (after rain, in drizzle, with dew) then alternate between wet and dry, their water turns
+  negative and latent heat flickers by several W m⁻². `numerics.wetted_fraction: explicit`
+  keeps Fortran's choice (the May 2007 comparison uses it). Dry days are unchanged.
+- **No water stress at or above zero leaf water potential** (decision 121): with dew, leaf
+  water potential rises slightly above zero; the stress factor is then 1. Values are
+  unchanged for the default parameters.
 - **Configurable model step** with forcing interpolated to it, and **daily or monthly leaf
   area, stem area and soil water** files (Phase 4b). The default (30-minute step, CLM history
   input) is the Fortran setup.
