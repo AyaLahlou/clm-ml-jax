@@ -94,8 +94,13 @@ of the stage's start (free) is biased by 5-20 %: not used. Round 13 (2026-11-16)
 stress, 30 days in both boxes; forward unchanged, gradient 1.8 times. Decision 124 (maintainer 2026-11-16: the
 derivative-only water stress adopted, the Obukhov rule a setting, off by default) was put
 **on hold the same day**: more such feedbacks are expected and one patch per feedback and
-regime is not wanted; a general solution is looked for first (round 14). **Nothing of
-rounds 9-13 is in the code** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
+regime is not wanted; a general solution is looked for first (round 14). Round 14 (2026-11-16): other Runge-Kutta schemes
+do not solve it. Round 15 (2026-11-16): an implicit derivative over the stages (general,
+bounded, the exact gradient's cost, but biased in the morning transition and worse than
+rounds 10 + 13 over 30 cerrado days), and **the checkpoint on the sub-step costs a factor 6
+in gradient time on a box of 18 patches**. Waiting for the maintainer: the open points at
+the end of round 15. **Nothing of
+rounds 9-15 is in the code** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
 round 11's tree in `probe_cut/obu_rule.diff`; settings, tests and a reliability flag as
 listed at the end of round 13). The overview is the summary just above.
 
@@ -1182,4 +1187,119 @@ where stability flips. Not in the code yet. To build:
   the -1 to -2 ramp of the blend was not tuned (round 11 compared switches at -0.8, -2
   and -4).
 - A cheaper Obukhov rule (the second pass is most of the 1.7 times).
+
+## Round 14: other Runge-Kutta schemes for the sub-step (2026-11-16). Not pursued
+
+The maintainer's question: the feedbacks arise from the stages; is the scheme the cause?
+The stages take every diagnosed quantity from the stage's start, so the scheme steps
+explicitly over the loop "state -> diagnosed quantity -> fluxes -> state". For a loop of
+constant gain g, the tangent grows per sub-step by the scheme's stability polynomial R(g):
+Euler is stable for g > -2, RK4 for g > -2.78 (round 11 measured gains of -2 to -3 and
+beyond). Stabilized Runge-Kutta-Chebyshev schemes with the same four stages are stable to
+g = -9.9 (order 2) and -31 (order 1). Tree `$SCRATCH/clm-ml-jax/trees/rkc` (tableaus
+`rkc2_4`, `rkc1_4`, `rkc2_5` added to `integrators.TABLEAUS`); probes
+`$SCRATCH/clm-ml-jax/probe_rkc/` (`rkc_tableau.py`, `run5.sh`).
+
+Five cerrado days, latent heat, AD against each scheme's own ±1 % of `iota`:
+
+| | rk4 | euler | rkc1_4 | rkc2_4 |
+|---|---|---|---|---|
+| largest step derivative | 1.3e5 | 1.1e4 | 3.0e3 | 1.9e4 |
+| patch-days more than 5 % off (of 72) | 6 | 8 | 2 | 18 |
+| patches with the mean within 1 % (of 18) | 11 | 9 | 16 | 8 |
+| worst mean | 6085 % | 331 % | 72 % | 502 % |
+| mean latent heat, change from rk4 (W m-2) | | -0.00 | +0.63 | -0.14 |
+| largest single-step change (W m-2) | | 65 | 80 | 72 |
+
+The first-order stabilized scheme helps but does not solve it and moves the forward model
+most; the second-order one is worse than RK4. The gain is not constant from stage to stage
+and the limits on L intervene: the constant-gain picture holds only in part.
+
+## Round 15: an implicit derivative over the stages; the checkpoint on the sub-step (2026-11-16)
+
+The maintainer's idea: do not differentiate through the Runge-Kutta stages at all. Trees
+`$SCRATCH/clm-ml-jax/trees/impl` and `impl2` (the repository plus
+`canopy.py::_implicit_stages`; switch `CLM_IMPL=fwd|rev`, `CLM_IMPL_K` GMRES steps,
+`impl2`: `CLM_IMPL_FORM=fix|exp`). Probes and results: `$SCRATCH/clm-ml-jax/probe_impl/`
+(`cfg.py`, `cfg2.py` with `WRT=iota|lw|tsoil`, `gradtime.py`, `run_*.sh`).
+
+### The rule
+
+The last pass of a sub-step is `out = P(z, q)`: the canopy processes from the state `z`
+the stages gave, with everything else `q` (the state at the sub-step's start, radiation,
+forcing, parameters). Forward values: the repository's (bit for bit, CHATS7). Derivative:
+that of a sub-step whose state agrees with the state its own pass gives (`z = G(z, q)`,
+`G` the state part of `P`), at the forward values:
+
+    (I - G_z) y = G_q dq,   d out = P_q dq + P_z y
+
+One linearization of the last pass, applied k + 1 times in one compiled loop (GMRES;
+6 steps are converged). No quantity is named. A forward-mode rule (`jax.custom_jvp`) and
+its transpose as a reverse-mode rule (`jax.custom_vjp`), which agree (CHATS7: -27.7237
+both). With the library's `gmres` the program took 9.5 GB to compile (box runs killed at
+~10 GB on the login node); with the pass in one loop 5.9 GB (CHATS7) and 8.1 GB (box).
+
+A second form (`exp`: the stages as the equation they integrate, with the pass linearized
+once, `d z = d z_start + phi(A) u`) was no better on CHATS7 and gave 1e38 at a cerrado
+patch (a strongly reinforcing feedback in the linearized pass): dropped.
+
+### Accuracy (AD against ±1 % of `iota`, unless said)
+
+| | exact (repository) | implicit | rounds 10 + 13 |
+|---|---|---|---|
+| CHATS7, one day: LE / H / GPP daily mean off by | 0.3 / 0.3 / 0.3 % | 1.2 / 3.2 / 6.6 % | |
+| the same without water stress | 0.2 / 0.2 / 0.1 % | 1.2 / 3.3 / 7.2 % | |
+| cerrado, 5 days, LE: worst patch; patch-days > 5 % (of 72) | 6085 %; 6 | 10.5 %; 13 | 12.1 %; 10 (round 13) |
+| **Great Plains July, 30 days**, LE: worst; patches within 5 % (of 21) | 3764 %; 14 | 10.9 %; 19 | 6.6 %; 20 |
+| H: worst; within 5 % | 3000 %; 14 | 6.4 %; 20 | 3.4 %; 21 |
+| GPP: worst; within 5 % | 4570 %; 13 | 24.4 %; 17 | 17.3 %; 17 |
+| **Cerrado January, 30 days**, LE: worst; within 5 % / 10 % (of 18) | 5.6e6 %; 10 / 10 | 60.3 %; 11 / 12 | 11.6 %; 14 / 17 |
+| H: worst; within 5 % / 10 % | 1.7e6 %; 9 / 11 | 25.6 %; 11 / 13 | 15.8 %; 16 / 16 |
+| GPP: worst; within 5 % / 10 % | 1.2e6 %; 10 / 10 | 4.5 %; 18 / 18 | 4.3 %; 18 / 18 |
+| largest step derivative, 30 days (LE) | 1.6e9 | 2.1e4 | 1.3e3 |
+| cerrado, 5 days, downward longwave x (1 + e): LE worst; median | 7000 %; 3.1 % | 34.8 %; 0.6 % | |
+| cerrado, 5 days, initial soil temperature + e: LE worst; median | 3280 %; 0.8 % | 19.6 %; 1.2 % | |
+| the same, GPP: worst; median; patches within 5 % | 12300 %; 2.0 %; 13 | 46.3 %; 4.9 %; 9 | |
+
+- It removes the explosions for a parameter, a forcing and a state, without naming a
+  quantity, and where the exact derivative is meaningless it is far closer.
+- It is biased where the exact derivative is right: on CHATS7 the error sits in the
+  morning steps (GPP derivative 20-30 % low from sunrise to late morning, the rest of the
+  day within 1 %), with or without water stress. Both forms give it, so it is not the
+  function applied to the gain: the pass is linearized once, at the last pass, and in the
+  morning transition its slopes differ much from stage to stage.
+- Over 30 days in the cerrado it is worse than the treatments of rounds 10 and 13 (six
+  patches more than 10 % off in latent heat, the worst 60 %): a reinforcing feedback in
+  the linearized pass makes `I - G_z` nearly singular at single steps, and nothing limits
+  the amplification (round 13 divides by at least 1).
+- States with memory: the derivative with respect to the initial soil temperature is
+  bounded but GPP is 5 % off in the median.
+
+### Cost, and the checkpoint on the sub-step (`gradtime.py`: reverse mode, mean latent heat, all parameters, one day)
+
+| | CHATS7 (1 patch), ms per step, two runs | cerrado (18 patches), ms per step | peak memory, cerrado |
+|---|---|---|---|
+| forward | 10 | 46-51 | 2.2 GB |
+| exact, checkpoint on the sub-step (the repository) | 53.3 / 55.7 | 1166 / 1150 | 8.1 GB (6.3 GB from the cache) |
+| exact, no checkpoint on the sub-step (`CLM_ML_NO_CHECKPOINT=1`) | 48.6 / 43.8 | 195 | 6.5 GB with the compilation |
+| implicit, 6 steps, checkpoint | 54.8 / 49.1 | 545 | 8.4 GB |
+| implicit, 6 steps, no checkpoint | 48.2 / 45.9 | 235 | 6.4 GB |
+| implicit, 3 steps, no checkpoint | 44.6 / 39.9 | 198 | 6.4 GB |
+
+- **The checkpoint on the sub-step costs a factor 6 on the box** (10-20 % on one patch)
+  and saves no memory that these runs show; the checkpoint on the model step stays. Not
+  measured: memory per patch at run time for many patches, and a GPU.
+- The implicit gradient costs what the exact one costs (within 20 %).
+
+### Open (maintainer to decide)
+
+- The checkpoint on the sub-step as a setting, off by default (the gradient's values do
+  not change).
+- The implicit rule is not good enough as the gradient (the 30-day cerrado, the morning
+  bias). A candidate that follows from these runs, not built: the exact derivative of the
+  sub-step where its linearized pass is within the scheme's stability limit, the implicit
+  one where it is not, weighted by one measure of the pass (its spectral radius, by power
+  iteration): round 13's blend without naming a quantity. Its cost, both derivatives of a
+  sub-step, is affordable without the checkpoint (about 430 against 1150 ms per step
+  today on the box).
 
