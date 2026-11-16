@@ -56,7 +56,10 @@ Guidance for Claude (and other contributors) working in this repository.
   (decision 122; `numerics.wetted_fraction: explicit` is Fortran's form, whose almost dry
   leaves made derivatives explode); short PFTs have a stable limit on zeta, the PFT parameter
   `zeta_max_stable` (decision 123: 0.5 for shrubs, grasses and crops, 1e30 = none for trees);
-  check new derivatives against finite differences (`jobs/gpu_probes/gradcheck0.py`). Log and
+  check new derivatives against finite differences (`jobs/gpu_probes/gradcheck0.py`). Over
+  30 days two lagged feedbacks are left (water stress, Obukhov length); decision 124
+  (2026-11-16, to be built): derivative-only treatments, forward bit for bit: the water
+  stress adopted, the Obukhov rule a setting, off by default (gradient 1.7×). Log and
   "Resume here": `docs/design/gradient_progress.md`.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).
 - **Where the work is:** NCAR Derecho (CPU login node; GPUs through PBS, account UCLB0069,

@@ -972,6 +972,36 @@ calculus. Reverse gradients are unchanged (identical on a unit system and on the
 every other solver was already forward-mode safe (decision 59).
 Source: O71; maintainer, 2026-11-02.
 
+**124. Derivative-only treatments of the two lagged feedbacks: water stress adopted, the Obukhov rule a setting (off by default)**
+2026-11-16 · gradients rounds 10-13 (O76) · maintainer · in force (to be built) · Departure from Fortran: no (forward values bit for bit)
+The forward model keeps Fortran's order (the stress function reads the leaf water potential
+of the stage's start; the Obukhov length is solved from the canopy-top air of the stage's
+start). Two quantities get another derivative, by a derivative rule (`jax.custom_jvp`):
+(a) the leaf water potential the stress function reads, as if it were consistent with the
+transpiration it gives (round 10's form): adopted; (b) the Obukhov length, as if it had
+been solved with the air the stage gives, blended by the gain of the loop air -> L -> air
+(the model's own derivative for gain >= -1, the consistent one for gain <= -2, linear in
+between; round 13): a setting, off by default. Setting names are chosen when it is built.
+With them the gradient is not the derivative of the forward values: a finite difference at
+a single affected step disagrees by design.
+Reason: the maintainer accepts approximate, linearized gradients if the forward model
+stays fast and the gradients are smooth and cheap (2026-11-16; this revises "not adopted"
+for round 10 of 2026-11-15, and sets aside the consistent forward forms of round 9, which
+change forward results and cost 1.45 times forward). (a) costs nothing measurable and
+brings stressed Great Plains patches from 35-360 % to within ~6 % over 30 days. (b)
+removes derivatives of up to 1.6e9 (cerrado monthly means within 12 %, Great Plains within
+0.5 % on the patches concerned) but costs 1.7 times the gradient (94-102 instead of 56-57
+ms per step on CHATS7; memory 5-6 instead of 4 GB), above the 1.5 times of the working
+rules: off by default keeps the default gradient at today's cost. Both together, 30 days,
+latent heat against ±1 % of `iota`: Great Plains July worst patch 6.6 % (19 of 21 within
+1.3 %), cerrado January worst 11.6 % (14 of 18 within 5 %; a third of the daily means more
+than 5 % off). Alternatives measured: cutting the link from the air to L (free; biased by
+5-20 %, round 12); the consistent derivative at every step (2 % off on a clean CHATS7 day);
+a switch at gain -2 (as accurate as the blend, discontinuous).
+Evidence is one parameter (`iota`), one output (latent heat), two 1° boxes, one month each.
+Source: maintainer, 2026-11-16; `gradient_progress.md` rounds 10-13; the surrogate-gradient
+design of jax-gcm (`docs/source/design/surrogate_gradients.md` there).
+
 ## G. Regression and testing policy
 
 **66. Bit for bit for refactors, noise twin for round-off changes**
