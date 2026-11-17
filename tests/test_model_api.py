@@ -1,6 +1,8 @@
 """clm_ml.model.Model: a compiled chunk in this process, differentiable with respect to the
 parameters in reverse mode (``jax.grad``) and forward mode (``jax.jvp``; decision 104), both
-checked against a finite difference. Slow: compiles a gradient and a forward derivative."""
+checked against a finite difference; the gradient with a checkpoint on each sub-step
+(``numerics.checkpoint_substeps``, decision 125). Slow: compiles two gradients and a forward
+derivative."""
 
 from __future__ import annotations
 
@@ -46,7 +48,16 @@ fd = (float(loss(params._replace(vcmax25=params.vcmax25 + d)))
 # custom_linear_solve; a custom_vjp rule refused jvp)
 tangent = jax.tree.map(jnp.zeros_like, params)._replace(vcmax25=d)
 _, jvp = jax.jvp(loss, (params,), (tangent,))
-print("RESULT" + json.dumps({{"grad": g, "fd": fd, "jvp": float(jvp)}}))
+# the same gradient with a checkpoint on each sub-step too (decision 125; never on the CPU
+# unless asked for)
+other = Model.from_experiment(load_experiment(tmp, ["model.numerics.checkpoint_substeps=always"]))
+
+def loss_substeps(p):
+    _, out = other.run_chunk(state, forcing, first, p, streams=[stream])
+    return out["s"]["latent_heat_flux"].mean()
+
+gs = float((jax.grad(loss_substeps)(params).vcmax25 * d).sum())
+print("RESULT" + json.dumps({{"grad": g, "fd": fd, "jvp": float(jvp), "grad_substeps": gs}}))
 """
 
 
@@ -83,3 +94,11 @@ def test_model_chunk_forward_mode_matches_reverse_mode(chunk_derivatives):
     assert result["jvp"] != 0.0
     assert abs(result["jvp"] - result["grad"]) <= 1e-6 * abs(result["grad"]), result
     assert abs(result["jvp"] - result["fd"]) <= 0.05 * abs(result["fd"]), result
+
+
+@pytest.mark.slow
+@pytest.mark.gradient
+def test_model_chunk_gradient_same_with_substep_checkpoint(chunk_derivatives):
+    """A checkpoint on each sub-step changes what the gradient stores, not its value."""
+    result = chunk_derivatives
+    assert abs(result["grad_substeps"] - result["grad"]) <= 1e-9 * abs(result["grad"]), result

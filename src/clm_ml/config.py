@@ -205,6 +205,16 @@ class NumericsOptions:
         "compute. Results are the same either way.",
         "",
     )
+    checkpoint_substeps: Literal["auto", "always", "never"] = option(
+        "auto",
+        "Whether gradients also recompute each sub-step of a step (a second jax.checkpoint, "
+        "inside the step): the gradient keeps the intermediate values of one sub-step instead "
+        "of a whole step. always: about a fifth of the memory with many patches, at the same "
+        "speed on a GPU (4 096 patches do not fit on a 40 GB GPU without it) but six times "
+        "slower on the CPU (18 patches). never: the reverse. auto: always on a GPU, never on "
+        "the CPU. Results are the same either way (decision 125).",
+        "",
+    )
     table_search: Literal["auto", "loop", "unrolled", "compare_all"] = option(
         "auto",
         "How the psihat lookup tables are searched: loop (a binary search as a compiled loop, "
@@ -425,8 +435,8 @@ class ModelConfig:
         return [
             k for k in changed_options(self)
             if k.split(".")[0] in ("processes", "numerics")
-            and k not in ("numerics.checkpoint_steps", "numerics.table_search",
-                          "numerics.solver_loops")
+            and k not in ("numerics.checkpoint_steps", "numerics.checkpoint_substeps",
+                          "numerics.table_search", "numerics.solver_loops")
             and not (k == "processes.photosynthesis.temperature_acclimation"
                      and self.processes.photosynthesis.temperature_acclimation == "run_mean")
         ]  # fmt: skip

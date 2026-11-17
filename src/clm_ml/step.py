@@ -55,6 +55,10 @@ class StepOptions(NamedTuple):
     mvelpp: float
     lambm0: float
     obliqr: float
+    #: jax.checkpoint on each sub-step too (model.yaml numerics.checkpoint_substeps, which
+    #: follows the device): gradients keep one sub-step's intermediate values instead of a
+    #: step's (less memory; much slower on the CPU)
+    checkpoint_substeps: bool = False
 
     @property
     def n_substeps(self) -> int:
@@ -236,9 +240,9 @@ def step(
     In the order of ``clm_drv``: the CLM history record's LAI, SAI and soil water; soil
     albedo, evaporative resistance, thermal and hydraulic properties; the canopy's forcing,
     solar zenith angle, plant area, soil and plant resistance, leaf heat capacity and soil
-    surface humidity; the canopy sub-steps (``canopy.substep``; a ``lax.scan`` with
-    ``jax.checkpoint``); the averages over the sub-steps, the canopy totals, the
-    sunlit/shaded merge; the soil temperature. The conservation checks of the step are
+    surface humidity; the canopy sub-steps (``canopy.substep``; a ``lax.scan``, with
+    ``jax.checkpoint`` on each sub-step if ``options.checkpoint_substeps``); the averages
+    over the sub-steps, the canopy totals, the sunlit/shaded merge; the soil temperature. The conservation checks of the step are
     recorded in ``diagnostics.balance_error`` (checked on the host). ``params``: the patch's
     PFT parameters (``CanopyParams``); ``tables``: the psihat lookup tables
     (``clm_ml.processes.turbulence.RSLTables``, one copy for all patches and steps of a chunk);
@@ -341,9 +345,7 @@ def step(
             None,
         )
 
-    import os
-
-    if os.environ.get("CLM_ML_NO_CHECKPOINT", "0") != "1":
+    if options.checkpoint_substeps:
         body = jax.checkpoint(body)
     carry = (start, canopy.zero_sums(canopy.substep_fluxes(start, lay)))
     (end, sums), _ = jax.lax.scan(body, carry, substep_days(inputs.calday_beg, options))

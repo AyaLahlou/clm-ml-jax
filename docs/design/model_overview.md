@@ -104,7 +104,9 @@ RSL ψ̂ lookup; one copy per chunk (`tables=`; broadcast over patches), data. T
 tables are on one pair of grids (checked when read; decision 115), and how the grids are
 searched is `numerics.table_search` (decision 114). Whether the loops over layers and the
 Obukhov and roughness-length iterations are compiled as loops or written out is
-`numerics.solver_loops` (decision 117); both settings are hidden and follow the device.
+`numerics.solver_loops` (decision 117); both settings are hidden and follow the device, as
+does `numerics.checkpoint_substeps` (gradients recompute each sub-step: less memory on a
+GPU, much slower on the CPU; decision 125).
 
 ### 2g. Initial conditions
 - `clm_history` (default): `setup.patches.build_patches` builds `State` from the first step's

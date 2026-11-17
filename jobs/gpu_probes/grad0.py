@@ -9,7 +9,6 @@ the parameters, the initial state or the forcing.
 
 import argparse
 import json
-import os
 import sys
 import tempfile
 import time
@@ -86,7 +85,6 @@ fns = {
 res = {
     "label": args.label, "stop": args.stop, "overrides": args.overrides, "steps": n, "wrt": args.wrt,
     "n_inputs": int(sum(np.size(a) for a in jax.tree.leaves(x0) if isf(a))),
-    "no_substep_checkpoint": os.environ.get("CLM_ML_NO_CHECKPOINT", "0"),
     "device": str(jax.devices()[0]), "patches": model.n_patches,
 }  # fmt: skip
 for name in args.modes.split(","):

@@ -131,6 +131,15 @@ numerics:
   # default: true.
   checkpoint_steps: true
 
+  # Whether gradients also recompute each sub-step of a step (a second jax.checkpoint, inside the
+  # step): the gradient keeps the intermediate values of one sub-step instead of a whole step.
+  # always: about a fifth of the memory with many patches, at the same speed on a GPU (4 096
+  # patches do not fit on a 40 GB GPU without it) but six times slower on the CPU (18 patches).
+  # never: the reverse. auto: always on a GPU, never on the CPU. Results are the same either way
+  # (decision 125).
+  # choices: auto | always | never; default: auto.
+  checkpoint_substeps: auto
+
   # A patch that fails a conservation check or whose state becomes unhealthy: stop the run naming
   # it (as Fortran), or exclude it from then on (global runs; its output is fill values and
   # gridcell sums use the remaining weights).

@@ -170,7 +170,6 @@ stats = [d.memory_stats() or {} for d in jax.local_devices()]
 res["peak_device_gb"] = [round(s.get("peak_bytes_in_use", 0) / 1e9, 2) for s in stats]
 res.update(device=str(jax.devices()[0]), jax_version=jax.__version__, host=platform.node(),
            ncpus=os.environ.get("NCPUS", ""), xla_flags=os.environ.get("XLA_FLAGS", ""),
-           no_substep_checkpoint=os.environ.get("CLM_ML_NO_CHECKPOINT", "0"),
            profiled=bool(cudart), date=time.strftime("%Y-%m-%d %H:%M"))  # fmt: skip
 print(json.dumps(res, indent=1), flush=True)
 with open(args.out, "a") as fh:

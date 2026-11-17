@@ -98,9 +98,13 @@ regime is not wanted; a general solution is looked for first (round 14). Round 1
 do not solve it. Round 15 (2026-11-16): an implicit derivative over the stages (general,
 bounded, the exact gradient's cost, but biased in the morning transition and worse than
 rounds 10 + 13 over 30 cerrado days), and **the checkpoint on the sub-step costs a factor 6
-in gradient time on a box of 18 patches**. Waiting for the maintainer: the open points at
-the end of round 15. **Nothing of
-rounds 9-15 is in the code** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
+in gradient time on a box of 18 patches**. Round 16 (2026-11-16): on a GPU that checkpoint
+costs no time and saves memory, so it is now the setting `numerics.checkpoint_substeps`,
+which follows the device (decision 125, in the code); the candidate of round 15 (the exact
+derivative where the time stepping is stable, the implicit one where it is not) is exact
+on CHATS7 and bounded in the cerrado, but leaves three Great Plains patches exploding: not
+yet the general solution. Next (maintainer, 2026-11-16): re-evaluate the direction. **Nothing of
+rounds 9-16 but that setting is in the code** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
 round 11's tree in `probe_cut/obu_rule.diff`; settings, tests and a reliability flag as
 listed at the end of round 13). The overview is the summary just above.
 
@@ -1303,3 +1307,68 @@ patch (a strongly reinforcing feedback in the linearized pass): dropped.
   sub-step, is affordable without the checkpoint (about 430 against 1150 ms per step
   today on the box).
 
+## Round 16: the sub-step checkpoint on a GPU (decision 125); the exact and implicit derivatives combined (2026-11-16)
+
+### The checkpoint on the sub-step: memory and time on a GPU
+
+`$SCRATCH/clm-ml-jax/probe_ckpt/` (`grad_mem.py`: `jobs/gpu_probes/grad0.py` with the peak
+device memory; `mem.pbs`; one A100 of 40 GB, loops written out, reverse mode with respect
+to the parameters, 8 steps, steady state; the patches are copies of the CHATS7 patch).
+
+| patches | checkpoint on the sub-step | gradient, ms per step | peak GPU memory | forward, ms per step |
+|---|---|---|---|---|
+| 1 | yes | 240 | 0.005 GB | 43 |
+| 1 | no | 209 | 0.10 GB | 43 |
+| 1 024 | yes | 333 | 2.2 GB | 60 |
+| 1 024 | no | 348 | 11.5 GB | 60 |
+| 4 096 | yes | 791 | 8.3 GB | 132 |
+| 4 096 | no | out of memory (an allocation of 42.7 GB) | | 132 |
+
+- On a GPU the checkpoint costs no time with many patches (13 % on one patch) and saves a
+  factor 5 in memory at 1 024 patches (2 against 11 MB per patch); without it 4 096
+  patches do not fit. On the CPU it cost a factor 6 on 18 patches (round 15).
+- **Decision 125 (maintainer, 2026-11-16):** the setting `numerics.checkpoint_substeps`
+  (`auto`, `always`, `never`); `auto` is `always` on a GPU and `never` on the CPU. In the
+  code, with a test that the gradient is the same either way.
+- Not measured: CPU gradients of thousands of patches.
+
+### The combined rule (prototype, not adopted)
+
+The candidate at the end of round 15. Tree `$SCRATCH/clm-ml-jax/trees/hyb` (`impl2` plus
+the blend in `canopy.py::_implicit_stages`, switch `CLM_IMPL=hyb`); probes and results in
+`$SCRATCH/clm-ml-jax/probe_hyb/` (`hyb.pbs`, tag `a`). The derivative of a sub-step is
+(1 - w) times the exact one plus w times the implicit one. The weight w comes from the
+forward values only: g, the most negative real part of the eigenvalues of the pass's
+feedback on its own state, estimated with 6 Arnoldi steps. Runge-Kutta 4 is stable for
+g > -2.78; w is 0 for g >= -2.0, 1 for g <= -2.78 and linear in between. Forward mode,
+latent heat against ±1 % of `iota`, means over the run per patch:
+
+| | exact (repository) | implicit (round 15) | rounds 10 + 13 | combined |
+|---|---|---|---|---|
+| CHATS7, one day: worst | 0.3 % | 1.2 % | | 0.3 % |
+| cerrado, 5 days: worst; patches within 5 % (of 18) | 6085 % | 10.5 % | 12.1 % | 7.5 %; 16 |
+| cerrado January, 30 days: worst; within 5 % / 10 % (of 18) | 5.6e6 %; 10 / 10 | 60.3 %; 11 / 12 | 11.6 %; 14 / 17 | 10.2 %; 12 / 16 |
+| the same: largest step derivative | 1.6e9 | | 8.9e2 | 1.8e3 |
+| Great Plains July, 30 days: worst; within 5 % (of 21) | 3764 %; 14 | 10.9 %; 19 | 6.6 %; 20 | 274 %; 18 |
+| the same: largest step derivative; patches above 1e4 | 8.9e6 | | 1.3e3; 0 | 1.6e5; 3 |
+
+- CHATS7: the morning bias of the implicit rule is gone (GPP and sensible heat 0.3 and
+  0.4 % off, against 6.6 and 3.2 %): where the time stepping is stable the rule is the
+  exact derivative.
+- Cerrado: bounded over 30 days, the worst patch as rounds 10 + 13, fewer patches within
+  5 %.
+- **Great Plains: not solved.** Three of 21 patches still have step derivatives above 1e4
+  (largest 1.6e5) and one 30-day mean is 274 % off (-130 against -35); the other 20 are
+  within 6.4 % (16 within 1 %). Not diagnosed. The Great Plains defect was the water
+  stress (round 9), a feedback through the leaf water potential from sub-step to
+  sub-step: a measure of one sub-step's stages may not see it (a guess, to be checked).
+- Cost: not measured as a gradient time. The program with both derivatives needs more
+  than the login node's 10 GB to compile (the cerrado run was killed there; run on a
+  compute node with 100 GB: 1004 s for the 30 cerrado days in forward mode).
+- One threshold pair, one parameter, one output; rounds 10 + 13 remain better in both
+  boxes over 30 days.
+
+### Open (maintainer, 2026-11-16: re-evaluate)
+
+- The direction for the lagged feedbacks: diagnose the three Great Plains patches under
+  the combined rule, return to decision 124 (rounds 10 + 13), or something else.

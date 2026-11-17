@@ -636,11 +636,16 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   derivative over the stages is general and bounded at the exact gradient's cost, but
   biased in the morning transition and worse than rounds 10 + 13 over 30 cerrado days;
   the checkpoint on the sub-step costs a factor 6 in gradient time on a box of 18 patches.
+- **Round 16 (2026-11-16):** on a GPU that checkpoint costs no time and saves a factor 5 in
+  memory (4 096 patches do not fit on an A100 without it): **decision 125**, the setting
+  `numerics.checkpoint_substeps` follows the device. The candidate of round 15 (exact
+  derivative where the time stepping is stable, implicit where not) is exact on CHATS7
+  and bounded in the cerrado but leaves three Great Plains patches exploding (prototype,
+  not adopted).
 - **Open:**
-  - the checkpoint on the sub-step as a setting, off by default (round 15);
   - a general treatment of the lagged feedbacks for gradients over long simulations
-    (linearized approximations acceptable): the candidate at the end of round 15;
-    decision 124 waits for it;
+    (linearized approximations acceptable): round 16's combined rule is not it yet; the
+    direction is to be re-evaluated with the maintainer; decision 124 waits for it;
   - the 1° check repeated in other seasons and regions, and for state and forcing
     derivatives;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per

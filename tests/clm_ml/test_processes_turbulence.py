@@ -234,6 +234,16 @@ def test_solver_loops_follow_the_device():
     assert driver.solver_loops("auto") == (jax.default_backend() == "gpu")
 
 
+def test_substep_checkpoint_follows_the_device():
+    """numerics.checkpoint_substeps (decision 125): less gradient memory on a GPU at no cost
+    in time, six times slower on the CPU."""
+    from clm_ml import driver
+
+    assert driver.checkpoint_substeps("always") is True
+    assert driver.checkpoint_substeps("never") is False
+    assert driver.checkpoint_substeps("auto") == (jax.default_backend() == "gpu")
+
+
 @pytest.mark.parametrize("taf", [294.0, 295.8, 296.5])
 def test_unrolled_iterations_match_the_loops(taf):
     """The Obukhov and roughness-length iterations written out (numerics.solver_loops,

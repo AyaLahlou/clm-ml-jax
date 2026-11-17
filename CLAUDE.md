@@ -60,7 +60,9 @@ Guidance for Claude (and other contributors) working in this repository.
   30 days two lagged feedbacks are left (water stress, Obukhov length); decision 124
   (2026-11-16, **on hold**, not built): derivative-only treatments, forward bit for bit
   (water stress; an Obukhov rule at 1.7× the gradient); a general solution is looked for
-  first (round 14). Log and
+  first (rounds 14-16: none yet; the direction is being re-evaluated). The checkpoint on
+  the sub-step is `numerics.checkpoint_substeps`, which follows the device (decision 125:
+  on a GPU a fifth of the memory at no cost in time, on the CPU 6× slower). Log and
   "Resume here": `docs/design/gradient_progress.md`.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).
 - **Where the work is:** NCAR Derecho (CPU login node; GPUs through PBS, account UCLB0069,

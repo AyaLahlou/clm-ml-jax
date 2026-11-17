@@ -1008,6 +1008,31 @@ Evidence is one parameter (`iota`), one output (latent heat), two 1° boxes, one
 Source: maintainer, 2026-11-16; `gradient_progress.md` rounds 10-13; the surrogate-gradient
 design of jax-gcm (`docs/source/design/surrogate_gradients.md` there).
 
+**125. The checkpoint on the sub-step is a setting that follows the device**
+2026-11-16 · gradients rounds 15-16 (O76) · maintainer · in force · Departure from Fortran: n/a
+`numerics.checkpoint_substeps` (`auto`, `always`, `never`): whether the six sub-steps of a
+step each get a `jax.checkpoint` (`step.py::step`), besides the one on the step
+(`numerics.checkpoint_steps`). With it a gradient keeps the intermediate values of one
+sub-step instead of a whole step and recomputes each sub-step once more. `auto` (the
+default) is `always` on a GPU and `never` on the CPU (`driver.checkpoint_substeps`). It
+replaces the checkpoint that was always there (and the probes' environment switch
+`CLM_ML_NO_CHECKPOINT`). Forward runs are not affected.
+Reason: measured both ways. CPU, one day, reverse mode: a box of 18 cerrado patches takes
+1150-1166 ms per step with it and 195 without (a factor 6), CHATS7 53-56 against 44-49,
+and it saves no memory there that the runs show (round 15). On an A100 (8 steps, loops
+written out) it costs no time and saves memory: 1 patch 240 against 209 ms per step and
+0.005 against 0.10 GB; 1 024 patches 333 against 348 ms and 2.2 against 11.5 GB; 4 096
+patches 791 ms and 8.3 GB with it, and without it the gradient does not fit on a 40 GB
+A100 (an allocation of 42.7 GB fails).
+Changed by it: CPU gradients are faster than before (the checkpoint was always on); GPU
+gradients are as before.
+Results: the gradient's value does not depend on it
+(`tests/test_model_api.py::test_model_chunk_gradient_same_with_substep_checkpoint`, 1e-9).
+Not measured: CPU gradients of many patches (thousands), where memory may ask for
+`always`; the GPU numbers are of 8 steps and synthetic copies of the CHATS7 patch.
+Source: maintainer, 2026-11-16; `gradient_progress.md` rounds 15 and 16
+(`$SCRATCH/clm-ml-jax/probe_ckpt/results_mem.jsonl`).
+
 ## G. Regression and testing policy
 
 **66. Bit for bit for refactors, noise twin for round-off changes**

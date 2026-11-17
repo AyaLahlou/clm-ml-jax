@@ -43,8 +43,8 @@ case $MODE in
 base)   # 0a: the yardstick, global, one day; 0g: without checkpoints
   run domain.grid.region=global run.execution.devices=1 --steps 48 --repeat 3 --label "$TAG"
   if [ "${NOCKPT:-0}" = 1 ]; then
-    CLM_ML_NO_CHECKPOINT=1 run domain.grid.region=global run.execution.devices=1 \
-      model.numerics.checkpoint_steps=false --steps 48 --repeat 3 --label "$TAG no checkpoint"
+    run domain.grid.region=global run.execution.devices=1 \
+      model.numerics.checkpoint_steps=false model.numerics.checkpoint_substeps=never --steps 48 --repeat 3 --label "$TAG no checkpoint"
   fi ;;
 scale)  # 0b: step time against number of patches; 0f: C3 only against C3 + C4 (small boxes)
   for box in "{lat: [55, 57], lon: [-110, -105]}" "{lat: [35, 37], lon: [-100, -98]}" \
