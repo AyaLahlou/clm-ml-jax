@@ -37,6 +37,7 @@ units:
   leaf_transmittance: '-'
   stem_reflectance: '-'
   stem_transmittance: '-'
+  zeta_max_stable: '-'
   z0m_to_height_ratio: '-'
   displacement_to_height_ratio: '-'
 pft:
@@ -74,6 +75,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   needleleaf_evergreen_boreal_tree:
     vcmax25: 62.5
     iota: 1500.0
@@ -108,6 +110,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   needleleaf_deciduous_boreal_tree:
     vcmax25: 39.1
     iota: 1500.0
@@ -142,6 +145,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_evergreen_tropical_tree:
     vcmax25: 41.0
     iota: 500.0
@@ -176,6 +180,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_evergreen_temperate_tree:
     vcmax25: 61.4
     iota: 750.0
@@ -210,6 +215,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_deciduous_tropical_tree:
     vcmax25: 41.0
     iota: 750.0
@@ -244,6 +250,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_deciduous_temperate_tree:
     vcmax25: 125.0
     iota: 375.0
@@ -278,6 +285,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_deciduous_boreal_tree:
     vcmax25: 57.7
     iota: 750.0
@@ -312,6 +320,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_evergreen_shrub:
     vcmax25: 61.7
     iota: 750.0
@@ -346,6 +355,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
   broadleaf_deciduous_temperate_shrub:
     vcmax25: 54.0
     iota: 750.0
@@ -380,6 +390,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
   broadleaf_deciduous_boreal_shrub:
     vcmax25: 54.0
     iota: 750.0
@@ -414,6 +425,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
   c3_arctic_grass:
     vcmax25: 78.2
     iota: 750.0
@@ -448,6 +460,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c3_non-arctic_grass:
     vcmax25: 78.2
     iota: 750.0
@@ -482,6 +495,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c4_grass:
     vcmax25: 51.6
     iota: 750.0
@@ -516,6 +530,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c3_crop:
     vcmax25: 100.7
     iota: 750.0
@@ -550,6 +565,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c3_irrigated:
     vcmax25: 100.7
     iota: 750.0
@@ -584,3 +600,4 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5

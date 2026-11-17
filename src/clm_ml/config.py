@@ -189,11 +189,57 @@ class NumericsOptions:
         "in CLM-ml v2 (v1 used Euler).",
         "runge_kutta_type",
     )
+    wetted_fraction: Literal["implicit", "explicit"] = option(
+        "implicit",
+        "Wetted fraction of the leaves in a sub-step: implicit (of the intercepted water left "
+        "at the end of the sub-step, so leaves cannot evaporate more water than they hold; "
+        "decision 122) or explicit (of the water at the start of each Runge-Kutta stage, as "
+        "Fortran CLM-ml v2: almost dry leaves alternate between wet and dry and their water "
+        "turns negative; for comparison with Fortran).",
+        "",
+    )
+    water_stress_derivative: Literal["stabilized", "exact"] = option(
+        "stabilized",
+        "Derivative of the water stress of the stomata (gradients only; forward results are "
+        "the same either way). The stomata take the stress of the leaf water potential at "
+        "the start of each Runge-Kutta stage; near the stress threshold a leaf alternates "
+        "between open and closed, and the exact derivative of that grows without bound over "
+        "days. stabilized: the derivative of the potential consistent with the transpiration "
+        "it gives (bounded; 30-day mean derivatives of stressed patches within about 6 % of "
+        "a finite change instead of 35-360 % off; no cost), an approximation: not the exact "
+        "derivative of the forward values at a stressed step. exact: the exact derivative "
+        "(decision 124).",
+        "",
+    )
+    obukhov_derivative: Literal["exact", "stabilized"] = option(
+        "exact",
+        "Derivative of the Obukhov length (gradients only; forward results are the same "
+        "either way). Each Runge-Kutta stage solves the Obukhov length from the canopy-top "
+        "air at its start and then gives new air; in stability transitions this loop "
+        "overshoots from stage to stage, and the exact derivative of that grows without "
+        "bound over days (common in regimes like the wet-season cerrado, rare at a tower "
+        "like CHATS7). exact: the exact derivative. stabilized: where the loop overshoots, "
+        "the derivative of the length consistent with the air the stage gives (bounded; "
+        "monthly-mean derivatives within about 12 % of a finite change; the gradient takes "
+        "1.7 times as long and half as much memory again), an approximation: not the exact "
+        "derivative of the forward values at an affected step (decision 124).",
+        "",
+    )
     checkpoint_steps: bool = option(
         True,
         "Recompute each step when taking gradients instead of storing its intermediate values "
         "(jax.checkpoint, as jax-gcm): much less memory for gradients over a chunk, some more "
         "compute. Results are the same either way.",
+        "",
+    )
+    checkpoint_substeps: Literal["auto", "always", "never"] = option(
+        "auto",
+        "Whether gradients also recompute each sub-step of a step (a second jax.checkpoint, "
+        "inside the step): the gradient keeps the intermediate values of one sub-step instead "
+        "of a whole step. always: about a fifth of the memory with many patches, at the same "
+        "speed on a GPU (4 096 patches do not fit on a 40 GB GPU without it) but six times "
+        "slower on the CPU (18 patches). never: the reverse. auto: always on a GPU, never on "
+        "the CPU. Results are the same either way (decision 125).",
         "",
     )
     table_search: Literal["auto", "loop", "unrolled", "compare_all"] = option(
@@ -416,8 +462,9 @@ class ModelConfig:
         return [
             k for k in changed_options(self)
             if k.split(".")[0] in ("processes", "numerics")
-            and k not in ("numerics.checkpoint_steps", "numerics.table_search",
-                          "numerics.solver_loops")
+            and k not in ("numerics.checkpoint_steps", "numerics.checkpoint_substeps",
+                          "numerics.table_search", "numerics.solver_loops",
+                          "numerics.water_stress_derivative", "numerics.obukhov_derivative")
             and not (k == "processes.photosynthesis.temperature_acclimation"
                      and self.processes.photosynthesis.temperature_acclimation == "run_mean")
         ]  # fmt: skip

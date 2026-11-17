@@ -34,6 +34,7 @@ units:
   leaf_transmittance: '-'
   stem_reflectance: '-'
   stem_transmittance: '-'
+  zeta_max_stable: '-'
   z0m_to_height_ratio: '-'
   displacement_to_height_ratio: '-'
 pft:
@@ -71,6 +72,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.055
     displacement_to_height_ratio: 0.67
   needleleaf_evergreen_boreal_tree:
@@ -107,6 +109,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.055
     displacement_to_height_ratio: 0.67
   needleleaf_deciduous_boreal_tree:
@@ -143,6 +146,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.055
     displacement_to_height_ratio: 0.67
   broadleaf_evergreen_tropical_tree:
@@ -179,6 +183,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.075
     displacement_to_height_ratio: 0.67
   broadleaf_evergreen_temperate_tree:
@@ -215,6 +220,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.075
     displacement_to_height_ratio: 0.67
   broadleaf_deciduous_tropical_tree:
@@ -251,6 +257,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.055
     displacement_to_height_ratio: 0.67
   broadleaf_deciduous_temperate_tree:
@@ -287,6 +294,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.055
     displacement_to_height_ratio: 0.67
   broadleaf_deciduous_boreal_tree:
@@ -323,6 +331,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
     z0m_to_height_ratio: 0.055
     displacement_to_height_ratio: 0.67
   broadleaf_evergreen_shrub:
@@ -359,6 +368,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   broadleaf_deciduous_temperate_shrub:
@@ -395,6 +405,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   broadleaf_deciduous_boreal_shrub:
@@ -431,6 +442,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   c3_arctic_grass:
@@ -467,6 +479,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   c3_non-arctic_grass:
@@ -503,6 +516,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   c4_grass:
@@ -539,6 +553,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   c3_crop:
@@ -575,6 +590,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68
   c3_irrigated:
@@ -611,5 +627,6 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
     z0m_to_height_ratio: 0.12
     displacement_to_height_ratio: 0.68

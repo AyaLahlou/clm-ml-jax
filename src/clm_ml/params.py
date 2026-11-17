@@ -70,6 +70,8 @@ class CanopyParams(NamedTuple):
     leaf_transmittance: object
     stem_reflectance: object
     stem_transmittance: object
+    # Turbulence
+    zeta_max_stable: object
 
 
 #: CLM PFT names, in CLM index order (index 0 = not_vegetated). Only PFTs 1-16 have
@@ -151,6 +153,11 @@ PARAM_SPECS: tuple[ParamSpec, ...] = (
     ParamSpec("leaf_transmittance", "-", "Leaf transmittance [vis, nir]", "pftcon", "taul", True),
     ParamSpec("stem_reflectance", "-", "Stem reflectance [vis, nir]", "pftcon", "rhos", True),
     ParamSpec("stem_transmittance", "-", "Stem transmittance [vis, nir]", "pftcon", "taus", True),
+    # Turbulence (decision 123; not in CLM-ml v2)
+    ParamSpec("zeta_max_stable", "-",
+              "Largest stability (reference height - displacement height) / Obukhov length in "
+              "stable conditions (CLM zetamaxstable); 1e30: no limit, as CLM-ml v2",
+              "", "zetamaxstable"),
     # Canopy roughness (CLM z0mr, displar): only the forcing height of grid runs uses them
     # (30 m + (z0m + displacement) above the ground, CLM's rule); not CLM-ml physics parameters
     ParamSpec("z0m_to_height_ratio", "-", "Momentum roughness length / canopy height (CLM z0mr)",
@@ -160,6 +167,34 @@ PARAM_SPECS: tuple[ParamSpec, ...] = (
 )  # fmt: skip
 
 SPECS_BY_NAME: Mapping[str, ParamSpec] = {s.name: s for s in PARAM_SPECS}
+
+#: ``zeta_max_stable`` of a PFT without a limit (CLM-ml v2)
+NO_ZETA_LIMIT = 1.0e30
+#: ``zeta_max_stable`` given by ``clm-ml upgrade`` to a params file written before decision
+#: 123, by PFT: CLM's 0.5 for shrubs, grasses and crops, no limit for trees
+ZETA_MAX_STABLE_DEFAULT: Mapping[str, float] = {
+    name: NO_ZETA_LIMIT if name.endswith("_tree") else 0.5 for name in PFT_NAMES[1:]
+}
+
+
+def add_new_parameters(data: dict, report: list[str]) -> dict:
+    """A params file's contents with the parameters added since it was written
+    (``zeta_max_stable``, decision 123) at their defaults (``clm-ml upgrade``)."""
+    pfts = data.get("pft")
+    if not isinstance(pfts, dict):
+        return data
+    added = False
+    for pft, entries in pfts.items():
+        if isinstance(entries, dict) and pft in ZETA_MAX_STABLE_DEFAULT:
+            if "zeta_max_stable" not in entries:
+                entries["zeta_max_stable"] = ZETA_MAX_STABLE_DEFAULT[pft]
+                added = True
+    if added:
+        report.append(
+            "params.yaml: added zeta_max_stable (0.5 for shrubs, grasses and crops, 1e30 = no "
+            "limit for trees; decision 123)"
+        )
+    return data
 
 
 @dataclasses.dataclass(frozen=True)

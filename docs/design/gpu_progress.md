@@ -83,7 +83,9 @@ before the pull request (maintainer, 2026-11-16): they are measurement tools, no
 the model. They are in the git history (commit `b954677`, with a README; also on branch
 `gpu_grad`) and in scratch (`$SCRATCH/clm-ml-jax/probe_gpu0/`, `probe_grad0/`). To use the
 commands below, put them back in a checkout without committing them:
-`git checkout b954677 -- jobs/gpu_probes`.
+`git checkout b954677 -- jobs/gpu_probes` (the later copies on `gpu_grad`, commit `e5965cc`,
+use the setting `numerics.checkpoint_substeps` instead of the switch `CLM_ML_NO_CHECKPOINT`,
+decision 125, and add the gradient probes).
 
 ```bash
 # 1. a fixed snapshot of the code to time (never time the working tree: jobs wait in the queue)

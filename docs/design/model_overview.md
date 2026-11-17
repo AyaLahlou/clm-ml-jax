@@ -93,7 +93,8 @@ Photosynthesis/stomata: `vcmax25`, `iota`, `gs_min`, `g0/g1_ball_berry`, `g0/g1_
 `psi50_gs`, `shape_gs`; hydraulics/roots: `plant_conductance`, `plant_capacitance`,
 `root_radius`, `root_density`, `root_resistivity`; leaf/radiation: `leaf_dimension`,
 `leaf_angle_index`, `sla_top`, `leaf_emissivity`, `clumping_index`, `leaf/stem_reflectance`,
-`leaf/stem_transmittance` (spectral fields `[unused, vis, nir]`, legacy 1-based band layout).
+`leaf/stem_transmittance` (spectral fields `[unused, vis, nir]`, legacy 1-based band layout);
+turbulence: `zeta_max_stable` (decision 123).
 Read at setup only (not differentiable through the run): `root_profile_beta` (root fractions),
 `c3_photosynthesis` (C3/C4 group, static), PFT default canopy height / beta profiles.
 
@@ -103,7 +104,15 @@ RSL ψ̂ lookup; one copy per chunk (`tables=`; broadcast over patches), data. T
 tables are on one pair of grids (checked when read; decision 115), and how the grids are
 searched is `numerics.table_search` (decision 114). Whether the loops over layers and the
 Obukhov and roughness-length iterations are compiled as loops or written out is
-`numerics.solver_loops` (decision 117); both settings are hidden and follow the device.
+`numerics.solver_loops` (decision 117); both settings are hidden and follow the device, as
+does `numerics.checkpoint_substeps` (gradients recompute each sub-step: less memory on a
+GPU, much slower on the CPU; decision 125). Two derivative rules leave the forward values
+alone and replace a derivative that grows without bound over days (decision 124):
+`numerics.water_stress_derivative` (`photosynthesis.stress_potential`, `stabilized` by default) and
+`numerics.obukhov_derivative` (`canopy._fluxes_stabilized_obukhov`, `exact` by default: the
+gradient takes 1.7 times as long). The stage's processes from the turbulence to the
+flux-profile solution are one function, `canopy._fluxes`, so that the rule can evaluate
+them along the Obukhov length.
 
 ### 2g. Initial conditions
 - `clm_history` (default): `setup.patches.build_patches` builds `State` from the first step's
@@ -201,16 +210,19 @@ from the configuration).
      (`atm_forcing.atm_forcing`); two-stream solar radiation (`solar_radiation.canopy_optics`,
      `two_stream`; sunlit fraction, absorbed shortwave per leaf); leaf nitrogen / Vcmax25
      profile (`nitrogen_profile.canopy_nitrogen_profile`);
-   - **per Runge-Kutta stage** (`_stage`, 4 for `rk4`, a `lax.scan`): wetted fraction
-     (`canopy_water.wetted_fraction`) → Norman longwave (`longwave.norman`) → net radiation →
+   - **per Runge-Kutta stage** (`_stage`, 4 for `rk4`, a `lax.scan`): Norman longwave
+     (`longwave.norman`) → net radiation →
      Harman–Finnigan RSL turbulence (wind profile, u*, β, aerodynamic conductances, Obukhov
      length; `turbulence.harman_finnigan`, psihat tables) → leaf boundary layer
-     (`leaf_boundary_layer`) → photosynthesis and stomatal conductance (WUE optimization by
+     (`leaf_boundary_layer`) → interception and the wetted fraction of the water left at the
+     end of the sub-step (`canopy_water.interception`, `wetted_fraction_implicit`; decision
+     122; with `numerics.wetted_fraction: explicit` the wetted fraction of the stage's water
+     comes first, `canopy_water.wetted_fraction`, as Fortran) → photosynthesis and stomatal conductance (WUE optimization by
      bisection with the hydraulic constraint, or Medlyn/Ball–Berry; `photosynthesis.
      leaf_photosynthesis`) → implicit flux–profile solution (tridiagonal system for air T,
      vapour, leaf T, ground T; `flux_profile.implicit`) → leaf water potential
-     (`plant_hydraulics.leaf_water_potential`) → interception and evaporation
-     (`canopy_water`) → Runge–Kutta update of {air T, vapour, intercepted water, leaf T, leaf
+     (`plant_hydraulics.leaf_water_potential`) → evaporation of the intercepted water
+     (`canopy_water.evaporation`) → Runge–Kutta update of {air T, vapour, intercepted water, leaf T, leaf
      ψ, ground T} (`integrators.runge_kutta_update`);
    - the sub-step's fluxes added to the step's sums.
 
@@ -315,13 +327,13 @@ flowchart TB
   subgraph SUB[6 sub-steps of 5 min - scan]
     R[forcing interpolated 3-point<br/>two-stream solar, N/Vcmax profile]
     subgraph RK[RK4: 4 stages - scan]
-      W[wetted fraction<br/>reads intercepted_water] --> LW[Norman longwave<br/>reads leaf T, ground T]
-      LW --> T[RSL turbulence<br/>wind, u*, conductances, L]
+      LW[Norman longwave<br/>reads leaf T, ground T] --> T[RSL turbulence<br/>wind, u*, conductances, L]
       T --> BL[leaf boundary layer]
-      BL --> PS[photosynthesis + stomata<br/>reads leaf T, leaf psi]
+      BL --> W[interception, implicit wetted fraction<br/>reads intercepted_water]
+      W --> PS[photosynthesis + stomata<br/>reads leaf T, leaf psi]
       PS --> FP[implicit flux-profile solve<br/>air T, vapour, leaf T, ground T]
       FP --> LWP[leaf water potential]
-      LWP --> INT[interception + evaporation]
+      LWP --> INT[evaporation of intercepted water]
       INT --> UPD[RK update of air T, vapour,<br/>water, leaf T, leaf psi, ground T]
     end
     R --> RK

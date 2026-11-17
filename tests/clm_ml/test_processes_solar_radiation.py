@@ -36,7 +36,7 @@ def _profiles():
     return dlai, dsai
 
 
-def _physics():
+def _physics(leaf_angle_index=PARAMS.leaf_angle_index):
     dlai, dsai = _profiles()
     layers = PatchLayers(
         n_layers=jnp.asarray(NCAN), n_within=jnp.asarray(NTOP),
@@ -46,11 +46,36 @@ def _physics():
     dpai = jnp.asarray((dlai + dsai)[1:])
     optics = solar.canopy_optics(
         0.6, jnp.asarray(dlai[1:]), jnp.asarray(dsai[1:]), dpai, layers,
-        *(x[1:] for x in PARAMS[:4]), PARAMS.leaf_angle_index, PARAMS.clumping_index,
+        *(x[1:] for x in PARAMS[:4]), leaf_angle_index, PARAMS.clumping_index,
     )  # fmt: skip
     sky_b, sky_d, alb = jnp.array([300.0, 280.0]), jnp.array([60.0, 40.0]), jnp.array([0.1, 0.2])
     fluxes = solar.two_stream(optics, dpai, sky_b, sky_d, alb, alb, layers)
     return optics, fluxes, dpai, sky_b, sky_d
+
+
+# planophile (trees) .. erectophile (grasses and crops, -0.3); 0.0 is moved to 0.01 and
+# values beyond [-0.4, 0.6] to the limits, as in CLM
+@pytest.mark.parametrize("chil", [-0.5, -0.4, -0.3, 0.0, 0.01, 0.25, 0.53, 0.6])
+def test_avmu_is_the_fortran_formula_for_any_leaf_angle_index(chil):
+    """The average inverse diffuse optical depth with phi2 as it is, negative for a negative
+    leaf angle index (decision 120: a guard max(phi2, 1e-10) gave 1 / (2 phi1), 0.757
+    instead of 1.077 at -0.3, with amplified rounding noise), and energy is conserved."""
+    optics, fluxes, _, _, _ = _physics(chil)
+    x = min(max(chil, -0.4), 0.6)
+    x = 0.01 if abs(x) <= 0.01 else x
+    phi1 = 0.5 - 0.633 * x - 0.330 * x * x
+    phi2 = 0.877 * (1.0 - 2.0 * phi1)
+    assert (phi2 < 0) == (x < 0)
+    expected = (1.0 - phi1 / phi2 * np.log((phi1 + phi2) / phi1)) / phi2
+    np.testing.assert_allclose(np.asarray(optics.avmu)[NBOT - 1 : NTOP], expected, rtol=1e-12)
+    assert np.all(np.abs(np.asarray(fluxes.error)) < 1e-9)
+
+
+def test_avmu_is_smooth_in_a_negative_leaf_angle_index():
+    """No rounding noise: second differences of avmu over steps of 1e-6 are at round-off."""
+    avmu = [float(_physics(-0.3 + k * 1e-6)[0].avmu[NBOT - 1]) for k in range(-2, 3)]
+    assert np.abs(np.diff(avmu, 2)).max() < 1e-11
+    assert avmu[2] == pytest.approx(1.0773, abs=1e-4)
 
 
 def test_two_stream_conserves_energy():

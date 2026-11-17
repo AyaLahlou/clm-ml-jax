@@ -245,6 +245,28 @@ def test_upgrade_adds_missing_keys_and_keeps_values(chats_run_dir):
     assert (chats_run_dir / ".previous" / "model.yaml").exists()
 
 
+def test_upgrade_adds_the_stable_zeta_limit(chats_run_dir):
+    """A params.yaml written before decision 123 gets zeta_max_stable: 0.5 for shrubs,
+    grasses and crops, no limit for trees; a value that is there is kept."""
+
+    def old(d):
+        for name, entries in d["pft"].items():
+            if name != "c4_grass":
+                entries.pop("zeta_max_stable")
+        d["pft"]["c4_grass"]["zeta_max_stable"] = 0.8
+
+    _edit(chats_run_dir, "params.yaml", old)
+    with pytest.raises(ConfigError, match="zeta_max_stable"):
+        load_experiment(chats_run_dir)
+    report = upgrade_experiment(chats_run_dir)
+    assert any("zeta_max_stable" in line for line in report)
+    p = load_experiment(chats_run_dir).params
+    assert p.get("c3_crop", "zeta_max_stable") == 0.5
+    assert p.get("broadleaf_deciduous_boreal_shrub", "zeta_max_stable") == 0.5
+    assert p.get("c4_grass", "zeta_max_stable") == 0.8
+    assert p.get("broadleaf_deciduous_temperate_tree", "zeta_max_stable") == 1.0e30
+
+
 def test_upgrade_converts_the_layout_before_experiment_folders(chats_run_dir, tmp_path):
     """A folder as `clm-ml convert` wrote it before decision 91 becomes the same experiment
     as the current conversion."""

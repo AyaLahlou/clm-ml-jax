@@ -751,6 +751,131 @@ twice with identical inputs).
 Reason: half the work, bit-for-bit results.
 Source: C11.
 
+**120. Two-stream `avmu` with phi2 as it is (negative leaf angle index)**
+2026-11-14 · gradients round 3 (O77) · maintainer · in force · Departure from Fortran: no (restores Fortran)
+`solar_radiation.py::canopy_optics` computes the average inverse diffuse optical depth
+`avmu = (1 - phi1/phi2 ln((phi1 + phi2)/phi1)) / phi2` with phi2 = 0.877 (1 - 2 phi1) as it
+is, as Fortran CLM-ml v2 (`MLSolarRadiationMod.F90` line 239) and CTSM
+(`SurfaceAlbedoMod.F90` line 1446). The translation's guard `max(phi2, 1e-10)` against a
+division by zero replaced every negative phi2, i.e. every leaf angle index below 0, by
+1e-10: `avmu` was the limit 1/(2 phi1) (0.757 instead of 1.077 at chi_l = -0.3), formed as
+a difference of nearly equal numbers, so with amplified rounding noise. The guard now keeps
+the sign and only acts for |phi2| < 1e-10, which |chi_l| >= 0.01 excludes.
+Affected: the five PFTs with chi_l = -0.3 (`c3_arctic_grass`, `c3_non-arctic_grass`,
+`c4_grass`, `c3_crop`, `c3_irrigated`), so grass and crop patches of grid runs. Not CHATS7
+(0.53) nor any tree or shrub: the regression reference is bit for bit unchanged and all of
+`tests/regression` passes without a new reference (the grid tests compare outputs through
+the night only).
+Size: the CHATS7 patch run as `c4_grass`, one day: day-mean GPP 5.9 -> 10.5 umol m-2 s-1,
+latent heat 61 -> 77 W m-2, sensible heat 18 -> 27, ground heat flux 30 -> 5.
+Found because finite differences with respect to the leaf angle index did not converge (the
+forward model was a sawtooth in it); with the fix all 158 parameter derivatives of that case
+are within 0.1 % of finite differences. Not compared with a Fortran run of a grass patch
+(the Fortran validation data are CHATS7 only). Global results computed before this decision
+are wrong in their shortwave for grass and crop patches.
+Tests: `test_processes_solar_radiation.py` (the formula for eight leaf angle indices,
+energy conservation, smoothness at -0.3).
+Source: maintainer, 2026-11-14; `gradient_progress.md` round 3; O77.
+
+**121. No water stress at or above zero leaf water potential**
+2026-11-14 · gradients round 4 (O79) · maintainer · in force · Departure from Fortran: yes (same values for the default parameters)
+The water-stress factor of stomatal conductance is
+`fpsi = 1 / (1 + max(psi_l/psi50, 0)^shape_gs)` (`photosynthesis.py::leaf_photosynthesis`):
+at psi_l >= 0 there is no water stress. Fortran CLM-ml v2 (`MLLeafPhotosynthesisMod.F90`
+line 438) has `(psi_l/psi50)^shape_gs` without a guard, as CTSM's vulnerability curve: no
+CLM precedent. With dew the transpiration term is negative and leaf water potential rises
+slightly above zero (seen: up to +0.03 MPa before dawn on 1 degree cerrado patches); the
+base is then negative, its derivative with respect to `shape_gs` is NaN (logarithm of a
+negative number), and one NaN made the gradient of every parameter NaN for the rest of
+the chunk. A `shape_gs` that is not a whole number (a calibrated 39.5) would have given NaN
+forward values there.
+Forward values: unchanged for the default parameters (`fpsi` was already exactly 1 there:
+0.02^40 = 1e-68); the regression reference is bit for bit the same. Derivatives of the
+stress factor at psi_l >= 0: 0 (the true value) instead of NaN.
+Checked: the cerrado box of round 4 again, 18 patches, 27 parameters: no NaN (9 patches
+were all NaN). Not changed: that leaf water potential can exceed zero under dew
+(`plant_hydraulics.py::leaf_water_potential`, as Fortran).
+Tests: `test_processes_photosynthesis.py::test_no_water_stress_at_positive_water_potential`.
+Source: maintainer, 2026-11-14; `gradient_progress.md` round 4; O79.
+
+**122. Wetted fraction of the leaves from the water left at the end of the sub-step**
+2026-11-15 · gradients round 7 (O76) · maintainer · in force · Departure from Fortran: yes (`numerics.wetted_fraction: explicit` reproduces CLM-ml v2)
+The wetted fraction of a layer's plant area is the one that matches the intercepted water
+left at the end of the 5-minute sub-step: the `fwet` with
+`dewmx dpai fwet^(1/0.67) + demand fwet = water after interception`, at most 0.05
+(`canopy_water.py::wetted_fraction_implicit`; `demand`: what the layer would evaporate in
+the sub-step if all wet, from the stage's leaf temperature, vapour pressure and boundary
+layer conductance, `wet_leaf_demand`; 12 Newton steps, gradient by the implicit function,
+decision 59). The relation between water and wetted fraction, its exponent and its cap are
+Fortran's; only the time at which the water is taken changes. Fortran
+(`MLCanopyWaterMod.F90::CanopyWettedFraction`) takes the water at the start of each
+Runge-Kutta stage and holds the wetted fraction through the sub-step: below about 1 % of
+the capacity a sub-step evaporates more water than there is, the water turns negative
+(no floor at 0), the next stage sees a dry leaf, and so on. `numerics.wetted_fraction:
+explicit` keeps that (the Fortran comparison compset `chats7_may2007_fortran` uses it; on
+CHATS7 it is bit for bit the code before this decision).
+Reason: on days when leaves are almost dry (after rain, in drizzle, with dew) the explicit
+form multiplied a small difference of the state by 100 to 36 000 at every step: derivatives
+of 1e35 after one day (1e220 after five), two runs 1e-14 apart 11 W m-2 apart in latent
+heat, and intercepted water down to -0.003 kg m-2. With the 0.67 exponent a leaf dries in
+a finite time, which a scheme that looks at the starting water steps past with any
+sub-step (Euler and 60 s sub-steps did the same). The implicit form is the model's own
+treatment of leaf temperature applied to leaf water. Not CLM's limiter
+(`CanopyFluxesMod.F90`, `min(fwet, water/(dtime demand))`, the two limits the implicit
+solution joins smoothly): it would add a corner, and was not tested.
+Size (1° boxes, one day, 2000): Great Plains 1 July: daily-mean latent heat 86.2 -> 84.0
+W m-2 (worst patch -7.1), sensible heat 24.3 -> 25.7, twins 4e-10 W m-2 apart, no
+exploding derivative (15 of 21 patches before), daily-mean AD within 0.7 % of a ±1 % change
+of `iota`, least intercepted water -2e-9 kg m-2; with 60 s sub-steps 84.0, with Euler 84.2
+(explicit: 84.1 to 86.2 with the time stepping). Cerrado 1 July -0.35 W m-2 (worst patch
+-1.3); January days of both boxes 0.00. CHATS7 day: latent heat changes by 3e-10 W m-2
+(dew), beyond the noise twins in three variables: the regression reference was recorded
+again. Time (CHATS7 day, CPU): forward 9.1-9.5 -> 9.7-10.6 ms per step, gradient
+47-53 -> 53-55.
+Unchanged by it: leaf water potential still rises above zero under dew (+0.031 MPa on the
+cerrado day with either form), so decision 121 stays as it is; the demand is the stage's,
+not solved with the fluxes (hence the -2e-9); the 0.05 cap is still a corner.
+Tests: `test_processes_canopy_water_hydraulics.py` (the water balance over 12 orders of
+magnitude, the cap, the explicit value without demand, the gradient against finite
+differences); all of `tests/regression` and the gradient tier pass.
+Source: maintainer, 2026-11-15; `gradient_progress.md` round 7.
+
+**123. A stable limit on zeta per PFT (`zeta_max_stable`)**
+2026-11-15 · gradients round 6 (O76) · maintainer · in force · Departure from Fortran: yes (1e30, no limit, reproduces CLM-ml v2)
+A PFT parameter `zeta_max_stable` (params.yaml) limits the stability at the reference
+height in stable conditions: after the theory's limit L >= Lc, also
+`L >= (zref - zdisp) / zeta_max_stable`, with the displacement height of the Lc-limited
+length; beta and the displacement height are then those of the limited length
+(`turbulence.py::obukhov_terms`). It is CLM's `zetamaxstable` (`FrictionVelocityMod.F90`:
+`zeta = zldis/obu <= zetamaxstable`, 0.5 in CTSM 5.4), which CLM-ml v2 does not have.
+Values in the three parameter compsets: 0.5 for shrubs, grasses and crops (PFTs 9-16);
+1e30 (no limit) for trees (PFTs 1-8), so CHATS7 and the Fortran comparison are unchanged
+(regression reference bit for bit the same). The parameter is differentiable and per PFT:
+one compiled program runs any values. `clm-ml upgrade` adds it to older params files at
+these values; a params file without it is refused (a params file is complete).
+Reason: on calm evenings and nights short canopies had two states of turbulence (collapsed
+at Lc/L = 1 with u* ~0.001 m/s, or recovered), and the Runge-Kutta stages alternated
+between them: round-off amplified ~1e11 at the evening transition and the daily-mean
+derivative of latent heat 10-40 % off a finite change (round 5). Only a tight limit helps:
+0.5 removes the alternation (307 -> 1 stage alternations in the cerrado box with 0.5 for
+all), 1 most of it, 2 and more none. A value calibrated upwards brings the roughness back.
+Size (1° boxes, one day, daily means, change from no limit, with decision 122): cerrado
+1 January latent heat +1.1 W m-2 (worst patch +3.5), sensible heat -1.2 (-2.8); cerrado
+1 July +2.4 (+6.9), -3.4 (-7.9); Great Plains 1 July +5.5 (+11.8), -9.8 (-19); Great
+Plains 1 January +2.4 (+5.1), -19 (-33), canopy-top air at night +3.7 K: there the limit
+is purely a change of the science (no gradient problem without it). Night friction
+velocity of short canopies rises from 0.002 to ~0.03 m/s (cerrado) and from 0.07 to 0.30
+(Great Plains, January). Trees: no change. With 0.5 for trees too (CLM), the CHATS7 day
+would change by +0.8 W m-2 in latent heat (its largest zeta is 0.95): not done.
+Gradients with decisions 122 and 123 (daily-mean latent heat, AD against ±1 % of `iota`,
+worst patch): cerrado 1 January 2.3 % (40 % before), cerrado 1 July 1.6 % (1e5 %), Great
+Plains 1 July 0.7 % (exploding), 1 January 0.0 %.
+Tests: `test_processes_turbulence.py::test_stable_zeta_limit`, `test_params.py`,
+`test_experiment.py` (upgrade), and the gradient tier's `tests/test_gradient_accuracy_grid.py`
+(a day of each box: bounded derivatives, daily mean within 3 % and 5 % of the finite change).
+Source: maintainer, 2026-11-15 (the per-PFT parameter is the maintainer's idea);
+`gradient_progress.md` rounds 5-6.
+
 ## F. Numerics, solvers and gradients
 
 **58. One traceable implementation per process**
@@ -768,6 +893,25 @@ theorem applied as `x0 − (step − stop_gradient(step))` (forward exactly `x0`
 Reason: differentiating through iterations gives wrong or exploding gradients; a Newton step
 would change the forward value.
 Source: numerics §2; CLAUDE.md "Iterative solvers".
+
+**119. Exact slope for the Obukhov gradient; `gs_min` keeps its gradient without a root**
+2026-11-14 · gradients (O76) · maintainer · in force · Departure from Fortran: no
+Two corrections to the gradients of iterative solvers (decision 59), neither changing a
+forward value. (1) `turbulence.py::obukhov_length`: the slope of the residual at the
+solution, which divides the implicit-function gradient, is the exact derivative
+(`jax.jvp` of the residual, inputs held constant) instead of a central difference with a
+fixed 1 m step. (2) `photosynthesis.py::solve_gs_bisection`: where the WUE optimization has
+no root, the conductance `gs_min` is returned with its gradient, not through `stop_gradient`.
+Reason: against finite differences over a CHATS7 day (7 outputs at 47 steps), only 20 of
+161 parameter derivatives were within 0.1 %: the 1 m slope was up to 49 % off where |L| is
+~10 m (stable nights, sunrise, strongly unstable afternoons; e.g. the sensitivity of latent
+heat to vcmax25 at sunrise 3.6 times too small), and the sensitivity to `gs_min` was half
+its value at every step. With both corrections all 161 are within 6e-5, forcing derivatives
+within 1.9 % (from 20 %), and the forward values of the day are bit for bit the same.
+Tests: unit tests of both (`test_processes_turbulence.py`, `test_processes_photosynthesis.py`)
+and `tests/test_gradient_accuracy.py` (gradient tier: four steps at sunrise against finite
+differences). Bit-for-bit and noise-twin tests unchanged.
+Source: maintainer, 2026-11-14; `gradient_progress.md` round 2.
 
 **60. Roughness length with Fortran's bisection stopping rule**
 2026-10-28 · Phase 3 · implementation · in force · Departure from Fortran: no
@@ -827,6 +971,87 @@ hand-written `custom_jvp` would change the reverse gradients' round-off and keep
 calculus. Reverse gradients are unchanged (identical on a unit system and on the CHATS7 chunk);
 every other solver was already forward-mode safe (decision 59).
 Source: O71; maintainer, 2026-11-02.
+
+**124. Derivative-only treatments of the two lagged feedbacks: water stress adopted, the Obukhov rule a setting (off by default)**
+2026-11-16 · gradients rounds 10-18 (O76) · maintainer · in force (built 2026-11-16) · Departure from Fortran: no (forward values bit for bit)
+**History.** Decided 2026-11-16 and put on hold the same day: more feedbacks of this kind
+are expected in other processes, parameters and regimes, one treatment per feedback and
+regime was not wanted, and a general solution was looked for first. None was found
+(`gradient_progress.md` rounds 14-17): other Runge-Kutta schemes do not remove the
+explosions; an implicit derivative over the stages is biased where the exact one is right;
+a blend of the two leaves patches exploding; the consistent forward forms give accurate
+derivatives, but the Obukhov length solved together with the stage's air costs 4.6 times
+forward (2.3 at the very least). **Built as decided (maintainer, 2026-11-16, evening)**,
+the water stress as the derivative-only form (the consistent forward form, 1.23 times
+forward with a faster solver, was the alternative). A detector of unreliable gradients
+(a flag in the output, a check after each chunk) was left out and is open item O80.
+**In the code.** `numerics.water_stress_derivative`: `stabilized` (default) or `exact`
+(`photosynthesis.stress_potential`, a `jax.custom_jvp`; `leaf_photosynthesis(hydraulics=)`).
+`numerics.obukhov_derivative`: `exact` (default) or `stabilized`
+(`canopy._fluxes_stabilized_obukhov`, a `jax.custom_jvp` around `canopy._fluxes`, the
+stage's processes from the turbulence to the flux-profile solution, which
+`turbulence.harman_finnigan(obu=)` evaluates for a given length; the blend's gains are
+`canopy.OBUKHOV_GAIN_BLEND`). `exact` is the exact derivative of the forward values, `stabilized` the rule. Neither is counted
+as a non-default option by `clm-ml check` (forward results do not depend on them). Tests:
+`tests/clm_ml/test_processes_photosynthesis.py` (the stress rule), `tests/test_model_api.py`
+(forward values bit for bit with either setting changed; each step's derivative close to
+a finite difference; forward equal to reverse mode; the tests of AD against a finite
+difference use `exact`: with the default the first of their 8 CHATS7 steps is 0.6 % off,
+the mildly stressed afternoon); the boxes by the probe
+`gradbox.py` (not a pytest: 30 days of 1 degree patches; not in the repository,
+`gradient_progress.md` "How to measure"). What was decided:
+The forward model keeps Fortran's order (the stress function reads the leaf water potential
+of the stage's start; the Obukhov length is solved from the canopy-top air of the stage's
+start). Two quantities get another derivative, by a derivative rule (`jax.custom_jvp`):
+(a) the leaf water potential the stress function reads, as if it were consistent with the
+transpiration it gives (round 10's form): adopted; (b) the Obukhov length, as if it had
+been solved with the air the stage gives, blended by the gain of the loop air -> L -> air
+(the model's own derivative for gain >= -1, the consistent one for gain <= -2, linear in
+between; round 13): a setting, off by default. Setting names are chosen when it is built.
+With them the gradient is not the derivative of the forward values: a finite difference at
+a single affected step disagrees by design.
+Reason: the maintainer accepts approximate, linearized gradients if the forward model
+stays fast and the gradients are smooth and cheap (2026-11-16; this revises "not adopted"
+for round 10 of 2026-11-15, and sets aside the consistent forward forms of round 9, which
+change forward results and cost 1.45 times forward). (a) costs nothing measurable and
+brings stressed Great Plains patches from 35-360 % to within ~6 % over 30 days. (b)
+removes derivatives of up to 1.6e9 (cerrado monthly means within 12 %, Great Plains within
+0.5 % on the patches concerned) but costs 1.7 times the gradient (94-102 instead of 56-57
+ms per step on CHATS7; memory 5-6 instead of 4 GB), above the 1.5 times of the working
+rules: off by default keeps the default gradient at today's cost. Both together, 30 days,
+latent heat against ±1 % of `iota`: Great Plains July worst patch 6.6 % (19 of 21 within
+1.3 %), cerrado January worst 11.6 % (14 of 18 within 5 %; a third of the daily means more
+than 5 % off). Alternatives measured: cutting the link from the air to L (free; biased by
+5-20 %, round 12); the consistent derivative at every step (2 % off on a clean CHATS7 day);
+a switch at gain -2 (as accurate as the blend, discontinuous).
+Evidence is one parameter (`iota`), one output (latent heat), two 1° boxes, one month each.
+Source: maintainer, 2026-11-16; `gradient_progress.md` rounds 10-13; the surrogate-gradient
+design of jax-gcm (`docs/source/design/surrogate_gradients.md` there).
+
+**125. The checkpoint on the sub-step is a setting that follows the device**
+2026-11-16 · gradients rounds 15-16 (O76) · maintainer · in force · Departure from Fortran: n/a
+`numerics.checkpoint_substeps` (`auto`, `always`, `never`): whether the six sub-steps of a
+step each get a `jax.checkpoint` (`step.py::step`), besides the one on the step
+(`numerics.checkpoint_steps`). With it a gradient keeps the intermediate values of one
+sub-step instead of a whole step and recomputes each sub-step once more. `auto` (the
+default) is `always` on a GPU and `never` on the CPU (`driver.checkpoint_substeps`). It
+replaces the checkpoint that was always there (and the probes' environment switch
+`CLM_ML_NO_CHECKPOINT`). Forward runs are not affected.
+Reason: measured both ways. CPU, one day, reverse mode: a box of 18 cerrado patches takes
+1150-1166 ms per step with it and 195 without (a factor 6), CHATS7 53-56 against 44-49,
+and it saves no memory there that the runs show (round 15). On an A100 (8 steps, loops
+written out) it costs no time and saves memory: 1 patch 240 against 209 ms per step and
+0.005 against 0.10 GB; 1 024 patches 333 against 348 ms and 2.2 against 11.5 GB; 4 096
+patches 791 ms and 8.3 GB with it, and without it the gradient does not fit on a 40 GB
+A100 (an allocation of 42.7 GB fails).
+Changed by it: CPU gradients are faster than before (the checkpoint was always on); GPU
+gradients are as before.
+Results: the gradient's value does not depend on it
+(`tests/test_model_api.py::test_model_chunk_gradient_same_with_substep_checkpoint`, 1e-9).
+Not measured: CPU gradients of many patches (thousands), where memory may ask for
+`always`; the GPU numbers are of 8 steps and synthetic copies of the CHATS7 patch.
+Source: maintainer, 2026-11-16; `gradient_progress.md` rounds 15 and 16
+(`$SCRATCH/clm-ml-jax/probe_ckpt/results_mem.jsonl`).
 
 ## G. Regression and testing policy
 

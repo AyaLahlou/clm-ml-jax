@@ -110,6 +110,19 @@ x = x0 - (step - stop_gradient(step))         # forward: exactly x0; gradient: t
 The forward value is exactly the solver's root, as in the running model. The gradient is
 unchanged.
 
+**The slope `F′(x0)` must be accurate where the gradient is used (decision 119, 2026-11-14).**
+For the Obukhov length it was a central difference with a fixed step of 1 m: good when |L|
+is hundreds of metres, up to 49 % off when |L| is ~10 m (strongly stable or unstable; the
+residual bends within a metre, and has a corner at the limit L_c/L = 1 of the
+roughness-sublayer functions). It is now the exact derivative at the solution, by
+forward-mode differentiation of the residual with the inputs held constant. Likewise a
+solver's fallback value must keep its own gradient: where the WUE optimization has no root,
+`solve_gs_bisection` returns `gs_min` with the gradient of `gs_min` (it was passed through
+`stop_gradient`, which halved the sensitivity of the fluxes to `gs_min`). Neither changes a
+forward value. The slopes of `solve_ci` and `solve_gs_bisection` are still central
+differences (step 1e-4 in CO₂ and in conductance); the WUE one agrees with finite
+differences of the model to 6e-5 over a CHATS7 day (`gradient_progress.md` round 2).
+
 **Linear solves.** The coupled tridiagonal solve of the flux-profile solution (`tridiag_2eq`)
 is a `jax.lax.custom_linear_solve` (decision 104): the forward value is Fortran's block Thomas
 elimination; derivatives come from the implicit function theorem for `A x = d` (forward mode:

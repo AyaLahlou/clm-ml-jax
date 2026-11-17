@@ -43,14 +43,33 @@ Guidance for Claude (and other contributors) working in this repository.
   per step; the 2× target is met, 2026-11-13). Hidden settings `numerics.table_search` and
   `numerics.solver_loops` follow the device (GPU: written out; CPU: loops, the regression
   reference). GPU gradients are faster too (decision 118). Forward work stopped by the maintainer
-  2026-11-14. Plan
+  2026-11-14; merged to `main` 2026-11-16. Plan
   `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
   `docs/design/gpu_progress.md` ("Resume here"); the probe scripts are not in the
   repository (how to get them back: there). Ask the maintainer before going on.
-- **Gradients (O76, decision 118):** branch `gpu_grad` (from `gpu_opt`, not merged): speed first, then
+- **Gradients (O76, decisions 118-125):** branch `gpu_grad` (from `gpu_opt`; prepared for a
+  pull request to `main` 2026-11-16): speed first, then
   quality and accuracy, for sensitivity experiments (parameters, states, forcings; a tower
   first, global later). Gradient times before 2026-11-14 were of the unsteady second call:
-  time from the third call. A tower is 4–5× faster on the CPU than on a GPU. Log and
+  time from the third call. A tower is 4–5× faster on the CPU than on a GPU. A solver's
+  gradient needs an exact slope and fallback values with their own gradient (decision 119);
+  a power with a parameter as exponent needs a base that cannot turn negative (decision 121);
+  the wetted fraction of the leaves is solved with the water left at the end of the sub-step
+  (decision 122; `numerics.wetted_fraction: explicit` is Fortran's form, whose almost dry
+  leaves made derivatives explode); short PFTs have a stable limit on zeta, the PFT parameter
+  `zeta_max_stable` (decision 123: 0.5 for shrubs, grasses and crops, 1e30 = none for trees);
+  check new derivatives against finite differences (the probes `gradcheck0.py` and
+  `gradbox.py`: not in the repository, see "How to measure" in the log). Over
+  30 days two lagged feedbacks are left (water stress, Obukhov length); decision 124
+  (built 2026-11-16): derivative-only rules, forward bit for bit:
+  `numerics.water_stress_derivative: stabilized` (default, free; `exact` is the other value) and
+  `numerics.obukhov_derivative: stabilized` (`exact` by default; 1.7× the gradient); with them
+  a gradient is not the exact derivative of the forward values. No general or exact
+  solution was found (rounds 14-17: other Runge-Kutta schemes, an implicit derivative, a
+  blend, the consistent forward forms: the Obukhov one costs 4.6× forward); a detector of
+  unreliable gradients is an idea only (O80). The checkpoint on
+  the sub-step is `numerics.checkpoint_substeps`, which follows the device (decision 125:
+  on a GPU a fifth of the memory at no cost in time, on the CPU 6× slower). Log and
   "Resume here": `docs/design/gradient_progress.md`.
 - **Testing:** the tiers under "Rules for changes" (Phase 9 adds the docs build; phase9_scope §5).
 - **Where the work is:** NCAR Derecho (CPU login node; GPUs through PBS, account UCLB0069,
@@ -109,6 +128,9 @@ using Harman & Finnigan (2007, 2008).
   - β = u*/U(h) uses the Harman (2012) form, Eq. 2 of the 2026 paper, with CHATS fit a₁=0.89,
     a₂=−0.07, a₃=2.19, β_N=0.35.
   - Applicability bounds −2 ≤ L_c/L ≤ 1 (L_c = (c_d a)⁻¹, canopy length scale).
+  - Not in CLM-ml v2 (decision 123): in stable conditions also (z_ref − d)/L ≤
+    `zeta_max_stable`, a PFT parameter (CLM's `zetamaxstable`; 0.5 for shrubs, grasses and
+    crops, no limit for trees).
   - Log-profile aerodynamic conductance in the lowest layer.
 - **Leaf processes.**
   - Leaf energy balance, including a heat-storage term.

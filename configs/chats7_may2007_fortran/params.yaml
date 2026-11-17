@@ -56,6 +56,8 @@ units:
   stem_reflectance: '-'
   # Stem transmittance [vis, nir]
   stem_transmittance: '-'
+  # Largest stability (reference height - displacement height) / Obukhov length in stable conditions (CLM zetamaxstable); 1e30: no limit, as CLM-ml v2
+  zeta_max_stable: '-'
   # Momentum roughness length / canopy height (CLM z0mr) Optional: only grid runs use it.
   z0m_to_height_ratio: '-'
   # Displacement height / canopy height (CLM displar) Optional: only grid runs use it.
@@ -95,6 +97,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   needleleaf_evergreen_boreal_tree:
     vcmax25: 62.5
     iota: 1500.0
@@ -129,6 +132,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   needleleaf_deciduous_boreal_tree:
     vcmax25: 39.1
     iota: 1500.0
@@ -163,6 +167,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_evergreen_tropical_tree:
     vcmax25: 41.0
     iota: 500.0
@@ -197,6 +202,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_evergreen_temperate_tree:
     vcmax25: 61.4
     iota: 750.0
@@ -231,6 +237,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_deciduous_tropical_tree:
     vcmax25: 41.0
     iota: 750.0
@@ -265,6 +272,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_deciduous_temperate_tree:
     vcmax25: 125.0
     iota: 375.0
@@ -299,6 +307,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_deciduous_boreal_tree:
     vcmax25: 57.7
     iota: 750.0
@@ -333,6 +342,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 1.0e+30
   broadleaf_evergreen_shrub:
     vcmax25: 61.7
     iota: 750.0
@@ -367,6 +377,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
   broadleaf_deciduous_temperate_shrub:
     vcmax25: 54.0
     iota: 750.0
@@ -401,6 +412,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
   broadleaf_deciduous_boreal_shrub:
     vcmax25: 54.0
     iota: 750.0
@@ -435,6 +447,7 @@ pft:
     stem_transmittance:
     - 0.001
     - 0.001
+    zeta_max_stable: 0.5
   c3_arctic_grass:
     vcmax25: 78.2
     iota: 750.0
@@ -469,6 +482,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c3_non-arctic_grass:
     vcmax25: 78.2
     iota: 750.0
@@ -503,6 +517,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c4_grass:
     vcmax25: 51.6
     iota: 750.0
@@ -537,6 +552,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c3_crop:
     vcmax25: 100.7
     iota: 750.0
@@ -571,6 +587,7 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5
   c3_irrigated:
     vcmax25: 100.7
     iota: 750.0
@@ -605,3 +622,4 @@ pft:
     stem_transmittance:
     - 0.12
     - 0.25
+    zeta_max_stable: 0.5

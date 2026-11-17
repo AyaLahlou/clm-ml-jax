@@ -159,3 +159,16 @@ def test_merge_sun_shade():
     np.testing.assert_array_equal(merged[[1, 3, 4, 5]], np.asarray(tleaf)[[1, 3, 4, 5]])
     np.testing.assert_array_equal(np.asarray(m.tleaf_hist), np.asarray(tleaf))
     np.testing.assert_allclose(np.asarray(m.lwp)[0], -3.0)
+
+
+def test_derivative_rules_are_substep_options():
+    """The derivative rules of decision 124: the water stress stabilized, the Obukhov length exact
+    unless asked for."""
+    o = substep_options(DEFAULT_OPTIONS._replace(met_type=3))
+    assert (o.water_stress_derivative, o.obukhov_derivative) == ("stabilized", "exact")
+    o = substep_options(
+        DEFAULT_OPTIONS._replace(met_type=3),
+        water_stress_derivative="exact",
+        obukhov_derivative="stabilized",
+    )
+    assert (o.water_stress_derivative, o.obukhov_derivative) == ("exact", "stabilized")

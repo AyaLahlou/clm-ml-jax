@@ -33,9 +33,12 @@ git -C $REPO worktree add --detach $TREE ${REV:-HEAD} >/dev/null 2>&1 \
 cd $TREE && export PYTHONPATH=$TREE/src:$TREE
 git log --oneline -1; nvidia-smi --query-gpu=name --format=csv,noheader; date
 python -c "import jax; print(jax.devices())"
-python -m pytest tests/test_model_api.py tests/test_differentiability.py \
-  tests/regression/test_model_patches.py -m "gradient or regression or slow" \
-  -q -p no:cacheprovider -o addopts="" -rA 2>&1 \
-  | grep -v "pjrt_executable\|^W10\|Attempting\|Successful" | tail -60
+# one pytest process per file (as tests/gradient_tier.py; O78)
+for f in tests/test_model_api.py tests/test_differentiability.py tests/test_gradient_accuracy.py \
+         tests/regression/test_model_patches.py; do
+  python -m pytest $f -m "gradient or regression or slow" \
+    -q -p no:cacheprovider -o addopts="" -rA 2>&1 \
+    | grep -v "pjrt_executable\|^W10\|Attempting\|Successful" | tail -30
+done
 cd /; git -C $REPO worktree remove --force $TREE
 echo "ALL DONE $(date)"

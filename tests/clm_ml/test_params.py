@@ -29,6 +29,19 @@ def test_chats_values_match_paper_table_2():
     np.testing.assert_array_equal(p.get(WALNUT, "stem_reflectance"), [0.21, 0.49])
 
 
+@pytest.mark.parametrize("name", ["chats", "clm5_defaults", "clm6"])
+def test_stable_zeta_limit_of_the_compsets(name):
+    """Decision 123: CLM's 0.5 for shrubs, grasses and crops, no limit for trees."""
+    from clm_ml.params import NO_ZETA_LIMIT, ZETA_MAX_STABLE_DEFAULT
+    from clm_ml.processes import turbulence
+
+    assert NO_ZETA_LIMIT == turbulence.NO_ZETA_LIMIT
+    p = Params.from_yaml(name)
+    for pft in PFT_NAMES[1:]:
+        expected = NO_ZETA_LIMIT if pft.endswith("_tree") else 0.5
+        assert p.get(pft, "zeta_max_stable") == expected == ZETA_MAX_STABLE_DEFAULT[pft]
+
+
 def test_a_copy_edited_is_a_new_parameter_set(tmp_path):
     """The way to make a parameter set: a complete copy (`clm-ml params chats -o`), edited."""
     import yaml

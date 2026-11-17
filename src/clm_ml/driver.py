@@ -333,6 +333,17 @@ def solver_loops(choice: str) -> bool:
     return choice == "unrolled"
 
 
+def checkpoint_substeps(choice: str) -> bool:
+    """Whether a run's gradients recompute each sub-step (model.yaml
+    ``numerics.checkpoint_substeps``; decision 125). ``auto`` is ``always`` on a GPU (a
+    fifth of the memory for 1 024 patches at the same speed; 4 096 patches do not fit on a
+    40 GB A100 without it) and ``never`` on the CPU (a box of 18 patches ran 6x slower with
+    it)."""
+    if choice == "auto":
+        return jax.default_backend() == "gpu"
+    return choice == "always"
+
+
 def step_options(run):
     """The time step's static choices (``clm_ml.step.StepOptions``) of a run."""
     from clm_ml.options import MLOptions, substep_options
@@ -352,6 +363,9 @@ def step_options(run):
                 opts.step_options(),
                 table_search(run.config.numerics.table_search),
                 solver_loops(run.config.numerics.solver_loops),
+                run.config.numerics.wetted_fraction,
+                run.config.numerics.water_stress_derivative,
+                run.config.numerics.obukhov_derivative,
             ),
             step_seconds=int(run.step_seconds),
             layer_pai_floor=float(opts.layer_pai_floor),
@@ -362,6 +376,7 @@ def step_options(run):
             mvelpp=float(mvelpp),
             lambm0=float(lambm0),
             obliqr=float(obliqr),
+            checkpoint_substeps=checkpoint_substeps(run.config.numerics.checkpoint_substeps),
         ),
         opts,
         NLEVGRND,

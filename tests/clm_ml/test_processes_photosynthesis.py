@@ -173,6 +173,26 @@ def test_low_light_gives_minimum_conductance():
     np.testing.assert_allclose(np.asarray(r.gspot)[LEAFY, 0], float(PARAMS.gs_min))
 
 
+def test_minimum_conductance_gradient_without_a_root():
+    """Where the WUE optimization has no root (no light) the conductance is gs_min: its
+    derivative with respect to gs_min is 1, before and after the water-stress step
+    (decision 119; it was 0 and 0.5)."""
+    f = _inputs(apar_sun=0.0)
+
+    def conductance(gs_min, name, water_stress):
+        r = ps.leaf_photosynthesis(
+            _layers(), f["dpai"], f["eair"], f["cair"], f["tleaf"], f["vcmax25"], f["jmax25"],
+            f["rd25"], f["kp25"], f["apar"], f["gbc"], f["gbv"], f["lwp"], 209.0, 101325.0,
+            293.0, iota=PARAMS.iota, gs_min=gs_min, psi50_gs=PARAMS.psi50_gs,
+            shape_gs=PARAMS.shape_gs, c3=True, water_stress=water_stress,
+        )  # fmt: skip
+        return getattr(r, name)[LEAFY, 0]
+
+    for name, water_stress in (("gspot", False), ("gs", True)):
+        jac = jax.jacfwd(conductance)(PARAMS.gs_min, name, water_stress)
+        np.testing.assert_allclose(jac, 1.0, rtol=1e-12, err_msg=name)
+
+
 def test_water_stress():
     f = _inputs(lwp=-1.4)
     r = _run(f)
@@ -182,6 +202,88 @@ def test_water_stress():
     assert np.all(np.asarray(r.gs)[LEAFY] < np.asarray(r.gspot)[LEAFY])
     unstressed = _run(f, water_stress=False)
     np.testing.assert_array_equal(unstressed.gs, unstressed.gspot)
+
+
+def _hydraulics(lwp_bef):
+    n = N_SLOTS
+    return ps.StressHydraulics(
+        lwp_bef=lwp_bef, fdry=jnp.ones(n), lsc=jnp.full(n, 2.0), zs=_layers().zs,
+        psis=jnp.asarray(-0.3), plant_capacitance=jnp.asarray(2500.0), dtime=300.0,
+    )  # fmt: skip
+
+
+def test_water_stress_derivative_rule_keeps_the_values_and_bounds_the_derivative():
+    """With ``hydraulics`` the water stress has the same values, and the derivative of the
+    conductance with respect to the potential of the stage's start (far above 1 per MPa of
+    its own drop near the threshold) is replaced by a bounded one with respect to the
+    potential of the sub-step's start (decision 124); reverse mode agrees with forward
+    mode."""
+    f = _inputs(lwp=-1.55)  # sunlit at -1.55, shaded at -1.65 MPa: around psi50 = -1.6
+
+    def conductance(lwp, lwp_bef, rule):
+        kw = {"hydraulics": _hydraulics(lwp_bef)} if rule else {}
+        return _run({**f, "lwp": lwp}, **kw).gs[LEAFY]
+
+    bef = f["lwp"] + 0.02
+    np.testing.assert_array_equal(
+        conductance(f["lwp"], bef, True), conductance(f["lwp"], bef, False)
+    )
+    model = jax.jacfwd(conductance, argnums=(0, 1))(f["lwp"], bef, False)
+    rule = jax.jacfwd(conductance, argnums=(0, 1))(f["lwp"], bef, True)
+    # the model: all of the derivative through the stage's potential, none through the
+    # sub-step's start; the rule: the reverse, and smaller
+    assert np.abs(model[0]).max() > 1.0 and not np.any(np.asarray(model[1]))
+    assert not np.any(np.asarray(rule[0]))
+    assert np.all(np.isfinite(rule[1])) and np.any(np.asarray(rule[1]))
+    assert np.abs(rule[1]).max() < np.abs(model[0]).max()
+    reverse = jax.jacrev(conductance, argnums=1)(f["lwp"], bef, True)
+    np.testing.assert_allclose(reverse, rule[1], rtol=1e-10, atol=1e-14)
+
+
+def test_stress_potential_derivative_is_the_implicit_one():
+    """``stress_potential`` returns the potential it is given; its derivative is the
+    implicit function of the residual, with the slope at least 1."""
+    args = [jnp.asarray(v) for v in (-1.58, 0.25, 1.9, 4.0, -0.35, 0.2, -1.5, 0.002, -1.6, 40.0)]
+    assert float(ps.stress_potential(*args)) == -1.58
+    grads = jax.grad(ps.stress_potential, argnums=tuple(range(10)))(*args)
+    partial = jax.grad(ps._stress_residual, argnums=tuple(range(10)))(*args)
+    slope = max(float(partial[0]), 1.0)
+    assert float(grads[0]) == 0.0
+    for g, r in zip(grads[1:], partial[1:]):
+        assert float(g) == pytest.approx(-float(r) / slope, rel=1e-12, abs=1e-300)
+    assert float(partial[0]) > 1.0 and any(float(g) != 0.0 for g in grads[1:])
+
+
+def test_no_water_stress_at_positive_water_potential():
+    """Dew can raise leaf water potential slightly above zero: there is no water stress
+    there, for any shape parameter, and the derivatives with respect to the water-stress
+    parameters and the water potential are zero, not NaN (decision 121)."""
+    f = _inputs(lwp=0.13)  # sunlit +0.13 MPa, shaded +0.03 MPa
+
+    def conductance(psi50_gs, shape_gs, lwp):
+        r = ps.leaf_photosynthesis(
+            _layers(), f["dpai"], f["eair"], f["cair"], f["tleaf"], f["vcmax25"], f["jmax25"],
+            f["rd25"], f["kp25"], f["apar"], f["gbc"], f["gbv"], lwp, 209.0, 101325.0,
+            293.0, iota=PARAMS.iota, gs_min=PARAMS.gs_min, psi50_gs=psi50_gs,
+            shape_gs=shape_gs, c3=True,
+        )  # fmt: skip
+        return r.gs[LEAFY], r.gspot[LEAFY]
+
+    for shape in (40.0, 39.5):
+        gs, gspot = conductance(PARAMS.psi50_gs, shape, f["lwp"])
+        np.testing.assert_array_equal(gs, gspot)
+        jac = jax.jacfwd(lambda *a: conductance(*a)[0], argnums=(0, 1, 2))(
+            PARAMS.psi50_gs, shape, f["lwp"]
+        )
+        for j in jac:
+            np.testing.assert_array_equal(j, 0.0)
+    # below zero the parameters keep their derivatives
+    stressed = _inputs(lwp=-1.4)["lwp"]
+    jac = jax.jacfwd(lambda *a: conductance(*a)[0], argnums=(0, 1))(
+        PARAMS.psi50_gs, PARAMS.shape_gs, stressed
+    )
+    for j in jac:
+        assert np.all(np.isfinite(j)) and np.all(np.asarray(j) != 0.0)
 
 
 def test_sun_and_shade_in_one_call_match_one_call_per_leaf():

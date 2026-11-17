@@ -89,7 +89,7 @@ src/clm_ml/
     turbulence.py     Harman-Finnigan roughness sublayer (with the psihat tables)
     leaf_boundary_layer.py photosynthesis.py plant_hydraulics.py nitrogen_profile.py
     flux_profile.py   the implicit solution for air T, vapour, leaf T, ground T
-    canopy_water.py   interception and evaporation
+    canopy_water.py   interception, wetted fraction of the leaves, evaporation
     soil.py           soil water from the prescribed record, soil properties, soil temperature
     integrators.py    Euler and Runge-Kutta tableaus and the state update
     constants.py orbit.py math.py layers.py water_vapor.py leaf_heat_capacity.py
@@ -138,11 +138,12 @@ COMPILED       │   │   ├─ scan over 6 sub-steps (5 min):          proces
 COMPILED       │   │   │   ├─ forcing interpolated in time (previous, current, next record)
 COMPILED       │   │   │   ├─ two-stream solar radiation, Vcmax25 profile
 COMPILED       │   │   │   ├─ scan over 4 Runge-Kutta stages:     canopy._stage
-COMPILED       │   │   │   │   wetted fraction -> Norman longwave -> net radiation
+COMPILED       │   │   │   │   Norman longwave -> net radiation
 COMPILED       │   │   │   │   -> RSL turbulence (wind, u*, conductances, Obukhov length)
-COMPILED       │   │   │   │   -> leaf boundary layer -> photosynthesis and stomata
+COMPILED       │   │   │   │   -> leaf boundary layer -> interception, wetted fraction
+COMPILED       │   │   │   │   -> photosynthesis and stomata
 COMPILED       │   │   │   │   -> implicit flux-profile solution (air T, vapour, leaf T,
-COMPILED       │   │   │   │      ground T) -> leaf water potential -> interception
+COMPILED       │   │   │   │      ground T) -> leaf water potential -> leaf evaporation
 COMPILED       │   │   │   │   -> Runge-Kutta update of the canopy state
 COMPILED       │   │   │   └─ fluxes added to the step's sums
 COMPILED       │   │   ├─ averages over the sub-steps, canopy totals, energy checks
@@ -245,6 +246,22 @@ What differs is mostly how the code is written. The few science departures are l
   reproduces CLM-ml v2. CHATS7 is unchanged.
 - **Canopy-top latent heat** (decision 50): averaged per sub-step, so the reported value is
   right when the air crosses 0 °C. This changes a diagnostic only.
+- **Wetted fraction of the leaves** (decision 122): taken from the intercepted water left at
+  the end of each 5-minute sub-step, so leaves cannot evaporate more water than they hold.
+  Fortran takes it from the water at the start of each Runge–Kutta stage: almost dry leaves
+  (after rain, in drizzle, with dew) then alternate between wet and dry, their water turns
+  negative and latent heat flickers by several W m⁻². `numerics.wetted_fraction: explicit`
+  keeps Fortran's choice (the May 2007 comparison uses it). Dry days are unchanged.
+- **A stable limit on zeta for short canopies** (decision 123): the PFT parameter
+  `zeta_max_stable` limits how stable the surface layer can become, as CLM's `zetamaxstable`:
+  0.5 for shrubs, grasses and crops, no limit (1e30) for trees. Without it the turbulence of
+  short canopies collapses on calm nights (friction velocity near zero) and switches on and
+  off within a time step. It raises their night-time friction velocity and warms their
+  canopy air at night. Trees, and so CHATS7, are unchanged; 1e30 for every PFT reproduces
+  CLM-ml v2.
+- **No water stress at or above zero leaf water potential** (decision 121): with dew, leaf
+  water potential rises slightly above zero; the stress factor is then 1. Values are
+  unchanged for the default parameters.
 - **Configurable model step** with forcing interpolated to it, and **daily or monthly leaf
   area, stem area and soil water** files (Phase 4b). The default (30-minute step, CLM history
   input) is the Fortran setup.
@@ -310,6 +327,29 @@ of sensitivities to a few parameters or forcing directions (`jax.jacfwd` stacks 
 `run_chunk` is differentiable, in reverse and forward mode, with respect to the state, the
 forcing, the PFT parameters and the patch weights. Gradients through iterative solvers come from the implicit function
 theorem, so they never change the forward values.
+
+**Gradients over many days: two derivative rules.** Two quantities are taken from the start of
+each Runge-Kutta stage and the fluxes react strongly to them: the leaf water potential the
+water stress of the stomata reads, and the Obukhov length (solved from the canopy-top air).
+Near the stress threshold, and in stability transitions, the model alternates from stage to
+stage, and its exact derivative grows without bound over days (a true slope, but useless as
+a sensitivity). Two settings in `model.yaml` replace those two derivatives with bounded ones;
+the forward results are the same, bit for bit, either way (decision 124):
+
+| Setting (`numerics`) | Default | What it does | Cost |
+|---|---|---|---|
+| `water_stress_derivative` | `stabilized` | The derivative of the leaf water potential consistent with the transpiration it gives (`exact`: the exact derivative of the forward values) | none |
+| `obukhov_derivative` | `exact` | `stabilized`: where the stability loop overshoots, the derivative of the Obukhov length consistent with the air the stage gives | the gradient takes 1.7 times as long, with half as much memory again |
+
+Set `obukhov_derivative: stabilized` for sensitivities over days where stability
+flips often (measured: the wet-season cerrado); a tower like CHATS7 does not need it. With
+these rules a gradient is the slope of a smoother model than the one that runs: 30-day mean
+sensitivities were within about 7 % (Great Plains, July) and 12 % (cerrado, January) of the
+response to a 1 % change of a parameter, where the exact derivative was off by factors of
+thousands; a finite difference at a single affected step disagrees by design. Check a new
+case against finite differences of time means (the probe script `gradbox.py`; where it is:
+`docs/design/gradient_progress.md`, "How to measure"). Tested for one
+parameter (`iota`) and latent heat, in two 1° boxes, one month each.
 
 ---
 

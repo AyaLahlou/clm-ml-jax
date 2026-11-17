@@ -66,6 +66,7 @@ from clm_ml.processes.constants import (
 )
 from clm_ml.processes.layers import pad_with_top
 from clm_ml.processes.math import quadratic
+from clm_ml.processes.plant_hydraulics import HEAD
 from clm_ml.processes.water_vapor import sat_vap
 from clm_ml.state import PatchLayers
 
@@ -479,7 +480,7 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
     ``gs_min`` and :data:`GS_UPPER`, the midpoint after ``n_iter`` halvings, then one Newton
     step with the derivative (central difference, 1e-4) held constant (the implicit-function
     gradient, where the derivative exceeds 1e-6 in magnitude); elsewhere (low light)
-    ``gs_min``, with no gradient through the solver.
+    ``gs_min``, whose gradient is that of ``gs_min`` (decision 119).
 
     Fortran reference: MLLeafPhotosynthesisMod.F90::StomataOptimization and
     MLMathToolsMod.F90::bisection (tol = 0.001; here fixed halvings,
@@ -499,7 +500,8 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
 
     init = (jnp.broadcast_to(gs_min, shape), jnp.full(shape, GS_UPPER), fa)
     a, b, _ = jax.lax.fori_loop(0, n_iter, body, init)
-    gs0 = jax.lax.stop_gradient(jnp.where(bracket_ok, 0.5 * (a + b), gs_min))
+    # Without a root the conductance is gs_min itself, with its gradient (decision 119)
+    gs0 = jnp.where(bracket_ok, jax.lax.stop_gradient(0.5 * (a + b)), gs_min)
 
     f0 = f(gs0)
     delta = jnp.asarray(1e-4, dtype=gs0.dtype)
@@ -603,6 +605,7 @@ def leaf_photosynthesis(
     colimitation: bool = True,
     acclimation: bool = True,
     wue_solver: str = "bisection",
+    hydraulics: StressHydraulics | None = None,
 ) -> Photosynthesis:
     """Photosynthesis and stomatal conductance (layer, leaf) of the leaves of every layer.
 
@@ -610,9 +613,10 @@ def leaf_photosynthesis(
     ``stomatal_conductance`` model (one of :data:`STOMATAL_CONDUCTANCE`; WUE by
     ``wue_solver``, one of :data:`WUE_SOLVER`); then, with ``water_stress``, the conductance
     reduced by leaf water potential ``lwp`` (MPa), ``gs = max(gspot / (1 + (lwp /
-    psi50_gs)^shape_gs), gs_min)``, and photosynthesis recomputed for it, with the humidity
+    psi50_gs)^shape_gs), gs_min)`` (no reduction for ``lwp >= 0``), and photosynthesis recomputed for it, with the humidity
     and vapor pressure deficit at the leaf surface. Soil water does not limit vcmax
-    (Fortran's ``btran`` is 1).
+    (Fortran's ``btran`` is 1). With ``hydraulics`` (:class:`StressHydraulics`) the water
+    stress has the same value and the derivative of :func:`stress_potential` (decision 124).
 
     Inputs per layer: ``dpai`` (m2/m2), ``eair`` (Pa), ``cair`` (umol/mol); per layer and
     leaf: ``tleaf`` (K), the 25 C values ``vcmax25``, ``jmax25``, ``rd25``, ``kp25``,
@@ -685,7 +689,26 @@ def leaf_photosynthesis(
 
     # --- Water stress (Bonan et al. 2021, supplemental eq. 14) ----------------------------
     if water_stress:
-        fpsi = 1.0 / (1.0 + (lwp / psi50_gs) ** shape_gs)
+        # no stress at or above zero water potential (dew makes it slightly positive): the
+        # power of a negative base has no derivative in the exponent, and no value for an
+        # exponent that is not a whole number (decision 121)
+        if hydraulics is not None:
+            # the same potential; its derivative is the one of the potential consistent
+            # with the transpiration it gives (decision 124)
+            h = hydraulics
+            lsc1 = jnp.where(active, jnp.maximum(_layer(h.lsc), 1.0e-30), 1.0)
+            deficit = jnp.where(active, jnp.maximum(leaf_esat - eair, 0.0), 0.0) / pref
+            lwp = stress_potential(
+                lwp,
+                gspot,
+                jnp.where(active, gbv, 1.0),
+                1000.0 * _layer(h.fdry) * deficit / lsc1,
+                h.psis - HEAD * _layer(h.zs),
+                1.0 - jnp.exp(-h.dtime * lsc1 / h.plant_capacitance),
+                jnp.where(active, _leaf(h.lwp_bef), -0.1),
+                gs_min, psi50_gs, shape_gs,
+            )  # fmt: skip
+        fpsi = 1.0 / (1.0 + jnp.maximum(lwp / psi50_gs, 0.0) ** shape_gs)
     else:
         fpsi = jnp.ones_like(gspot)
     gs_new = jnp.maximum(gspot * fpsi, gs_min)
@@ -715,6 +738,69 @@ def leaf_photosynthesis(
         hs=_zero(hs),
         vpd=_zero(vpd),
     )
+
+
+class StressHydraulics(NamedTuple):
+    """What the leaf water potential of the end of the sub-step follows from, besides the
+    transpiration (the arguments of ``plant_hydraulics.leaf_water_potential`` and the dry
+    fraction of ``flux_profile.leaf_fluxes``): for the derivative of the water stress
+    (:func:`stress_potential`, decision 124)."""
+
+    lwp_bef: Array  # (layer, leaf) leaf water potential at the start of the sub-step, MPa
+    fdry: Array  # (layer,) dry fraction of the leaves (transpiring)
+    lsc: Array  # (layer,) leaf-specific conductance, mmol H2O/m2 leaf/s/MPa
+    zs: Array  # (layer,) layer height, m
+    psis: Array  # () soil water potential, MPa
+    plant_capacitance: Array  # () the PFT's plant capacitance, mmol H2O/m2 leaf/MPa
+    dtime: float  # sub-step length, s
+
+
+def _stress_residual(psi, gspot, gbv, drop, a0, k, lwp_bef, gs_min, psi50_gs, shape_gs):
+    """``psi`` minus the leaf water potential at the end of the sub-step that the water
+    stress of ``psi`` gives (0 where ``psi`` is consistent with its own transpiration):
+
+        ``psi - lwp_bef - (a0 - drop gleaf(max(gspot f(psi), gs_min)) - lwp_bef) k``
+
+    ``f``: the water stress of :func:`leaf_photosynthesis`; ``gleaf``: stomata and leaf
+    boundary layer in series; ``drop = 1000 fdry max(esat(tleaf) - eair, 0) / pref / lsc``
+    (MPa per mol/m2/s of leaf conductance); ``a0 = psis - HEAD zs``;
+    ``k = 1 - exp(-dtime lsc / capac)`` (``plant_hydraulics.leaf_water_potential`` with the
+    transpiration of ``flux_profile.leaf_fluxes``). It rises with ``psi``: slope >= 1.
+    """
+    f = 1.0 / (1.0 + jnp.maximum(psi / psi50_gs, 0.0) ** shape_gs)
+    gs = jnp.maximum(gspot * f, gs_min)
+    return psi - lwp_bef - (a0 - drop * gs * gbv / (gs + gbv) - lwp_bef) * k
+
+
+@jax.custom_jvp
+def stress_potential(lwp, gspot, gbv, drop, a0, k, lwp_bef, gs_min, psi50_gs, shape_gs):
+    """The leaf water potential the water stress uses: ``lwp`` itself, the potential of the
+    stage's start (Fortran's; forward values are not changed). Only its derivative is
+    another one (decision 124): that of the potential consistent with the transpiration it
+    gives (the root of :func:`_stress_residual`), by the implicit function at ``lwp``,
+
+        ``d psi = -(d residual at fixed psi) / max(d residual / d psi, 1)``
+
+    The stomata take the stress of the potential of the stage's start, and the potential
+    is then updated from their transpiration: near the threshold of the steep stress
+    function a leaf alternates between open and closed from stage to stage, and the
+    model's own derivative with respect to ``lwp`` is far above 1 and grows from step to
+    step. Here that derivative is replaced by a bounded one with respect to ``lwp_bef``
+    and the other inputs. With it the gradient is not the derivative of the forward values:
+    a finite difference at a single stressed step disagrees by design. The other arguments:
+    see :func:`_stress_residual`.
+
+    Not in Fortran (no derivatives there).
+    """
+    return lwp
+
+
+@stress_potential.defjvp
+def _stress_potential_jvp(primals, tangents):
+    lwp, *rest = primals
+    _, d_rest = jax.jvp(lambda *a: _stress_residual(lwp, *a), tuple(rest), tuple(tangents[1:]))
+    _, slope = jax.jvp(lambda p: _stress_residual(p, *rest), (lwp,), (jnp.ones_like(lwp),))
+    return lwp, -d_rest / jnp.maximum(slope, 1.0)
 
 
 def stomatal_parameters(params, model: str):
