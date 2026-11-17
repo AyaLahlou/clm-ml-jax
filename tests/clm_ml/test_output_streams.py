@@ -146,3 +146,50 @@ def test_file_writer_continues_a_file_after_a_restart(tmp_path):
             xr.open_dataset(tmp_path / "split" / name) as b,
         ):
             xr.testing.assert_identical(a.load(), b.load())
+
+
+def test_file_writer_restart_at_the_end_of_a_file_period(tmp_path):
+    """A restart written when the records held are the last of their month (O86): the next
+    record opens the next month's file with nothing left to write to the old one. Both the
+    run that goes on and the run resumed from the restart write the files of an
+    uninterrupted run."""
+    import xarray as xr
+
+    from clm_ml.outputs import StreamFileWriter
+
+    class Opts:
+        name, level, file_per = "d", ("patch",), "month"
+
+    meta = {"patch_gridcell": [0], "patch_weight": [1.0], "patch_pft": ["x"],
+            "gridcell_names": ["g"], "soil_depth": np.zeros((1, 1))}  # fmt: skip
+    start = dt.datetime(2007, 5, 1)
+
+    def record(d):
+        end = start + d * dt.timedelta(days=1)
+        return (end.date(), end, {"gpp": np.array([float(d)])})
+
+    records = [record(d) for d in range(1, 40)]
+    full = StreamFileWriter(Opts, ("gpp",), meta, tmp_path / "full", "T", start)
+    full.add(records)
+    full.close()
+
+    on = StreamFileWriter(Opts, ("gpp",), meta, tmp_path / "on", "T", start)
+    on.add(records[:31])  # the record of 31 May ends the month
+    saved = on.state()
+    on.add(records[31:])
+    on.close()
+    resumed = StreamFileWriter(Opts, ("gpp",), meta, tmp_path / "resumed", "T", start)
+    resumed.add(records[:31])
+    resumed.state()
+    again = StreamFileWriter(Opts, ("gpp",), meta, tmp_path / "resumed", "T", start)
+    again.restore(saved)
+    again.add(records[31:])
+    again.close()
+    for other in ("on", "resumed"):
+        for month in ("2007-05", "2007-06"):
+            name = f"T_d_{month}_patch.nc"
+            with (
+                xr.open_dataset(tmp_path / "full" / name) as a,
+                xr.open_dataset(tmp_path / other / name) as b,
+            ):
+                xr.testing.assert_identical(a.load(), b.load())
