@@ -65,6 +65,8 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O73 | ~~The environment has no CUDA plugin: GPU jobs cannot see the GPUs~~ (closed: plugin 0.10.2 installed, `environment.yml`) | environment | closed | M |
 | O75 | `jax.grad` of `tridiag_2eq` with respect to only some of its coefficients fails inside JAX (was a second O74 until 2026-11-14) | bug (gradients, latent) | after 8 | I |
 | O76 | Gradients: speed, then quality and accuracy (branch `gpu_grad`) | performance / robustness (gradients) | after 8 | M |
+| O80 | A detector of unreliable gradients (idea, not built) | robustness (gradients) | after 8 (idea) | M |
+| O81 | The consistent forward forms of the water stress and the Obukhov length as settings (prototypes, not built) | science / gradients | after 8 (idea) | M |
 | O78 | XLA aborts while writing the compilation cache when a second gradient test file compiles in one process | robustness (upstream JAX?) | after 8 | I |
 | O79 | ~~NaN parameter gradients where leaf water potential is positive (dew): `(psi_l/psi50)^shape_gs`~~ (closed: decision 121) | science issue (differentiability) | closed | M |
 | O77 | ~~Two-stream `avmu` wrong for PFTs with a negative leaf angle index (grasses, crops)~~ (closed: decision 120) | science issue (bug) | closed | M |
@@ -642,10 +644,21 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   derivative where the time stepping is stable, implicit where not) is exact on CHATS7
   and bounded in the cerrado but leaves three Great Plains patches exploding (prototype,
   not adopted).
+- **Round 17 (2026-11-16, prototypes in scratch):** the consistent forward forms. The
+  water stress with a faster solver costs 1.23 times forward and gives exact derivatives;
+  the Obukhov length solved together with the stage's canopy-top air gives bounded,
+  accurate derivatives but costs 4.6 times forward (2.3 at the very least), far above the
+  1.5 of the working rules. No general or exact affordable solution exists as far as
+  looked (rounds 14-17).
+- **Round 18 (2026-11-16): decision 124 built** (maintainer): the derivative-only rules,
+  `numerics.water_stress_derivative: stabilized` (default) and
+  `numerics.obukhov_derivative: stabilized` (`exact` by default); forward bit for bit. A
+  detector of unreliable gradients was left out (O80).
 - **Open:**
-  - a general treatment of the lagged feedbacks for gradients over long simulations
-    (linearized approximations acceptable): round 16's combined rule is not it yet; the
-    direction is to be re-evaluated with the maintainer; decision 124 waits for it;
+  - the derivative rules are tested for one parameter (`iota`), latent heat, two 1°
+    boxes, one month each; other parameters, states, forcings, seasons and regions are
+    not; the blend's gains (-1 to -2) are not tuned; a cheaper Obukhov rule;
+  - new feedbacks of the same kind get a rule when they show up (O80: how to notice);
   - the 1° check repeated in other seasons and regions, and for state and forcing
     derivatives;
   - which mode to support and tune: forward mode (every output, a few inputs; 88 ms per
@@ -661,6 +674,50 @@ The model as it is now: [`model_overview.md`](model_overview.md).
   - the CPU gradient with `numerics.solver_loops: unrolled` (not the default) ended without
     a result or a message; not investigated.
 - **Source:** maintainer, 2026-11-14.
+
+### O80. A detector of unreliable gradients (idea, not built)
+- **Kind:** robustness (gradients) · **Target:** after 8 (idea) · **Decides:** M
+- **What:** the derivative rules of decision 124 treat the two feedbacks that were found
+  (water stress, Obukhov length). More of this kind are expected in other processes,
+  parameters and regimes, and no general fix was found (O76, rounds 14-17). The idea
+  (2026-11-16, maintainer: left out for now, documented): a general alarm instead of a
+  general fix, in two parts. (a) A reliability flag in the output, per patch and record:
+  water stress active; the Obukhov length changed sign between the stages of a sub-step
+  (or the loop's gain was below -1): a sensitivity map then shows where a derivative is
+  approximate. (b) A check on the host after each chunk, like the conservation checks:
+  patches whose step derivatives exceed a threshold are reported (the probes use
+  |d latent heat / d (relative change of iota)| > 1e4 at a step), so that an unknown
+  feedback shows up as a named patch instead of a silently wrong sensitivity.
+- **Not designed:** the threshold and its scaling per output and input; how a
+  reverse-mode gradient (one number for all steps) exposes a growing step derivative
+  (forward mode has it per step); the cost; where the flag is recorded (a diagnostic of
+  the step, as `Diagnostics.balance_error`). A probe first.
+- **Until then:** check a new case against finite differences of time means
+  (`jobs/gpu_probes/gradbox.py`).
+- **Source:** maintainer, 2026-11-16; `gradient_progress.md` round 18.
+
+### O81. The consistent forward forms as settings (prototypes, not built)
+- **Kind:** science / gradients · **Target:** after 8 (idea) · **Decides:** M
+- **What:** the derivative rules of decision 124 are the affordable approximation. The
+  exact alternative changes the forward model: the two lagged quantities solved together
+  with the stage, so that the model no longer overshoots and its exact derivative is
+  usable. Prototyped in round 17 (`$SCRATCH/clm-ml-jax/trees/cons`), not built
+  (maintainer, 2026-11-16: document only). Over 30 days they give clearly better
+  derivatives than the rules: cerrado January 14 patch-days more than 5 % off instead of
+  168 (of 522; worst patch 5.5 % instead of 11.4 %), Great Plains July every patch within
+  0.2 % instead of 6.2 %.
+  - *Water stress* (the leaf water potential the stress reads solved with its own
+    transpiration, a bracketing solver): 1.23 times forward, 1.13 times the gradient;
+    forward results change slightly (Great Plains 30 days -0.09 W m-2 latent heat).
+    Ready to be built as a setting if wanted.
+  - *Obukhov length* (solved together with the stage's canopy-top air): 4.6 times forward
+    with 14 iterations, which are not enough (22 are; a twin run 29-46 W m-2 apart at a
+    step with 14); about two stages' worth of the cost is unexplained; forward results
+    change more (CHATS7 day -0.5 W m-2 latent heat). Needs another round before it could
+    be a setting, and cannot meet the 1.5 times of the working rules.
+- **When:** if the accuracy of the rules (about 10 % on monthly means, a third of the
+  daily means more than 5 % off where stability flips often) limits an experiment.
+- **Source:** `gradient_progress.md` round 17; maintainer, 2026-11-16.
 
 ## 4. Housekeeping and repository organization (8a)
 

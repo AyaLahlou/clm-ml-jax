@@ -973,13 +973,32 @@ every other solver was already forward-mode safe (decision 59).
 Source: O71; maintainer, 2026-11-02.
 
 **124. Derivative-only treatments of the two lagged feedbacks: water stress adopted, the Obukhov rule a setting (off by default)**
-2026-11-16 · gradients rounds 10-13 (O76) · maintainer · open (on hold since 2026-11-16, not built) · Departure from Fortran: no (forward values bit for bit)
-**On hold (maintainer, 2026-11-16, the same day):** not to be built for now. More feedbacks of
-this kind are expected in other processes, parameters and regimes, and one treatment per
-feedback and regime is not wanted; a general solution is looked for first (clipping, and
-the Runge-Kutta scheme itself, `gradient_progress.md` round 14). Gradients over long
-simulations remain the goal, and linearized approximations remain acceptable. What was
-decided, for the record:
+2026-11-16 · gradients rounds 10-18 (O76) · maintainer · in force (built 2026-11-16) · Departure from Fortran: no (forward values bit for bit)
+**History.** Decided 2026-11-16 and put on hold the same day: more feedbacks of this kind
+are expected in other processes, parameters and regimes, one treatment per feedback and
+regime was not wanted, and a general solution was looked for first. None was found
+(`gradient_progress.md` rounds 14-17): other Runge-Kutta schemes do not remove the
+explosions; an implicit derivative over the stages is biased where the exact one is right;
+a blend of the two leaves patches exploding; the consistent forward forms give accurate
+derivatives, but the Obukhov length solved together with the stage's air costs 4.6 times
+forward (2.3 at the very least). **Built as decided (maintainer, 2026-11-16, evening)**,
+the water stress as the derivative-only form (the consistent forward form, 1.23 times
+forward with a faster solver, was the alternative). A detector of unreliable gradients
+(a flag in the output, a check after each chunk) was left out and is open item O80.
+**In the code.** `numerics.water_stress_derivative`: `stabilized` (default) or `exact`
+(`photosynthesis.stress_potential`, a `jax.custom_jvp`; `leaf_photosynthesis(hydraulics=)`).
+`numerics.obukhov_derivative`: `exact` (default) or `stabilized`
+(`canopy._fluxes_stabilized_obukhov`, a `jax.custom_jvp` around `canopy._fluxes`, the
+stage's processes from the turbulence to the flux-profile solution, which
+`turbulence.harman_finnigan(obu=)` evaluates for a given length; the blend's gains are
+`canopy.OBUKHOV_GAIN_BLEND`). `exact` is the exact derivative of the forward values, `stabilized` the rule. Neither is counted
+as a non-default option by `clm-ml check` (forward results do not depend on them). Tests:
+`tests/clm_ml/test_processes_photosynthesis.py` (the stress rule), `tests/test_model_api.py`
+(forward values bit for bit with either setting changed; each step's derivative close to
+a finite difference; forward equal to reverse mode; the tests of AD against a finite
+difference use `exact`: with the default the first of their 8 CHATS7 steps is 0.6 % off,
+the mildly stressed afternoon); the boxes by the probe
+`jobs/gpu_probes/gradbox.py` (not a pytest: 30 days of 1 degree patches). What was decided:
 The forward model keeps Fortran's order (the stress function reads the leaf water potential
 of the stage's start; the Obukhov length is solved from the canopy-top air of the stage's
 start). Two quantities get another derivative, by a derivative rule (`jax.custom_jvp`):

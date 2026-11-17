@@ -66,6 +66,7 @@ from clm_ml.processes.constants import (
 )
 from clm_ml.processes.layers import pad_with_top
 from clm_ml.processes.math import quadratic
+from clm_ml.processes.plant_hydraulics import HEAD
 from clm_ml.processes.water_vapor import sat_vap
 from clm_ml.state import PatchLayers
 
@@ -604,6 +605,7 @@ def leaf_photosynthesis(
     colimitation: bool = True,
     acclimation: bool = True,
     wue_solver: str = "bisection",
+    hydraulics: StressHydraulics | None = None,
 ) -> Photosynthesis:
     """Photosynthesis and stomatal conductance (layer, leaf) of the leaves of every layer.
 
@@ -613,7 +615,8 @@ def leaf_photosynthesis(
     reduced by leaf water potential ``lwp`` (MPa), ``gs = max(gspot / (1 + (lwp /
     psi50_gs)^shape_gs), gs_min)`` (no reduction for ``lwp >= 0``), and photosynthesis recomputed for it, with the humidity
     and vapor pressure deficit at the leaf surface. Soil water does not limit vcmax
-    (Fortran's ``btran`` is 1).
+    (Fortran's ``btran`` is 1). With ``hydraulics`` (:class:`StressHydraulics`) the water
+    stress has the same value and the derivative of :func:`stress_potential` (decision 124).
 
     Inputs per layer: ``dpai`` (m2/m2), ``eair`` (Pa), ``cair`` (umol/mol); per layer and
     leaf: ``tleaf`` (K), the 25 C values ``vcmax25``, ``jmax25``, ``rd25``, ``kp25``,
@@ -689,6 +692,22 @@ def leaf_photosynthesis(
         # no stress at or above zero water potential (dew makes it slightly positive): the
         # power of a negative base has no derivative in the exponent, and no value for an
         # exponent that is not a whole number (decision 121)
+        if hydraulics is not None:
+            # the same potential; its derivative is the one of the potential consistent
+            # with the transpiration it gives (decision 124)
+            h = hydraulics
+            lsc1 = jnp.where(active, jnp.maximum(_layer(h.lsc), 1.0e-30), 1.0)
+            deficit = jnp.where(active, jnp.maximum(leaf_esat - eair, 0.0), 0.0) / pref
+            lwp = stress_potential(
+                lwp,
+                gspot,
+                jnp.where(active, gbv, 1.0),
+                1000.0 * _layer(h.fdry) * deficit / lsc1,
+                h.psis - HEAD * _layer(h.zs),
+                1.0 - jnp.exp(-h.dtime * lsc1 / h.plant_capacitance),
+                jnp.where(active, _leaf(h.lwp_bef), -0.1),
+                gs_min, psi50_gs, shape_gs,
+            )  # fmt: skip
         fpsi = 1.0 / (1.0 + jnp.maximum(lwp / psi50_gs, 0.0) ** shape_gs)
     else:
         fpsi = jnp.ones_like(gspot)
@@ -719,6 +738,69 @@ def leaf_photosynthesis(
         hs=_zero(hs),
         vpd=_zero(vpd),
     )
+
+
+class StressHydraulics(NamedTuple):
+    """What the leaf water potential of the end of the sub-step follows from, besides the
+    transpiration (the arguments of ``plant_hydraulics.leaf_water_potential`` and the dry
+    fraction of ``flux_profile.leaf_fluxes``): for the derivative of the water stress
+    (:func:`stress_potential`, decision 124)."""
+
+    lwp_bef: Array  # (layer, leaf) leaf water potential at the start of the sub-step, MPa
+    fdry: Array  # (layer,) dry fraction of the leaves (transpiring)
+    lsc: Array  # (layer,) leaf-specific conductance, mmol H2O/m2 leaf/s/MPa
+    zs: Array  # (layer,) layer height, m
+    psis: Array  # () soil water potential, MPa
+    plant_capacitance: Array  # () the PFT's plant capacitance, mmol H2O/m2 leaf/MPa
+    dtime: float  # sub-step length, s
+
+
+def _stress_residual(psi, gspot, gbv, drop, a0, k, lwp_bef, gs_min, psi50_gs, shape_gs):
+    """``psi`` minus the leaf water potential at the end of the sub-step that the water
+    stress of ``psi`` gives (0 where ``psi`` is consistent with its own transpiration):
+
+        ``psi - lwp_bef - (a0 - drop gleaf(max(gspot f(psi), gs_min)) - lwp_bef) k``
+
+    ``f``: the water stress of :func:`leaf_photosynthesis`; ``gleaf``: stomata and leaf
+    boundary layer in series; ``drop = 1000 fdry max(esat(tleaf) - eair, 0) / pref / lsc``
+    (MPa per mol/m2/s of leaf conductance); ``a0 = psis - HEAD zs``;
+    ``k = 1 - exp(-dtime lsc / capac)`` (``plant_hydraulics.leaf_water_potential`` with the
+    transpiration of ``flux_profile.leaf_fluxes``). It rises with ``psi``: slope >= 1.
+    """
+    f = 1.0 / (1.0 + jnp.maximum(psi / psi50_gs, 0.0) ** shape_gs)
+    gs = jnp.maximum(gspot * f, gs_min)
+    return psi - lwp_bef - (a0 - drop * gs * gbv / (gs + gbv) - lwp_bef) * k
+
+
+@jax.custom_jvp
+def stress_potential(lwp, gspot, gbv, drop, a0, k, lwp_bef, gs_min, psi50_gs, shape_gs):
+    """The leaf water potential the water stress uses: ``lwp`` itself, the potential of the
+    stage's start (Fortran's; forward values are not changed). Only its derivative is
+    another one (decision 124): that of the potential consistent with the transpiration it
+    gives (the root of :func:`_stress_residual`), by the implicit function at ``lwp``,
+
+        ``d psi = -(d residual at fixed psi) / max(d residual / d psi, 1)``
+
+    The stomata take the stress of the potential of the stage's start, and the potential
+    is then updated from their transpiration: near the threshold of the steep stress
+    function a leaf alternates between open and closed from stage to stage, and the
+    model's own derivative with respect to ``lwp`` is far above 1 and grows from step to
+    step. Here that derivative is replaced by a bounded one with respect to ``lwp_bef``
+    and the other inputs. With it the gradient is not the derivative of the forward values:
+    a finite difference at a single stressed step disagrees by design. The other arguments:
+    see :func:`_stress_residual`.
+
+    Not in Fortran (no derivatives there).
+    """
+    return lwp
+
+
+@stress_potential.defjvp
+def _stress_potential_jvp(primals, tangents):
+    lwp, *rest = primals
+    _, d_rest = jax.jvp(lambda *a: _stress_residual(lwp, *a), tuple(rest), tuple(tangents[1:]))
+    _, slope = jax.jvp(lambda p: _stress_residual(p, *rest), (lwp,), (jnp.ones_like(lwp),))
+    return lwp, -d_rest / jnp.maximum(slope, 1.0)
 
 
 def stomatal_parameters(params, model: str):

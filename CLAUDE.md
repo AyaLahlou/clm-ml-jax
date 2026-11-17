@@ -58,9 +58,13 @@ Guidance for Claude (and other contributors) working in this repository.
   `zeta_max_stable` (decision 123: 0.5 for shrubs, grasses and crops, 1e30 = none for trees);
   check new derivatives against finite differences (`jobs/gpu_probes/gradcheck0.py`). Over
   30 days two lagged feedbacks are left (water stress, Obukhov length); decision 124
-  (2026-11-16, **on hold**, not built): derivative-only treatments, forward bit for bit
-  (water stress; an Obukhov rule at 1.7× the gradient); a general solution is looked for
-  first (rounds 14-16: none yet; the direction is being re-evaluated). The checkpoint on
+  (built 2026-11-16): derivative-only rules, forward bit for bit:
+  `numerics.water_stress_derivative: stabilized` (default, free; `exact` is the other value) and
+  `numerics.obukhov_derivative: stabilized` (`exact` by default; 1.7× the gradient); with them
+  a gradient is not the exact derivative of the forward values. No general or exact
+  solution was found (rounds 14-17: other Runge-Kutta schemes, an implicit derivative, a
+  blend, the consistent forward forms: the Obukhov one costs 4.6× forward); a detector of
+  unreliable gradients is an idea only (O80). The checkpoint on
   the sub-step is `numerics.checkpoint_substeps`, which follows the device (decision 125:
   on a GPU a fifth of the memory at no cost in time, on the CPU 6× slower). Log and
   "Resume here": `docs/design/gradient_progress.md`.

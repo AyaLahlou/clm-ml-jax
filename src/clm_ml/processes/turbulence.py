@@ -722,6 +722,27 @@ class Turbulence(NamedTuple):
     kc_eddy: Array  # (layer,) eddy diffusivity, m2/s
 
 
+def obukhov_inputs(
+    layers: PatchLayers, tair, eair, pref, ztop, lai, sai, zref, uref, thref, thvref, qref,
+    rhomol, zeta_max_stable=NO_ZETA_LIMIT,
+) -> ObuInputs:  # fmt: skip
+    """What the Obukhov length is solved from (the arguments of :func:`harman_finnigan`):
+    the canopy density length scale and the canopy-top air of ``tair`` and ``eair``.
+
+    Fortran reference: MLCanopyTurbulenceMod.F90::HF2008 (its first lines).
+    """
+    Lc = ztop / (cd * (lai + sai))
+
+    # Temperature and specific humidity at the canopy top
+    eair_top = eair[layers.n_within - 1]
+    taf = tair[layers.n_within - 1]
+    qaf = mmh2o / mmdry * eair_top / (pref - (1.0 - mmh2o / mmdry) * eair_top)
+
+    return ObuInputs(
+        Lc, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol, taf, qaf, zeta_max_stable
+    )
+
+
 def harman_finnigan(
     layers: PatchLayers,
     tair: Array,
@@ -743,6 +764,7 @@ def harman_finnigan(
     table_search: str = "loop",
     unroll: bool = False,
     zeta_max_stable=NO_ZETA_LIMIT,
+    obu=None,
 ) -> Turbulence:
     """Canopy turbulence from the roughness sublayer theory of Harman and Finnigan (2008):
     the canopy-top air (from the layer air temperature ``tair`` and vapour pressure ``eair``,
@@ -752,7 +774,9 @@ def harman_finnigan(
     (:data:`TABLE_SEARCH`). ``unroll``: the Obukhov and roughness-length iterations written
     out instead of compiled loops (``numerics.solver_loops``, decision 117).
     ``zeta_max_stable``: the PFT's largest stability at the reference height in stable
-    conditions (decision 123; the default is no limit, as Fortran).
+    conditions (decision 123; the default is no limit, as Fortran). ``obu``: an Obukhov length
+    (m) to use instead of solving it (the derivative rule of decision 124 evaluates the
+    turbulence along it).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::HF2008 (Bonan et al. 2018).
     Reads: ``tair_profile``, ``eair_profile``, ``pref_forcing``, ``ztop_canopy``,
@@ -763,17 +787,13 @@ def harman_finnigan(
     ``z0m_canopy``, ``uaf_canopy``, ``wind_profile``, ``mflx_profile``, ``gac_profile``,
     ``gac0_soil``, ``kc_eddy_profile``.
     """
-    Lc = ztop / (cd * (lai + sai))
-
-    # Temperature and specific humidity at the canopy top
-    eair_top = eair[layers.n_within - 1]
-    taf = tair[layers.n_within - 1]
-    qaf = mmh2o / mmdry * eair_top / (pref - (1.0 - mmh2o / mmdry) * eair_top)
-
-    inp = ObuInputs(
-        Lc, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol, taf, qaf, zeta_max_stable
-    )
-    obu = obukhov_length(inp, tables, sparse_canopy, table_search, unroll)
+    inp = obukhov_inputs(
+        layers, tair, eair, pref, ztop, lai, sai, zref, uref, thref, thvref, qref, rhomol,
+        zeta_max_stable,
+    )  # fmt: skip
+    Lc, taf, qaf = inp.Lc, inp.taf, inp.qaf
+    if obu is None:
+        obu = obukhov_length(inp, tables, sparse_canopy, table_search, unroll)
     t = obukhov_terms(obu, inp, tables, sparse_canopy, table_search)
     # Rounded as stored (Fortran's ustar(p), beta(p), ...; the legacy code wrote them to the
     # container): otherwise XLA may fold e.g. (a / b) / beta in u(h) = u*/beta into

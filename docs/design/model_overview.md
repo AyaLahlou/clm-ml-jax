@@ -106,7 +106,13 @@ searched is `numerics.table_search` (decision 114). Whether the loops over layer
 Obukhov and roughness-length iterations are compiled as loops or written out is
 `numerics.solver_loops` (decision 117); both settings are hidden and follow the device, as
 does `numerics.checkpoint_substeps` (gradients recompute each sub-step: less memory on a
-GPU, much slower on the CPU; decision 125).
+GPU, much slower on the CPU; decision 125). Two derivative rules leave the forward values
+alone and replace a derivative that grows without bound over days (decision 124):
+`numerics.water_stress_derivative` (`photosynthesis.stress_potential`, `stabilized` by default) and
+`numerics.obukhov_derivative` (`canopy._fluxes_stabilized_obukhov`, `exact` by default: the
+gradient takes 1.7 times as long). The stage's processes from the turbulence to the
+flux-profile solution are one function, `canopy._fluxes`, so that the rule can evaluate
+them along the Obukhov length.
 
 ### 2g. Initial conditions
 - `clm_history` (default): `setup.patches.build_patches` builds `State` from the first step's

@@ -35,7 +35,8 @@ useless local slope.
 | consistent forward form | round 9: within 2.3 %; forward results change by 0.1 W m-2 in the mean; forward 1.45x, gradient 1.75x | not prototyped |
 | derivative-only form (forward bit for bit) | round 10: within 6 %, no measurable cost | round 11: Great Plains within 0.5 %; cerrado within 12 %, a third of daily means still > 5 % off; cost not yet meaningful |
 | derivative-only form, as decided (rounds 12-13) | round 10's form, on | a derivative rule, blended by the loop's gain: forward bit for bit and at its speed, gradient 1.7x; Great Plains within 0.5 %, cerrado within 12 % |
-| status | decision 124, **on hold** (2026-11-16): not built | decision 124, **on hold**: not built |
+| consistent forward form, round 17 | a faster solver: 1.23x forward, 1.13x gradient | prototyped: accurate (30-day cerrado 14 patch-days > 5 % off instead of 168) but 4.6x forward |
+| status | decision 124, **built** (round 18): `numerics.water_stress_derivative: stabilized`, the default | decision 124, **built**: `numerics.obukhov_derivative: stabilized`, not the default (gradient 1.7x) |
 
 **Both together over 30 days (round 13):** Great Plains July 19 of 21 patches within 1.3 %
 (worst 6.6 %), cerrado January 14 of 18 within 5 % (worst 11.6 %; a third of the daily
@@ -47,7 +48,8 @@ link from the canopy-top air to L instead (free) is biased by 5-20 % (round 12).
 - Usable now: CHATS7-like towers, and 1° patches over a few days or without stress and
   without frequent stability flips. Check any new case against a finite change of the
   mean (the forward model is reproducible, so finite differences of means are sound).
-- With decision 124 (on hold) built: month-long derivatives on water-stressed patches (within ~6 %)
+- With the rules of decision 124 (built, round 18; the Obukhov one is switched on with
+  `numerics.obukhov_derivative: stabilized`): month-long derivatives on water-stressed patches (within ~6 %)
   and, with the Obukhov rule on, in regimes like the wet-season cerrado (monthly means
   within ~12 %, single days tens of percent). These are approximations: the gradient is
   then not the derivative of the forward values, and a finite difference at a single bad
@@ -103,10 +105,16 @@ costs no time and saves memory, so it is now the setting `numerics.checkpoint_su
 which follows the device (decision 125, in the code); the candidate of round 15 (the exact
 derivative where the time stepping is stable, the implicit one where it is not) is exact
 on CHATS7 and bounded in the cerrado, but leaves three Great Plains patches exploding: not
-yet the general solution. Next (maintainer, 2026-11-16): re-evaluate the direction. **Nothing of
-rounds 9-16 but that setting is in the code** (prototype: `$SCRATCH/clm-ml-jax/trees/obu_rule`, its difference from
-round 11's tree in `probe_cut/obu_rule.diff`; settings, tests and a reliability flag as
-listed at the end of round 13). The overview is the summary just above.
+yet the general solution. Round 17 (2026-11-16): the consistent forward forms give
+accurate derivatives over 30 days, but the Obukhov one costs 4.6 times forward: not
+adopted (O81). **Round 18 (2026-11-16): decision 124 is built**: the derivative rules
+`numerics.water_stress_derivative: stabilized` (default) and
+`numerics.obukhov_derivative: stabilized` (not the default; gradient 1.7 times), forward
+bit for bit; a detector of unreliable gradients is an idea only (O80). Nothing is waiting
+for the maintainer; the branch is prepared for a pull request. **Of rounds 9-18, the code has
+the two rules and that setting** (the prototypes stay in scratch:
+`$SCRATCH/clm-ml-jax/trees/obu_rule` for the rules, `trees/cons` for the consistent forward
+forms). The overview is the summary just above.
 
 **Open from round 1** (O76): forward or reverse mode as the tuned path; the checkpoint
 layout as a setting; GPU measurements of checkpointing and of batched forward mode; a
@@ -1372,3 +1380,150 @@ latent heat against ±1 % of `iota`, means over the run per patch:
 
 - The direction for the lagged feedbacks: diagnose the three Great Plains patches under
   the combined rule, return to decision 124 (rounds 10 + 13), or something else.
+
+## Round 17: the consistent forward forms, prototypes (2026-11-16). Not adopted: the Obukhov one costs 4.6 times forward
+
+After round 16 the maintainer agreed to one prototype round of the forward alternative:
+the two lagged quantities solved together with the stage, which removes the overshoot from
+the model, so that the exact derivative is usable. Tree `$SCRATCH/clm-ml-jax/trees/cons`
+(the repository at `53ab155` plus round 9's `lwp_prototype.diff` plus this round; switches
+`CLM_LWP=implicit|fast`, `CLM_LWP_IT`, `CLM_OBU=implicit`, `CLM_OBU_IT`). Probes and
+results: `$SCRATCH/clm-ml-jax/probe_cons/` (`cfg.py`, `cons.pbs`, `timing.pbs`,
+`solver_test.py`). The box runs were PBS jobs on GPU nodes used as CPU hosts (memory).
+
+### The two forms
+
+- **Water stress, a faster solver** (`CLM_LWP=fast`): round 9's equation for the potential
+  consistent with its own transpiration, solved by Chandrupatla's method (inverse
+  quadratic interpolation where it is safe, a halving otherwise; the root stays
+  bracketed; `math.py::bracketed_root`) instead of 50 halvings. On the 400 000 random
+  leaves of round 9 it is at round-off (1e-15 MPa) on every leaf after 18 evaluations and
+  the two ends (the safeguarded Newton of round 9 left a few leaves at 1e-7); 22 are used.
+  Five Great Plains days: forward results as with 50 halvings (2e-9 W m-2).
+- **The Obukhov length solved with the stage's air** (`CLM_OBU=implicit`): the stage runs
+  as now up to the stomata (turbulence from the air of the stage's start, for the wind
+  the stomata see). Then Lc/L is found whose turbulence, leaf boundary layers and
+  flux-profile solution give canopy-top air that gives the same Lc/L back
+  (`turbulence.at_stability`, `stability_of_air`): a root between the model's limits -2
+  and 1, where the residual always changes sign, by the same bracketing solver; the
+  gradient by the implicit function (decision 119). The stomatal conductance and the
+  wetted fraction keep the wind of the stage's start. **14 iterations are not enough:**
+  five cerrado days differ from 50 iterations by 1.5e-4 W m-2 (22 and 30: 2e-9), and in
+  the 30-day cerrado runs (14 iterations) one twin (1e-14) is 29-46 W m-2 apart at a
+  step: an unconverged solve is a discrete defect. The 30-day numbers below are with 14.
+
+### Results (latent heat, AD against each form's own ±1 % of `iota`)
+
+| | repository | rules of rounds 10 + 13 | consistent forms |
+|---|---|---|---|
+| CHATS7, one day: mean off by | 0.3 % | < 0.05 % | 0.03 % (Obukhov) |
+| cerrado, 5 days (Obukhov): worst patch; patches within 1 % (of 18) | 6085 %; 11 | 12 %; | 5.7 %; 17 |
+| the same: largest step derivative | 1.3e5 | 1.1e2 | 57 |
+| **Cerrado January, 30 days** (both forms): worst; within 1 % / 5 % (of 18) | 5.3e6 %; 3 / 8 | 11.4 %; 7 / 14 | 5.5 %; 15 / 17 |
+| the same: patch-days more than 5 % / 1 % off (of 522) | 211 / 279 | 168 / 336 | 14 / 42 |
+| the same: largest step derivative | 1.6e9 | 8.9e2 | 7.7e2 |
+| **Great Plains July, 30 days** (both forms): worst; within 1 % / 5 % (of 21) | 3671 %; 12 / 14 | 6.2 %; 17 / 20 | 0.2 %; 21 / 21 |
+| the same: patch-days more than 5 % / 1 % off (of 609) | 97 / 143 | 59 / 105 | 1 / 7 |
+| the same: largest step derivative | 8.9e6 | 1.3e3 | 6.0e2 |
+| Great Plains, 30 days, the Obukhov form alone: worst; patches above 1e4 | | | 531 %; 2 (the water stress, as expected) |
+
+- With both forms the exact derivative is usable over 30 days in both boxes, and far
+  better than the derivative rules where the model flips (cerrado: 14 patch-days more
+  than 5 % off instead of 168).
+- **Forward change** (a science change), mean latent heat: CHATS7 day -0.52 W m-2
+  (sensible heat +0.83; largest step 16); cerrado 30 days -0.37 (worst patch -0.80;
+  single steps up to 183); Great Plains 30 days -0.09 with both forms (worst patch -0.60).
+  The Obukhov form changes the model more than the water-stress form (round 9: -0.013 on
+  CHATS7).
+
+### Cost (`timing/time_model.py --steps 47`, CHATS7, CPU, one compute node, two runs each)
+
+| | forward, ms per step | gradient, ms per step | peak memory |
+|---|---|---|---|
+| repository | 10.9-11.7 | 45-50 | 3.4 GB |
+| water stress, 50 halvings (round 9) | 15.8-16.7 (1.43 times) | 75-80 (1.6) | 3.7 GB |
+| water stress, the faster solver | 13.7-14.3 (1.23 times) | 52-56 (1.13) | 3.5 GB |
+| Obukhov length with the stage's air, 14 iterations | 51-54 (4.6 times) | 147-157 (3.2) | 6.0 GB |
+| both | 55-57 (4.9 times) | 149-164 (3.3) | 6.1 GB |
+
+Forward time against the iterations of the Obukhov solve (login node; repository 9.9 ms
+per step): 4 iterations 36.2, 14 iterations 48.4, 30 iterations 69.7 ms: 1.25 ms per
+iteration (each a new wind profile, conductances, leaf boundary layers and flux-profile
+solution: about 13 % of a stage) on a fixed part of about 21 ms that was not tracked
+down. A converged solve needs about 22 iterations; even without the fixed part, 10
+iterations would give about 2.3 times forward.
+
+### Outcome (maintainer, 2026-11-16)
+
+- The Obukhov form is not affordable: 4.6 times forward against the 1.5 of the working
+  rules, and tuning cannot bring a converged solve of this kind there. Not pursued.
+- The water-stress form is affordable (1.23 times forward, exact derivatives) but changes
+  forward results and costs forward time: the derivative-only form was chosen (round 18).
+- No general or exact affordable solution was found in rounds 14-17: decision 124 is
+  built (round 18).
+- The consistent forms stay in scratch as the reference for judging approximate rules.
+- An idea not tried: the Obukhov length relaxed towards its diagnosed value over a few
+  sub-steps (no cost; a science change and a new state variable; a fixed rate cannot
+  guarantee stability in the strongest transitions).
+
+## Round 18: decision 124 built (2026-11-16)
+
+The maintainer's decision after round 17: build the two derivative-only rules; the water
+stress as the derivative-only form; no detector for now (documented: O80); the consistent
+forward forms documented only (O81).
+
+### In the code
+
+| `model.yaml`, `numerics` | default | the other value |
+|---|---|---|
+| `water_stress_derivative` | `stabilized`: round 10's rule (`photosynthesis.stress_potential`, a `jax.custom_jvp`; `leaf_photosynthesis(hydraulics=StressHydraulics(...))`) | `exact`: the exact derivative of the forward values |
+| `obukhov_derivative` | `exact` | `stabilized`: round 13's rule with the blend (`canopy._fluxes_stabilized_obukhov`, a `jax.custom_jvp`; gains `canopy.OBUKHOV_GAIN_BLEND` = -1, -2) |
+
+- The stage's processes from the turbulence to the flux-profile solution are one
+  function, `canopy._fluxes` (the lines of `_stage`, moved), so that the rule can evaluate
+  them for a given Obukhov length (`turbulence.harman_finnigan(obu=)`;
+  `turbulence.obukhov_inputs`: its first lines as a function).
+- Forward results do not depend on either setting; `clm-ml check` does not list them as
+  non-default options.
+
+### Checks
+
+- Bit for bit and noise twin pass with the water-stress rule on by default; the fast
+  tests, lint and the CPU gradient tier pass.
+- New tests: the stress rule (the same conductance; the derivative moved from the
+  stage's potential to the sub-step's start and bounded; forward equal to reverse mode;
+  the implicit-function formula); the settings reach the sub-step; in
+  `tests/test_model_api.py`, every step's value bit for bit the same with either setting
+  changed, and each step's derivative within 2 % of the largest step's finite difference
+  on 8 CHATS7 steps (reverse mode equal to forward mode).
+- **The default gradient is no longer exact at CHATS7 either.** On those 8 steps (an
+  afternoon into the evening) the water-stress rule changes the derivative of the first
+  step's latent heat with respect to `vcmax25` by 0.6 % (the canopy is mildly stressed
+  there; the exact derivative agrees with the finite difference to 0.01 %), the others by
+  0.1 % or less. The mean over the 8 steps, whose terms cancel to 0.6 % of their size,
+  is then 9 % off, and the two existing tests of AD against a finite difference failed
+  on it: they now use the exact derivatives (`water_stress_derivative: exact`), and the
+  rules are tested per step. Over a CHATS7 day the mean latent heat derivative stays
+  0.3 % off (round 10). The Obukhov rule changes nothing on these steps (the loop's gain
+  stays above -1).
+- The boxes (probe `gradbox.py`, PBS; the repository code against the stored reference
+  runs; latent heat, AD against ±1 % of `iota`):
+
+| | both `exact` | defaults (stress `stabilized`) | both `stabilized` |
+|---|---|---|---|
+| CHATS7, one day | 0.3 % | | 0.04 % |
+| cerrado, 5 days: worst patch; largest step derivative | 4554 %; 1.3e5 | as both `exact` (no water stress there) | 8.4 %; 1.1e2 |
+| cerrado January, 30 days: worst; within 1 % / 5 % (of 18); patch-days > 5 % (of 522) | 5.3e6 %; 3 / 8; 211 | | 11.4 %; 7 / 14; 168 |
+| Great Plains July, 30 days: worst; within 1 % / 5 % (of 21); patch-days > 5 % (of 609) | 3671 %; 12 / 14; 97 | 3671 % (the two Obukhov patches; the other 19: worst 6.2 %, one above 5 %); 14 / 18; 80 | 6.2 %; 17 / 20; 59 |
+| the same: largest step derivative | 8.9e6 | 8.9e6 | 1.3e3 |
+
+  The 30-day runs with both rules are **identical to the prototype's** (round 13): the
+  forward values and every derivative, bit for bit, in both boxes.
+
+### Left open
+
+- The detector of unreliable gradients (O80) and the consistent forward forms as
+  settings (O81).
+- One parameter (`iota`), one output (latent heat), two boxes, one month each; the
+  blend's gains not tuned; a cheaper Obukhov rule (O76).
+

@@ -20,6 +20,7 @@ from typing import NamedTuple
 import jax
 import jax.numpy as jnp
 from jax import Array
+from jax.extend.core import Literal
 
 from clm_ml.processes.constants import grav, mmh2o, rgas
 from clm_ml.processes.layers import pad_with_top
@@ -524,6 +525,15 @@ class SubstepOptions(NamedTuple):
     #: wetted fraction of the leaves: of the water left at the end of the sub-step
     #: (implicit, decision 122) or at the start of the stage (explicit, Fortran)
     wetted_fraction: str = "implicit"
+    #: derivative of the water stress: the exact one of the forward values (exact), or of
+    #: the leaf water potential consistent with its own transpiration, which stays bounded
+    #: over days (stabilized); the same forward values (decision 124)
+    water_stress_derivative: str = "stabilized"
+    #: derivative of the Obukhov length: the exact one of the forward values (exact) or,
+    #: where the loop through the canopy-top air overshoots, the one consistent with the air
+    #: the stage gives, which stays bounded over days (stabilized); the same forward values
+    #: (decision 124)
+    obukhov_derivative: str = "exact"
 
 
 class SubstepInputs(NamedTuple):
@@ -730,56 +740,27 @@ def _radiation(c: Substep, x: SubstepInputs, params, calday, opt: SubstepOptions
     return c._replace(balance_error=errors)
 
 
-def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3: bool, stage):
-    """One Runge-Kutta stage (1-based ``stage``; the last one, after the method's stages,
-    only computes the fluxes): the canopy processes, then the state update. ``tables``: the
-    psihat lookup tables (``turbulence.RSLTables``).
+def _fluxes(c: Substep, x: SubstepInputs, params, errors, tables, opt, c3: bool, obu=None):
+    """The canopy processes of a stage from the turbulence to the flux-profile solution:
+    turbulence, leaf boundary layers, interception, the wetted fraction, photosynthesis and
+    stomata, the flux-profile solution. ``errors``: the conservation errors recorded so far.
+    ``obu``: an Obukhov length (m) to use instead of the one solved from the stage's
+    canopy-top air (:func:`_fluxes_stabilized_obukhov`). Returns the values, the errors and
+    the interception.
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 295-328).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 309-322).
     """
-    from clm_ml.checks import LEAF_ENERGY, LONGWAVE, SOIL_ENERGY
+    from clm_ml.checks import LEAF_ENERGY, SOIL_ENERGY
     from clm_ml.processes import (
         canopy_water,
         flux_profile,
-        integrators,
         leaf_boundary_layer,
-        longwave,
         photosynthesis,
-        plant_hydraulics,
         turbulence,
     )
 
     lay = x.layers
     use = lay.in_use
-    errors = c.balance_error
-
-    # Wetted fraction of the plant area from the stage's water — Fortran
-    # CanopyWettedFraction (every slot); the implicit one follows the leaf boundary layer
-    if opt.wetted_fraction == "explicit":
-        fwet, fdry = canopy_water.wetted_fraction(c.h2ocan_profile, x.dpai, x.dlai)
-        c = c._replace(fwet_profile=fwet, fdry_profile=fdry)
-
-    # Longwave radiation — Fortran LongwaveRadiation (layers and levels up to the canopy top)
-    lw = longwave.norman(
-        c.tleaf_leaf, c.fracsun_profile, c.td_profile, x.dpai, c.lwsky_forcing, c.tg_soil,
-        lay, params.leaf_emissivity, opt.unroll_loops,
-    )  # fmt: skip
-    errors = _record(errors, LONGWAVE, lw.error)
-    upto_top = jnp.arange(lay.dz.shape[0] + 1) <= lay.n_within  # levels 0..ntop
-    c = c._replace(
-        lwup_canopy=lw.lwup,
-        lwveg_canopy=lw.lwveg,
-        lwsoi_soil=lw.lwsoi,
-        lwleaf_leaf=_keep(upto_top[1:], lw.lwleaf, c.lwleaf_leaf),
-        lwupw_profile=jnp.where(upto_top, lw.lwupw, c.lwupw_profile),
-        lwdwn_profile=jnp.where(upto_top, lw.lwdwn, c.lwdwn_profile),
-    )
-
-    # Net radiation — Fortran lines 301-307 (every slot)
-    c = c._replace(
-        rnleaf_leaf=c.swleaf_leaf[..., 0] + c.swleaf_leaf[..., 1] + c.lwleaf_leaf,
-        rnsoi_soil=c.swsoi_soil[0] + c.swsoi_soil[1] + c.lwsoi_soil,
-    )
 
     # Canopy turbulence — Fortran CanopyTurbulence (profiles in the layers in use)
     t = turbulence.harman_finnigan(
@@ -788,7 +769,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         tables,
         sparse_canopy=opt.sparse_canopy, ground_conductance=opt.ground_conductance,
         table_search=opt.table_search, unroll=opt.unroll_loops,
-        zeta_max_stable=params.zeta_max_stable,
+        zeta_max_stable=params.zeta_max_stable, obu=obu,
     )  # fmt: skip
     c = c._replace(
         obu_canopy=t.obu,
@@ -829,6 +810,11 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
     if opt.stomatal_conductance != "wue":
         g0, g1 = photosynthesis.stomatal_parameters(params, opt.stomatal_conductance)
         stomatal = {"g0": g0, "g1": g1}
+    if opt.water_stress_derivative == "stabilized":
+        stomatal["hydraulics"] = photosynthesis.StressHydraulics(
+            c.lwp_bef_leaf, c.fdry_profile, x.lsc, lay.zs, x.psis, params.plant_capacitance,
+            opt.dtime,
+        )  # fmt: skip
     ps = photosynthesis.leaf_photosynthesis(
         lay, x.dpai, c.eair_profile, c.cair_profile, c.tleaf_leaf, c.vcmax25_leaf,
         c.jmax25_leaf, c.rd25_leaf, c.kp25_leaf, c.apar_leaf, c.gbc_leaf, c.gbv_leaf,
@@ -884,6 +870,165 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
         tg_soil=fp.soil.tg,
         cair_profile=jnp.where(below_top, c.co2ref_forcing, c.cair_profile),
     )  # fmt: skip
+    return c, errors, i
+
+
+#: Gain per stage of the loop canopy-top air -> Obukhov length -> fluxes -> canopy-top air
+#: between which the derivative of the Obukhov length goes from the model's own (the lagged
+#: loop settles: gain above the first) to the consistent one (it overshoots: gain below the
+#: second), linearly (decision 124)
+OBUKHOV_GAIN_BLEND = (-1.0, -2.0)
+
+
+def _fluxes_stabilized_obukhov(opt: SubstepOptions, c3: bool):
+    """:func:`_fluxes` (without its ``opt``, ``c3`` and ``obu``) with the same values and
+    another derivative of the Obukhov length ``L``, as a derivative rule
+    (``jax.custom_jvp``; model.yaml ``numerics.obukhov_derivative: stabilized``,
+    decision 124).
+
+    Each stage solves ``L`` from the canopy-top air (temperature and humidity) of the
+    stage's start and then gives new canopy-top air: the loop air -> L -> fluxes -> air is
+    closed with a lag of one stage. In stability transitions a small change of the air
+    changes ``L`` a lot and the new air answers with the opposite sign and a larger size;
+    the model alternates from stage to stage and its own derivative grows without bound.
+    The rule:
+
+        ``dL_model = dL_direct + L_air . d air0``  (the model's: the air of the stage's start)
+        ``dL_cons  = (dL_direct + L_air . d air1) / max(1 - gain, 1)``,  ``gain = L_air . air_L``
+        ``dL = (1 - w) dL_model + w dL_cons``
+        ``d out = (d out at fixed L) + (d out / dL) dL``
+
+    ``d air1``: the derivative of the stage's new canopy-top air without ``L``'s;
+    ``air_L``: the response of that air to ``L``; ``L_air``: the solver's implicit-function
+    derivative with respect to the air. ``dL_cons`` is the derivative ``L`` would have if it
+    were solved together with the air the stage gives. The weight ``w`` goes from 0 to 1
+    as the gain goes from the first to the second value of :data:`OBUKHOV_GAIN_BLEND`.
+    Two more forward-mode passes of the stage's processes (``L`` held; along ``L``); a run
+    without derivatives evaluates them once, as :func:`_fluxes` does. With the rule the
+    gradient is not the derivative of the forward values: a finite difference at a single
+    affected step disagrees by design.
+
+    Not in Fortran (no derivatives there).
+    """
+    from clm_ml.processes import turbulence
+
+    def inputs(c, x, params):
+        inp = turbulence.obukhov_inputs(
+            x.layers, c.tair_profile, c.eair_profile, c.pref_forcing, x.ztop, x.lai, x.sai,
+            x.zref, c.uref_forcing, c.thref_forcing, c.thvref_forcing, c.qref_forcing,
+            c.rhomol_forcing, params.zeta_max_stable,
+        )  # fmt: skip
+        return turbulence.ObuInputs(*(jnp.asarray(v, dtype=float) for v in inp))
+
+    def solver(inp, tables):
+        return turbulence.obukhov_length(
+            inp, tables, opt.sparse_canopy, opt.table_search, opt.unroll_loops
+        )
+
+    def given(obu, c, x, params, errors, tables):
+        return _fluxes(c, x, params, errors, tables, opt, c3, obu)
+
+    @jax.custom_jvp
+    def fluxes(c, x, params, errors, tables):
+        return given(solver(inputs(c, x, params), tables), c, x, params, errors, tables)
+
+    @fluxes.defjvp
+    def fluxes_jvp(primals, tangents):
+        c, x, params, errors, tables = primals
+        inp = inputs(c, x, params)
+        obu = solver(inp, tables)
+
+        def top_air(c_new):
+            new = inputs(c_new, x, params)
+            return new.taf, new.qaf
+
+        # the processes with L held: their values, and their derivative without L's
+        out, t_held = jax.jvp(lambda *a: given(obu, *a), primals, tangents)
+        # their response to L
+        _, t_obu = jax.jvp(lambda o: given(o, *primals), (obu,), (jnp.ones_like(obu),))
+        _, (taf_obu, qaf_obu) = jax.jvp(top_air, (out[0],), (t_obu[0],))
+        _, (dtaf1, dqaf1) = jax.jvp(top_air, (out[0],), (t_held[0],))
+        # L's response to the canopy-top air, and the gain of the loop
+        obu_air = jax.grad(lambda a: solver(inp._replace(taf=a[0], qaf=a[1]), tables))(
+            jnp.stack([inp.taf, inp.qaf])
+        )
+        gain = obu_air[0] * taf_obu + obu_air[1] * qaf_obu
+        gain = jnp.where(jnp.isfinite(gain), gain, 0.0)
+        # L's derivative: the model's, and with the new air's in place of the old air's
+        _, dinp = jax.jvp(inputs, (c, x, params), tangents[:3])
+        _, d_model = jax.jvp(lambda i: solver(i, tables), (inp,), (dinp,))
+        _, d_cons = jax.jvp(
+            lambda i: solver(i, tables), (inp,), (dinp._replace(taf=dtaf1, qaf=dqaf1),)
+        )
+        settles, overshoots = OBUKHOV_GAIN_BLEND
+        w = jnp.clip((settles - gain) / (settles - overshoots), 0.0, 1.0)
+        d_obu = w * d_cons / jnp.maximum(1.0 - gain, 1.0) + (1.0 - w) * d_model
+        # outputs that do not depend on L keep their tangent as it is (a constant output
+        # must not get a tangent that varies from patch to patch under vmap)
+        jaxpr = jax.make_jaxpr(lambda o: given(o, *primals))(obu).jaxpr
+        depends = set(jaxpr.invars)
+        for eqn in jaxpr.eqns:
+            if any(not isinstance(v, Literal) and v in depends for v in eqn.invars):
+                depends.update(eqn.outvars)
+        uses_obu = [not isinstance(v, Literal) and v in depends for v in jaxpr.outvars]
+        held, tree = jax.tree.flatten(t_held)
+        leaves = [
+            a if (a.dtype == jax.dtypes.float0 or not u) else a + b * d_obu
+            for a, b, u in zip(held, jax.tree.leaves(t_obu), uses_obu, strict=True)
+        ]
+        return out, jax.tree.unflatten(tree, leaves)
+
+    return fluxes
+
+
+def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3: bool, stage):
+    """One Runge-Kutta stage (1-based ``stage``; the last one, after the method's stages,
+    only computes the fluxes): the canopy processes, then the state update. ``tables``: the
+    psihat lookup tables (``turbulence.RSLTables``).
+
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 295-328).
+    """
+    from clm_ml.checks import LONGWAVE
+    from clm_ml.processes import canopy_water, integrators, longwave, plant_hydraulics
+
+    lay = x.layers
+    errors = c.balance_error
+
+    # Wetted fraction of the plant area from the stage's water — Fortran
+    # CanopyWettedFraction (every slot); the implicit one follows the leaf boundary layer
+    if opt.wetted_fraction == "explicit":
+        fwet, fdry = canopy_water.wetted_fraction(c.h2ocan_profile, x.dpai, x.dlai)
+        c = c._replace(fwet_profile=fwet, fdry_profile=fdry)
+
+    # Longwave radiation — Fortran LongwaveRadiation (layers and levels up to the canopy top)
+    lw = longwave.norman(
+        c.tleaf_leaf, c.fracsun_profile, c.td_profile, x.dpai, c.lwsky_forcing, c.tg_soil,
+        lay, params.leaf_emissivity, opt.unroll_loops,
+    )  # fmt: skip
+    errors = _record(errors, LONGWAVE, lw.error)
+    upto_top = jnp.arange(lay.dz.shape[0] + 1) <= lay.n_within  # levels 0..ntop
+    c = c._replace(
+        lwup_canopy=lw.lwup,
+        lwveg_canopy=lw.lwveg,
+        lwsoi_soil=lw.lwsoi,
+        lwleaf_leaf=_keep(upto_top[1:], lw.lwleaf, c.lwleaf_leaf),
+        lwupw_profile=jnp.where(upto_top, lw.lwupw, c.lwupw_profile),
+        lwdwn_profile=jnp.where(upto_top, lw.lwdwn, c.lwdwn_profile),
+    )
+
+    # Net radiation — Fortran lines 301-307 (every slot)
+    c = c._replace(
+        rnleaf_leaf=c.swleaf_leaf[..., 0] + c.swleaf_leaf[..., 1] + c.lwleaf_leaf,
+        rnsoi_soil=c.swsoi_soil[0] + c.swsoi_soil[1] + c.lwsoi_soil,
+    )
+
+    # Turbulence, leaf boundary layers, interception, wetted fraction, photosynthesis and the
+    # flux-profile solution (with numerics.obukhov_derivative: stabilized, the same values
+    # with the derivative rule of decision 124)
+    if opt.obukhov_derivative == "stabilized":
+        c, errors, i = _fluxes_stabilized_obukhov(opt, c3)(c, x, params, errors, tables)
+    else:
+        c, errors, i = _fluxes(c, x, params, errors, tables, opt, c3)
 
     # Leaf water potential — Fortran LeafWaterPotential (every slot)
     c = c._replace(

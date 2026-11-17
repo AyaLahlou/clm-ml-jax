@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -N clmml_gradbox
+#PBS -A UCLB0069
+#PBS -q develop
+#PBS -l select=1:ncpus=16:ngpus=1:mem=100GB
+#PBS -l walltime=06:00:00
+#PBS -j oe
+# Gradient accuracy in the two 1 degree boxes (gradbox.py; a GPU node used as a CPU host
+# for its memory: the login nodes stop a process at ~10 GB). Submit from scratch:
+#   qsub -v TAG=name,TREE=$SCRATCH/clm-ml-jax/trees/NAME,WHAT="cerrado5 plains30",SET="model.numerics.obukhov_derivative=stabilized"[,USEREF=1] jobs/gpu_probes/gradbox.pbs
+# USEREF=1: the twin and the finite change from the stored reference runs of the
+# repository (the same forward values; rounds 8-13), only the derivative computed.
+set -u
+SCRATCH=${SCRATCH:-/glade/derecho/scratch/$USER}
+P=$SCRATCH/clm-ml-jax/probe_gradbox
+export PATH=/glade/work/$USER/conda-envs/clm-ml-jax/bin:$PATH
+export JAX_PLATFORMS=cpu TMPDIR=$SCRATCH/tmp
+export JAX_COMPILATION_CACHE_DIR=$SCRATCH/jax_compile_cache_cpunode
+HERE=${REPO:-/glade/work/$USER/clm-ml-jax}/jobs/gpu_probes
+E=$SCRATCH/clm-ml-jax/probe_expl
+mkdir -p $P; cd $P
+for w in $WHAT; do
+  case $w in
+  chats7)    A="chats7 x";             N=47;   L="";                        R="" ;;
+  cerrado5)  A="cerrado 2000-01-01";   N=239;  L="run.time.length=5 days";  R=$SCRATCH/clm-ml-jax/probe_rkc/cerrado_jan5_rk4.npz ;;
+  plains5)   A="plains 2000-07-01";    N=239;  L="run.time.length=5 days";  R="" ;;
+  cerrado30) A="cerrado 2000-01-01";   N=1439; L="run.time.length=30 days"; R=$E/repo2_cerrado_jan_30d.npz ;;
+  plains30)  A="plains 2000-07-01";    N=1439; L="run.time.length=30 days"; R=$E/repo2_plains_jul_30d.npz ;;
+  esac
+  [ "${USEREF:-0}" = 1 ] || R=""
+  REF=$R NSTEP=$N python -u $HERE/gradbox.py $TREE $A ${w}_$TAG.npz ${L:+"$L"} ${SET:-} > log_${w}_$TAG.txt 2>&1
+  echo "$w done $(date)"; /usr/bin/tail -6 log_${w}_$TAG.txt
+done

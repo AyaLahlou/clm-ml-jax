@@ -204,6 +204,56 @@ def test_water_stress():
     np.testing.assert_array_equal(unstressed.gs, unstressed.gspot)
 
 
+def _hydraulics(lwp_bef):
+    n = N_SLOTS
+    return ps.StressHydraulics(
+        lwp_bef=lwp_bef, fdry=jnp.ones(n), lsc=jnp.full(n, 2.0), zs=_layers().zs,
+        psis=jnp.asarray(-0.3), plant_capacitance=jnp.asarray(2500.0), dtime=300.0,
+    )  # fmt: skip
+
+
+def test_water_stress_derivative_rule_keeps_the_values_and_bounds_the_derivative():
+    """With ``hydraulics`` the water stress has the same values, and the derivative of the
+    conductance with respect to the potential of the stage's start (far above 1 per MPa of
+    its own drop near the threshold) is replaced by a bounded one with respect to the
+    potential of the sub-step's start (decision 124); reverse mode agrees with forward
+    mode."""
+    f = _inputs(lwp=-1.55)  # sunlit at -1.55, shaded at -1.65 MPa: around psi50 = -1.6
+
+    def conductance(lwp, lwp_bef, rule):
+        kw = {"hydraulics": _hydraulics(lwp_bef)} if rule else {}
+        return _run({**f, "lwp": lwp}, **kw).gs[LEAFY]
+
+    bef = f["lwp"] + 0.02
+    np.testing.assert_array_equal(
+        conductance(f["lwp"], bef, True), conductance(f["lwp"], bef, False)
+    )
+    model = jax.jacfwd(conductance, argnums=(0, 1))(f["lwp"], bef, False)
+    rule = jax.jacfwd(conductance, argnums=(0, 1))(f["lwp"], bef, True)
+    # the model: all of the derivative through the stage's potential, none through the
+    # sub-step's start; the rule: the reverse, and smaller
+    assert np.abs(model[0]).max() > 1.0 and not np.any(np.asarray(model[1]))
+    assert not np.any(np.asarray(rule[0]))
+    assert np.all(np.isfinite(rule[1])) and np.any(np.asarray(rule[1]))
+    assert np.abs(rule[1]).max() < np.abs(model[0]).max()
+    reverse = jax.jacrev(conductance, argnums=1)(f["lwp"], bef, True)
+    np.testing.assert_allclose(reverse, rule[1], rtol=1e-10, atol=1e-14)
+
+
+def test_stress_potential_derivative_is_the_implicit_one():
+    """``stress_potential`` returns the potential it is given; its derivative is the
+    implicit function of the residual, with the slope at least 1."""
+    args = [jnp.asarray(v) for v in (-1.58, 0.25, 1.9, 4.0, -0.35, 0.2, -1.5, 0.002, -1.6, 40.0)]
+    assert float(ps.stress_potential(*args)) == -1.58
+    grads = jax.grad(ps.stress_potential, argnums=tuple(range(10)))(*args)
+    partial = jax.grad(ps._stress_residual, argnums=tuple(range(10)))(*args)
+    slope = max(float(partial[0]), 1.0)
+    assert float(grads[0]) == 0.0
+    for g, r in zip(grads[1:], partial[1:]):
+        assert float(g) == pytest.approx(-float(r) / slope, rel=1e-12, abs=1e-300)
+    assert float(partial[0]) > 1.0 and any(float(g) != 0.0 for g in grads[1:])
+
+
 def test_no_water_stress_at_positive_water_potential():
     """Dew can raise leaf water potential slightly above zero: there is no water stress
     there, for any shape parameter, and the derivatives with respect to the water-stress

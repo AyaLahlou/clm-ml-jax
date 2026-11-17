@@ -364,6 +364,8 @@ def step_options(run):
                 table_search(run.config.numerics.table_search),
                 solver_loops(run.config.numerics.solver_loops),
                 run.config.numerics.wetted_fraction,
+                run.config.numerics.water_stress_derivative,
+                run.config.numerics.obukhov_derivative,
             ),
             step_seconds=int(run.step_seconds),
             layer_pai_floor=float(opts.layer_pai_floor),

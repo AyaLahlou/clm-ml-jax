@@ -328,6 +328,28 @@ of sensitivities to a few parameters or forcing directions (`jax.jacfwd` stacks 
 forcing, the PFT parameters and the patch weights. Gradients through iterative solvers come from the implicit function
 theorem, so they never change the forward values.
 
+**Gradients over many days: two derivative rules.** Two quantities are taken from the start of
+each Runge-Kutta stage and the fluxes react strongly to them: the leaf water potential the
+water stress of the stomata reads, and the Obukhov length (solved from the canopy-top air).
+Near the stress threshold, and in stability transitions, the model alternates from stage to
+stage, and its exact derivative grows without bound over days (a true slope, but useless as
+a sensitivity). Two settings in `model.yaml` replace those two derivatives with bounded ones;
+the forward results are the same, bit for bit, either way (decision 124):
+
+| Setting (`numerics`) | Default | What it does | Cost |
+|---|---|---|---|
+| `water_stress_derivative` | `stabilized` | The derivative of the leaf water potential consistent with the transpiration it gives (`exact`: the exact derivative of the forward values) | none |
+| `obukhov_derivative` | `exact` | `stabilized`: where the stability loop overshoots, the derivative of the Obukhov length consistent with the air the stage gives | the gradient takes 1.7 times as long, with half as much memory again |
+
+Set `obukhov_derivative: stabilized` for sensitivities over days where stability
+flips often (measured: the wet-season cerrado); a tower like CHATS7 does not need it. With
+these rules a gradient is the slope of a smoother model than the one that runs: 30-day mean
+sensitivities were within about 7 % (Great Plains, July) and 12 % (cerrado, January) of the
+response to a 1 % change of a parameter, where the exact derivative was off by factors of
+thousands; a finite difference at a single affected step disagrees by design. Check a new
+case against finite differences of time means (`jobs/gpu_probes/gradbox.py`). Tested for one
+parameter (`iota`) and latent heat, in two 1° boxes, one month each.
+
 ---
 
 ## 7. Where to read more
