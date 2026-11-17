@@ -599,7 +599,9 @@ class StreamFileWriter:
         """Records ``[(key, end_time, {variable: value}), ...]`` in time order."""
         for record in records:
             label = self._label_of(record[1])
-            if self._label is not None and label != self._label:
+            # a new file period: write the finished one (nothing is held if a restart has
+            # just written its records, O86)
+            if self._label is not None and label != self._label and self._records:
                 self._flush()
             self._label = label
             self._records.append(record)

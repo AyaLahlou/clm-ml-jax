@@ -67,6 +67,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O76 | Gradients: speed, then quality and accuracy (branch `gpu_grad`) | performance / robustness (gradients) | after 8 | M |
 | O80 | A detector of unreliable gradients (idea, not built) | robustness (gradients) | after 8 (idea) | M |
 | O81 | The consistent forward forms of the water stress and the Obukhov length as settings (prototypes, not built) | science / gradients | after 8 (idea) | M |
+| O86 | ~~A run with monthly output files stops with "need at least one array to stack" when a restart is written at a month's end~~ (closed 2026-11-17: `StreamFileWriter.add` writes a finished period only if it holds records; branch `bug_fix`) | bug (output) | closed | M |
 | O78 | XLA aborts while writing the compilation cache when a second gradient test file compiles in one process | robustness (upstream JAX?) | after 8 | I |
 | O79 | ~~NaN parameter gradients where leaf water potential is positive (dew): `(psi_l/psi50)^shape_gs`~~ (closed: decision 121) | science issue (differentiability) | closed | M |
 | O77 | ~~Two-stream `avmu` wrong for PFTs with a negative leaf angle index (grasses, crops)~~ (closed: decision 120) | science issue (bug) | closed | M |
