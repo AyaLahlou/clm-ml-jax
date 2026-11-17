@@ -124,7 +124,12 @@ loops ended without a result.
 **Open from rounds 2-4** (O76): the 1° check in other seasons and regions; state and
 forcing derivatives on 1° patches.
 
-**How to measure** (probes in `jobs/gpu_probes/`, results in `$SCRATCH/clm-ml-jax/probe_grad0/`):
+**How to measure.** The probe scripts are not in the repository (taken out before the pull
+requests, maintainer 2026-11-16: measurement tools, not part of the model). Every probe of
+this log is in the git history of `gpu_grad`: put them back in a checkout, without
+committing them, with `git checkout e5965cc -- jobs/gpu_probes` (also in scratch:
+`$SCRATCH/clm-ml-jax/gpu_probes_e5965cc/`; see `gpu_progress.md`). Results in
+`$SCRATCH/clm-ml-jax/probe_grad0/` and the directories the rounds name:
 
 ```bash
 # CPU (login node): forward, one forward-mode derivative, gradient; any setting as an override

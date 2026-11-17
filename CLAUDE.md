@@ -38,15 +38,17 @@ Guidance for Claude (and other contributors) working in this repository.
   decisions with the maintainer, on a new branch `phase9/docs` from `main`. Open items:
   `docs/design/open_items.md`; how the model works now: `docs/how_the_model_works.md` (users)
   and `docs/design/model_overview.md` (detail).
-- **GPU optimization (O55, decisions 113-117):** branch `gpu_opt` (from
-  `feature/latlon_output`, not merged): the 1° globe runs 2.85× faster on one A100 (0.70 s
+- **GPU optimization (O55, decisions 113-117):** branch `gpu_opt`, to `main` by pull request
+  (2026-11-16): the 1° globe runs 2.85× faster on one A100 (0.70 s
   per step; the 2× target is met, 2026-11-13). Hidden settings `numerics.table_search` and
   `numerics.solver_loops` follow the device (GPU: written out; CPU: loops, the regression
-  reference). Forward work stopped by the maintainer 2026-11-14 (they merge `gpu_opt`). Plan
+  reference). GPU gradients are faster too (decision 118). Forward work stopped by the maintainer
+  2026-11-14; merged to `main` 2026-11-16. Plan
   `docs/design/gpu_optimization_plan.md`; results, open decisions and how to measure:
-  `docs/design/gpu_progress.md` ("Resume here"); probes in `jobs/gpu_probes/`. Ask the
-  maintainer before going on.
-- **Gradients (O76, decisions 118-121):** branch `gpu_grad` (from `gpu_opt`): speed first, then
+  `docs/design/gpu_progress.md` ("Resume here"); the probe scripts are not in the
+  repository (how to get them back: there). Ask the maintainer before going on.
+- **Gradients (O76, decisions 118-125):** branch `gpu_grad` (from `gpu_opt`; prepared for a
+  pull request to `main` 2026-11-16): speed first, then
   quality and accuracy, for sensitivity experiments (parameters, states, forcings; a tower
   first, global later). Gradient times before 2026-11-14 were of the unsteady second call:
   time from the third call. A tower is 4–5× faster on the CPU than on a GPU. A solver's
@@ -56,7 +58,8 @@ Guidance for Claude (and other contributors) working in this repository.
   (decision 122; `numerics.wetted_fraction: explicit` is Fortran's form, whose almost dry
   leaves made derivatives explode); short PFTs have a stable limit on zeta, the PFT parameter
   `zeta_max_stable` (decision 123: 0.5 for shrubs, grasses and crops, 1e30 = none for trees);
-  check new derivatives against finite differences (`jobs/gpu_probes/gradcheck0.py`). Over
+  check new derivatives against finite differences (the probes `gradcheck0.py` and
+  `gradbox.py`: not in the repository, see "How to measure" in the log). Over
   30 days two lagged feedbacks are left (water stress, Obukhov length); decision 124
   (built 2026-11-16): derivative-only rules, forward bit for bit:
   `numerics.water_stress_derivative: stabilized` (default, free; `exact` is the other value) and

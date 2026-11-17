@@ -998,7 +998,8 @@ as a non-default option by `clm-ml check` (forward results do not depend on them
 a finite difference; forward equal to reverse mode; the tests of AD against a finite
 difference use `exact`: with the default the first of their 8 CHATS7 steps is 0.6 % off,
 the mildly stressed afternoon); the boxes by the probe
-`jobs/gpu_probes/gradbox.py` (not a pytest: 30 days of 1 degree patches). What was decided:
+`gradbox.py` (not a pytest: 30 days of 1 degree patches; not in the repository,
+`gradient_progress.md` "How to measure"). What was decided:
 The forward model keeps Fortran's order (the stress function reads the leaf water potential
 of the stage's start; the Obukhov length is solved from the canopy-top air of the stage's
 start). Two quantities get another derivative, by a derivative rule (`jax.custom_jvp`):

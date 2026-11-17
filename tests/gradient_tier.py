@@ -5,8 +5,8 @@ With JAX 0.9.2, compiled CPU gradients of a CHATS7 chunk segfaulted in LLVM-opti
 them with the default optimization (rechecked 2026-11-02, cold compilation cache; decision
 105), so the script now only forces the CPU (a login node's GPUs would otherwise be used)::
 
-    python tests/gradient_tier.py            # all gradient tests (15, ~11 min on a login node)
-    python tests/gradient_tier.py --focused  # the chunk derivative tests only (~5 min), after
+    python tests/gradient_tier.py            # all gradient tests (19, ~15 min on a login node)
+    python tests/gradient_tier.py --focused  # the chunk derivative tests only (~6 min), after
                                              # moving a routine with a hand-written gradient
 
 Extra arguments go to pytest. On GPU, run the same tests without this script

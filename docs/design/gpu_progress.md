@@ -13,8 +13,9 @@ Where things are:
 **Status (2026-11-13, evening):** steps 0, 1 and 2a done. The 1° globe runs at **0.70 s per
 step, 2.85×** (target 2×, 0.99 s: met); padded steps cost nothing.
 
-**2026-11-14: the forward work stops here** (maintainer; `gpu_opt` will be merged by the
-maintainer). **Correction:** the gradient times in this log (steps 1 and 2a) are of the
+**2026-11-14: the forward work stops here** (maintainer). **2026-11-16:** `gpu_opt` goes to
+`main` as a pull request (cleaned up for it: this log, the step 2a row in
+`timing/results_program.jsonl`; the probe scripts taken out of the repository, maintainer). **Correction:** the gradient times in this log (steps 1 and 2a) are of the
 second gradient call, which is not steady (decision 118). Measured again in steady state,
 gradients are **faster** with the loops written out, not slower (table under "Gradients" of
 step 2a). Gradient work continues on branch `gpu_grad`:
@@ -22,7 +23,8 @@ step 2a). Gradient work continues on branch `gpu_grad`:
 
 ## Resume here
 
-**State.** Branch `gpu_opt` (made from `feature/latlon_output`, not merged anywhere), pushed.
+**State.** Branch `gpu_opt` (made from `feature/latlon_output`), merged into `main` by pull
+request (opened 2026-11-16).
 Steps 0, 1 and 2a of the plan are done, tested and committed. Nothing is half-finished: no
 uncommitted model changes, no jobs running. The work was paused by the maintainer after
 step 1 and resumed the same evening for step 2a.
@@ -75,17 +77,22 @@ is started, and each needs the maintainer's go-ahead):
 - Whether the round-off amplification counted in "GPU results against the baseline" below
   (5.8 % of patches more than 1e-6 apart after a day between two compiles of the same code)
   gets its own investigation (O27; issue 10 of decision 88).
-- Merging: `gpu_opt` holds `feature/latlon_output` plus this work. Not merged to `main`.
 
-**How to measure** (probe scripts are in the repository: `jobs/gpu_probes/`; they are not
-linted and not part of the package):
+**How to measure.** The probe scripts (`jobs/gpu_probes/`) were taken out of the repository
+before the pull request (maintainer, 2026-11-16): they are measurement tools, not part of
+the model. They are in the git history (commit `b954677`, with a README; also on branch
+`gpu_grad`) and in scratch (`$SCRATCH/clm-ml-jax/probe_gpu0/`, `probe_grad0/`). To use the
+commands below, put them back in a checkout without committing them:
+`git checkout b954677 -- jobs/gpu_probes` (the later copies on `gpu_grad`, commit `e5965cc`,
+use the setting `numerics.checkpoint_substeps` instead of the switch `CLM_ML_NO_CHECKPOINT`,
+decision 125, and add the gradient probes).
 
 ```bash
 # 1. a fixed snapshot of the code to time (never time the working tree: jobs wait in the queue)
 git worktree add --detach $SCRATCH/clm-ml-jax/trees/NAME COMMIT
 # 2. submit from scratch (PBS drops its own .o file where qsub is run)
 cd $SCRATCH/clm-ml-jax/probe_gpu0
-J=/glade/work/linnia/clm-ml-jax/jobs/gpu_probes/gpu0.pbs
+J=$REPO/jobs/gpu_probes/gpu0.pbs                        # REPO: your checkout (the job's default: /glade/work/$USER/clm-ml-jax)
 T=$SCRATCH/clm-ml-jax/trees/NAME
 qsub -v MODE=base,TAG=name,TREE=$T $J                    # yardstick: globe, 1 day, 3 repeats
 qsub -v MODE=save,TAG=name_2,TREE=$T,STEPS=2 $J          # saved output after 2 steps (fresh compile)
@@ -104,9 +111,8 @@ JAX_PLATFORMS=cpu python jobs/gpu_probes/noise_cpu.py unrolled          # a tabl
 JAX_PLATFORMS=cpu python jobs/gpu_probes/noise_cpu.py solver_loops      # the solver loops written out on the CPU, likewise
 ```
 
-Queue `develop`, account `UCLB0069`; jobs started within minutes on 2026-11-13. The copies
-of the scripts in `jobs/gpu_probes/` were smoke-tested on the CPU (`gpu0.py`) and syntax-checked
-(`gpu0.pbs`) after being moved there; the jobs of this log ran the same scripts from scratch.
+Queue `develop`, account `UCLB0069`; jobs started within minutes on 2026-11-13. The jobs of
+this log ran the scripts from scratch.
 
 **Things learned that are easy to trip over**
 - **Compare GPU outputs after 2 steps, and against a baseline of the same compile variant.**

@@ -347,7 +347,8 @@ these rules a gradient is the slope of a smoother model than the one that runs: 
 sensitivities were within about 7 % (Great Plains, July) and 12 % (cerrado, January) of the
 response to a 1 % change of a parameter, where the exact derivative was off by factors of
 thousands; a finite difference at a single affected step disagrees by design. Check a new
-case against finite differences of time means (`jobs/gpu_probes/gradbox.py`). Tested for one
+case against finite differences of time means (the probe script `gradbox.py`; where it is:
+`docs/design/gradient_progress.md`, "How to measure"). Tested for one
 parameter (`iota`) and latent heat, in two 1° boxes, one month each.
 
 ---
