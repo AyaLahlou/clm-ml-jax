@@ -1,7 +1,7 @@
 # CLM-ML-JAX: the CLM-ml v2 multilayer canopy model in JAX
 
 [![CI](https://github.com/linniahawkins/clm-ml-jax/actions/workflows/ci.yml/badge.svg)](https://github.com/linniahawkins/clm-ml-jax/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSD-3](https://img.shields.io/badge/License-BSD--3-green.svg)](LICENSE)
 
 CLM-ml v2 is the multilayer canopy model developed for the Community Land Model by Gordon
@@ -17,7 +17,7 @@ tower, examples, how the model works, every setting).
 
 ## Install
 
-You need Python 3.10 or newer and git.
+You need Python 3.11 or newer and git.
 
 ```bash
 git clone https://github.com/linniahawkins/clm-ml-jax.git

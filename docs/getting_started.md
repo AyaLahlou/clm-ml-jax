@@ -5,7 +5,7 @@ It takes a few minutes on a laptop.
 
 ## Install
 
-You need Python 3.10 or newer and git. A fresh conda environment avoids clashes with other
+You need Python 3.11 or newer and git. A fresh conda environment avoids clashes with other
 packages:
 
 ```bash

@@ -273,7 +273,7 @@ sphinx-build -W --keep-going -b html docs docs/_build/html   # documentation (wa
 ```
 
 If `pytest-cov` is missing, run pytest with `-p no:cacheprovider -o addopts=""`.
-Python >= 3.10; CI tests 3.10 and 3.12.
+Python >= 3.11 and JAX >= 0.10.2 (decision 130); CI tests 3.11 and 3.12.
 
 ## Rules for changes
 

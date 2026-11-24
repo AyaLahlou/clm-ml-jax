@@ -186,10 +186,19 @@ Reason: the audience is colleagues starting to use the model; a generated settin
 cannot go out of date.
 Source: maintainer, 2026-11-24.
 
+**130. Python 3.11 or newer, JAX 0.10.2 or newer**
+2026-11-24 · Phase 9 · maintainer · in force (revises 7's Python version) · Departure from Fortran: no
+The package requires Python ≥ 3.11 and `jax`/`jaxlib` ≥ 0.10.2 (`pyproject.toml`); CI tests
+Python 3.11 and 3.12; black and ruff target 3.11.
+Reason: JAX 0.10.2, the version of the regression reference (decision 105), does not support
+Python 3.10, so CI's 3.10 job installed JAX 0.6.2 and failed two tests; the old lower bound
+(`jax>=0.4.30`) let any install pick a JAX the model is not tested with.
+Source: maintainer, 2026-11-24 (CI of pull request 6).
+
 ## B. Configuration and user interface
 
 **7. Names and platform**
-2026-10-27 · plan · maintainer · in force · Departure from Fortran: no
+2026-10-27 · plan · maintainer · in force (Python version revised by 130) · Departure from Fortran: no
 Import as `import clm_ml`; install name `clm-ml-jax`; command-line tool `clm-ml`
 (`run | check | convert | params`); Python ≥ 3.10.
 Reason: short, conventional names; 3.10 is the oldest Python the dependencies support well.
