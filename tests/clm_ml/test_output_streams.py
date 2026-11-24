@@ -107,7 +107,7 @@ def test_file_writer_writes_each_month_when_complete(tmp_path):
 
 
 def test_file_writer_continues_a_file_after_a_restart(tmp_path):
-    """A restart holds no output records (review R6): the writer writes them to their file
+    """A restart holds no output records: the writer writes them to their file
     first, and the run resumed from the restart appends to it; the files equal those of an
     uninterrupted run."""
     import xarray as xr
@@ -149,7 +149,7 @@ def test_file_writer_continues_a_file_after_a_restart(tmp_path):
 
 
 def test_file_writer_restart_at_the_end_of_a_file_period(tmp_path):
-    """A restart written when the records held are the last of their month (O86): the next
+    """A restart written when the records held are the last of their month: the next
     record opens the next month's file with nothing left to write to the old one. Both the
     run that goes on and the run resumed from the restart write the files of an
     uninterrupted run."""

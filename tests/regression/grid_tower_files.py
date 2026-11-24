@@ -1,5 +1,5 @@
-"""Tower-format files holding one gridcell's gridded data (test helper, Phase 7.4; from the
-Phase 6b grid setup): the grid run and tower runs of these files must agree
+"""Tower-format files holding one gridcell's gridded data (test helper): the grid run and
+tower runs of these files must agree
 (``test_grid_setup.py``)."""
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ def write_tower_files(
     from clm_ml.grid_forcing import exposed_area
 
     elai, esai, h2o = [], [], []
-    for k in range(n_steps):  # as land_record (no legacy import here: see setup_grid_batch)
+    for k in range(n_steps):  # as land_record
         lai = w1[k] * inputs.lai[m1[k], p] + w2[k] * inputs.lai[m2[k], p]
         sai = w1[k] * inputs.sai[m1[k], p] + w2[k] * inputs.sai[m2[k], p]
         e_l, e_s = exposed_area(np.array(lai), np.array(sai))

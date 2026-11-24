@@ -1,4 +1,4 @@
-"""clm_ml.processes.nitrogen_profile and clm_ml.processes.integrators (Phase 7.2, process 9),
+"""clm_ml.processes.nitrogen_profile and clm_ml.processes.integrators ,
 checked against the analytical canopy integral and the definition of each Runge-Kutta method.
 """
 
@@ -13,8 +13,8 @@ import jax.numpy as jnp  # noqa: E402
 from clm_ml.processes import integrators, nitrogen_profile  # noqa: E402
 from clm_ml.state import PatchLayers  # noqa: E402
 
-N_SLOTS = 6  # layer slots; legacy arrays have N_SLOTS + 1 entries (index 0 unused)
-N_CAN = 4  # layers in use (legacy slots 1..4)
+N_SLOTS = 6  # layer slots
+N_CAN = 4  # layers in use (slots 0..3)
 
 
 def _layers(n_layers=N_CAN):
@@ -123,5 +123,5 @@ def test_rk_update_keeps_padding():
 @pytest.mark.parametrize("name", list(integrators.TABLEAUS))
 def test_every_tableau_weights_sum_to_one(name):
     """Consistency of every method, Euler included (b = [1]: an update would give the
-    processes' own result, open item O33; the canopy sub-step skips it for Euler)."""
+    processes' own result; the canopy sub-step skips it for Euler)."""
     assert float(np.sum(integrators.TABLEAUS[name].b)) == pytest.approx(1.0, abs=1e-15)

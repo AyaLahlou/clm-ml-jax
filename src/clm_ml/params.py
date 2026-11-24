@@ -4,7 +4,7 @@ Physical parameters per plant functional type (PFT): the contents of ``params.ya
 Every patch looks up its PFT's row, so parameters are shared by all patches of the same
 PFT and gradients come back per PFT. All values are differentiable.
 
-A params file is **complete** (decision in ``docs/design/decisions.md``): it lists every
+A params file is **complete**: it lists every
 parameter of every PFT 1-16, with nothing inherited from another file, so a run's parameters
 are all in the one file it names::
 
@@ -153,7 +153,7 @@ PARAM_SPECS: tuple[ParamSpec, ...] = (
     ParamSpec("leaf_transmittance", "-", "Leaf transmittance [vis, nir]", "pftcon", "taul", True),
     ParamSpec("stem_reflectance", "-", "Stem reflectance [vis, nir]", "pftcon", "rhos", True),
     ParamSpec("stem_transmittance", "-", "Stem transmittance [vis, nir]", "pftcon", "taus", True),
-    # Turbulence (decision 123; not in CLM-ml v2)
+    # Turbulence (not in CLM-ml v2: CLM's limit on stable conditions, needed by short canopies)
     ParamSpec("zeta_max_stable", "-",
               "Largest stability (reference height - displacement height) / Obukhov length in "
               "stable conditions (CLM zetamaxstable); 1e30: no limit, as CLM-ml v2",
@@ -170,8 +170,8 @@ SPECS_BY_NAME: Mapping[str, ParamSpec] = {s.name: s for s in PARAM_SPECS}
 
 #: ``zeta_max_stable`` of a PFT without a limit (CLM-ml v2)
 NO_ZETA_LIMIT = 1.0e30
-#: ``zeta_max_stable`` given by ``clm-ml upgrade`` to a params file written before decision
-#: 123, by PFT: CLM's 0.5 for shrubs, grasses and crops, no limit for trees
+#: ``zeta_max_stable`` given by ``clm-ml upgrade`` to a params file that lacks it, by PFT:
+#: CLM's 0.5 for shrubs, grasses and crops, no limit for trees
 ZETA_MAX_STABLE_DEFAULT: Mapping[str, float] = {
     name: NO_ZETA_LIMIT if name.endswith("_tree") else 0.5 for name in PFT_NAMES[1:]
 }
@@ -179,7 +179,7 @@ ZETA_MAX_STABLE_DEFAULT: Mapping[str, float] = {
 
 def add_new_parameters(data: dict, report: list[str]) -> dict:
     """A params file's contents with the parameters added since it was written
-    (``zeta_max_stable``, decision 123) at their defaults (``clm-ml upgrade``)."""
+    (``zeta_max_stable``) at their defaults (``clm-ml upgrade``)."""
     pfts = data.get("pft")
     if not isinstance(pfts, dict):
         return data
@@ -192,7 +192,7 @@ def add_new_parameters(data: dict, report: list[str]) -> dict:
     if added:
         report.append(
             "params.yaml: added zeta_max_stable (0.5 for shrubs, grasses and crops, 1e30 = no "
-            "limit for trees; decision 123)"
+            "limit for trees)"
         )
     return data
 

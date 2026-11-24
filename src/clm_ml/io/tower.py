@@ -1,4 +1,4 @@
-"""Tower meteorology files (Phase 7.4; from the legacy ``offline_driver.TowerMetMod``).
+"""Tower meteorology files.
 
 The tower records a run (or a chunk of it) needs are read before its time loop
 (:func:`read_tower_met_series`, :class:`TowerFiles` for forcing split in time);
@@ -157,7 +157,7 @@ class TowerMetRaw(NamedTuple):
     pbot: float  # Atmospheric pressure (Pa)
     prect: float  # Precipitation (mm/s)
     # Direct and diffuse solar radiation (W/m2), when the file has them instead of FSDS
-    # (gridded CRUJRA-style forcing written as tower files, Phase 6b); -999 = absent
+    # (gridded CRUJRA-style forcing written as tower files); -999 = absent
     fsds_direct: float = -999.0
     fsds_diffuse: float = -999.0
 
@@ -181,7 +181,7 @@ class TowerMet(NamedTuple):
     pco2: float  # CO2 partial pressure (Pa)
     po2: float  # O2 partial pressure (Pa)
     # Snowfall (kg H2O/m2/s): 0 for tower forcing (Fortran: forc_snow = 0); gridded forcing
-    # splits precipitation into rain and snow as CLM's data atmosphere does (Phase 6b)
+    # splits precipitation into rain and snow as CLM's data atmosphere does
     snow: float = 0.0
 
 

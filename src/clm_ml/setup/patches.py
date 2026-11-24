@@ -1,8 +1,8 @@
-"""Every patch's constants and initial state (Phase 7.4): :func:`build_patches`.
+"""Every patch's constants and initial state: :func:`build_patches`.
 
 From the domain (``clm_ml.domain.Domain``: gridcells, patches, soil columns), the parameters
 (``clm_ml.params.Params``), the model options (``clm_ml.config.ModelConfig``) and the first
-step's forcing, with the legacy setup's arithmetic (``clm_ml.setup.soil``,
+step's forcing, with the Fortran setup's arithmetic (``clm_ml.setup.soil``,
 ``clm_ml.setup.canopy``). Arrays have a leading patch axis.
 
 Fortran reference: CLM-ml v2 ``CLMml_driver.F90`` (``TowerVeg``, ``SoilInit``,
@@ -82,7 +82,7 @@ def build_patches(domain, params, config, first: dict, acclimation_steps: float 
     nlevsoi, nlevgrnd = soil.NLEVSOI, soil.NLEVGRND
     z, dz, zi = soil.soil_layers()
     nbed_col = soil.bedrock_index(np.asarray(cols.bedrock_depth, dtype=float), zi, nlevsoi)
-    # legacy: a missing organic matter content was -999 (open issue 22)
+    # a missing organic matter content (NaN) is passed on as -999
     organic = np.where(np.isnan(cols.organic_matter), -999.0, cols.organic_matter)
     props = soil.soil_properties(
         np.asarray(cols.sand_percent, dtype=float), np.asarray(cols.clay_percent, dtype=float),

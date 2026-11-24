@@ -20,6 +20,17 @@ before a new phase to discuss it), on a new branch `phase9/docs` from `main`.
 
 These are starting points for 9.2, 9.4 and 9.5, not replacements.
 
+## 0.5 Phase 9.0: clean-up first (decision 128, 2026-11-24)
+
+Before the documentation: 9.0a the code's comments, docstrings, messages and option
+explanations (no phase, decision, issue or refactor references; Fortran module and
+subroutine; departures stated plainly), in groups (processes; step and state; driver, setup
+and forcing; configuration and io, then `configs/` regenerated; tests, timing, jobs). Every
+commit is checked to leave the code identical apart from docstrings, comments and strings,
+plus bit for bit and the noise twin. 9.0b the documents and other files (development logs
+deleted, CLAUDE.md shortened, README and CONTRIBUTING cleaned). 9.0c a discussion of what
+documentation to write (§2 below), before any is written.
+
 ## 1. What Phase 9 documents (settled in 8a)
 
 - Experiment folders: `run.yaml`, `domain.yaml`, `model.yaml`, `params.yaml`, complete and

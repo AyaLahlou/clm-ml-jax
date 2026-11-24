@@ -1,5 +1,5 @@
 """
-Time interpolation of forcing records to the model step (plan §6.9, decision 13).
+Time interpolation of forcing records to the model step.
 
 A forcing record stamped ``t`` describes the interval ``[t, t + Δf]`` (``Δf`` the data
 interval), as the tower files do: its value is the interval's mean, located at the

@@ -1,4 +1,4 @@
-"""Running-mean acclimation temperature (decision 15): the mean of all steps so far during
+"""Running-mean acclimation temperature: the mean of all steps so far during
 the first period, then a running mean with weight 1 / (steps per period)."""
 
 import types

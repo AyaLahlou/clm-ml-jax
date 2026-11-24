@@ -1,11 +1,10 @@
-"""The forcing of grid runs at setup and in the run (Phase 7.4; from
-``clm_ml.legacy.grid_setup``, without prototypes): each patch's first-step values from its
+"""The forcing of grid runs at setup and in the run: each patch's first-step values from its
 own gridcell's gridded data, the chunk reader (meteorology per gridcell slot, monthly
 vegetation and soil-water records with per-step weights) and the land data formed inside
 the compiled chunk.
 
 The gridded data are read and interpolated by :class:`clm_ml.grid_forcing.GridInputs`
-(CRUJRA/CO2/LAI/soil water as CDEPS and CTSM handle them; decisions G1-G20).
+(CRUJRA/CO2/LAI/soil water as CDEPS and CTSM handle them).
 """
 
 from __future__ import annotations
@@ -35,8 +34,7 @@ def first_values(inputs, n_steps: int) -> dict:
     """Per patch (P,) the first step's forcing (``uref``, ``tref``, ``qref``, ``pref``,
     ``pco2``) of its gridcell, its initial soil temperature ``tsoi`` (P, nlevgrnd; the soil
     temperature stream at the first step) and acclimation temperature ``tacclim`` (the
-    first step's air temperature: the legacy grid setup set it so for both acclimation
-    options)."""
+    first step's air temperature, for both acclimation options)."""
     gi = inputs.domain.patches.gridcell_index
     met = inputs.met_at(chunk_run_steps(n_steps, 0, 1))  # [halo, step 0, next]
     row = {k: np.asarray(met[k], dtype=float)[1, gi] for k in ("uref", "tref", "qref", "pref",

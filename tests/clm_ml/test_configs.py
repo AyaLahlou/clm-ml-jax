@@ -1,4 +1,4 @@
-"""The experiment folders in ``configs/`` (decision 91): each is its compset written out by
+"""The experiment folders in ``configs/``: each is its compset written out by
 ``clm-ml new``, complete and current (every file as the code writes it today)."""
 
 import dataclasses

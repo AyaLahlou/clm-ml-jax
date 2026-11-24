@@ -1,14 +1,13 @@
-"""Data tables of the setup (Phase 7.4): soil texture classes, soil colour albedos, PFT
+"""Data tables of the setup: soil texture classes, soil colour albedos, PFT
 default canopy heights and leaf/stem area profiles.
 
-Values copied from the CLM-ml v2 sources (the legacy modules they were translated into in
-parentheses).
+Values copied from the CLM-ml v2 sources.
 """
 
 from __future__ import annotations
 
 #: Soil texture classes (Cosby et al. 1984; Clapp and Hornberger 1978)
-#: Fortran reference: SoilTexMod.F90 (``offline_driver.SoilTexMod``)
+#: Fortran reference: SoilTexMod.F90
 SOIL_TEXTURES = (
     "sand", "loamy sand", "sandy loam", "silty loam", "loam", "sandy clay loam",
     "silty clay loam", "clay loam", "sandy clay", "silty clay", "clay",

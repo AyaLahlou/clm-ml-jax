@@ -1,4 +1,4 @@
-"""Experiment folders for tests (decision 91): a complete folder from a compset or a namelist,
+"""Experiment folders for tests: a complete folder from a compset or a namelist,
 then changes to its files (dicts merged into them, or functions that edit them)."""
 
 from __future__ import annotations

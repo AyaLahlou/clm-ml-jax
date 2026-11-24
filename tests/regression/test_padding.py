@@ -1,9 +1,9 @@
 """
-Padding test (plan Phase 5b): the same CHATS7 patch (46 canopy-air layers) with
-``max_layers`` = 46 (no padding), 50 (the default) and 100 (the legacy array size) gives the
+Padding test: the same CHATS7 patch (46 canopy-air layers) with
+``max_layers`` = 46 (no padding), 50 (the default) and 100 gives the
 same results. Unused layer slots must not change anything; the only allowed difference is
 round-off from sums over arrays of different lengths (~1e-11 relative, the size of the
-model's own round-off noise, numerics_and_regression.md §5).
+model's own round-off noise).
 
 The gradient version (46 and 60 slots) checks that padded layers give finite gradients equal to the unpadded
 ones (a masked ``jnp.where`` differentiates both branches, so arithmetic on empty layers can

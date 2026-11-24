@@ -1,5 +1,5 @@
 """Canopy water: wetted fraction of the leaves (from the water at the start of a stage as
-Fortran, or of the water left at the end of the sub-step: decision 122), interception and
+Fortran, or from the water left at the end of the sub-step), interception and
 throughfall of precipitation, and evaporation and dew on the intercepted water.
 
 One patch. Layers are 0-based slots on axis 0; leaves 0 sunlit, 1 shaded. Every slot is
@@ -67,7 +67,7 @@ def wet_leaf_demand(
     with the stage's leaf temperature ``tleaf`` (layer, leaf) and vapour pressure ``eair``.
     0 with dew (no evaporation), without plant area and outside ``active``.
 
-    Not in Fortran (decision 122).
+    Not in CLM-ml v2 (used by :func:`wetted_fraction_implicit`).
     Reads: ``tleaf_leaf``, ``eair_profile``, ``gbv_leaf``, ``fracsun_profile``,
     ``dpai_profile``, ``pref_forcing``.
     """
@@ -94,11 +94,12 @@ def wetted_fraction_implicit(
     demand it is :func:`wetted_fraction` of ``h2ocan``. ``fdry`` as there.
 
     Newton's method from ``wetted_fraction``'s value, which is at or above the root; the
-    gradient is that of the equation (implicit function, decision 119), 0 at the cap and
+    gradient is that of the equation (implicit function), 0 at the cap and
     for a dry layer.
 
-    Not in Fortran, whose CanopyWettedFraction takes the water at the start of the stage
-    (decision 122).
+    Differs from CLM-ml v2, whose CanopyWettedFraction takes the water at the start of the
+    stage: with almost dry leaves a sub-step then evaporates more water than there is, and the
+    derivatives explode.
     Reads: ``dpai_profile``, ``dlai_profile``. Writes: ``fwet_profile``, ``fdry_profile``.
     """
     on = active & (dpai > 0.0)

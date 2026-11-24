@@ -1,5 +1,5 @@
 """
-Gridded forcing and land data for grid runs (plan Phase 6b, step 4), handled as CLM handles
+Gridded forcing and land data for grid runs, handled as CLM handles
 them: the data atmosphere (CDEPS ``datm``, ``CLMNCEP`` mode with the three CRUJRA streams),
 CLM's satellite phenology, and CLM's prescribed soil-moisture stream.
 
@@ -18,7 +18,7 @@ CLM's satellite phenology, and CLM's prescribed soil-moisture stream.
   of the files. Each stream's data years form a loop (:class:`StreamYears`, CDEPS
   ``taxmode = cycle`` with ``stream_year_first/last`` and ``year_align``, as CLM runs these
   streams): a model year reads its data year, and the first data year's first steps
-  interpolate from the last record of the last data year (decision 102).
+  interpolate from the last record of the last data year.
   - ``TPQW`` (temperature, pressure, humidity, wind, longwave): **linear** between the
     stamps bracketing ``t`` (lower bound: last stamp <= t);
   - ``Precip``: **nearest** stamp (a tie goes to the earlier one);
@@ -41,9 +41,9 @@ CLM's satellite phenology, and CLM's prescribed soil-moisture stream.
 gridcell, interpolated as CLM's satellite phenology does (:func:`clm_ml.grid.clm_monthly_weights`
 at the end of the step plus one step), then ``elai = tlai`` and ``esai = tsai`` (no snow
 burial: this model has no snow), not below 0. Unlike CLM, values below 0.05 are *not* set to
-0 (decision 31): CLM does it to protect its big-leaf canopy from very small plant area, which
+0: CLM does it to protect its big-leaf canopy from very small plant area, which
 the minimum plant area of every leafy layer (model.yaml
-``canopy_layers.minimum_leafy_layer_plant_area``, decision 30) does here; without the cutoff LAI and SAI
+``canopy_layers.minimum_leafy_layer_plant_area``) does here; without the cutoff LAI and SAI
 enter continuously, so the model is differentiable with respect to them.
 
 **Soil water**: ``H2OSOI`` from monthly CLM history files per gridcell (the CLM run's
@@ -360,7 +360,7 @@ def datm_esat(tk, tkbot):
 
 def datm_derive(tbot, psrf, qbot, wind, flds, fsds_dir, fsds_dif, prect, co2_ppm, height):
     """The forcing ``datm`` (``CLMNCEP``) and CLM's precipitation repartition derive from the
-    stream values (arrays of any shape), as the legacy ``TowerMet`` fields plus ``snow``."""
+    stream values (arrays of any shape), as the ``TowerMet`` fields plus ``snow``."""
     tbot = np.maximum(180.0, tbot)
     pbot = np.where(psrf == 0.0, PSTD, psrf)
     e = datm_esat(tbot, tbot)
@@ -598,7 +598,7 @@ class GridInputs:
 
     def step_start(self, k: int) -> dt.datetime:
         """Start of run step ``k`` in the model calendar (a noleap run never reaches 29
-        February; a Gregorian one reads the no-leap streams' 28 February then, G3)."""
+        February; a Gregorian one reads the no-leap streams' 28 February then)."""
         from clm_ml.calendar import add_seconds
 
         return add_seconds(self.start, k * self.step_seconds, self.calendar)
@@ -726,7 +726,7 @@ class GridInputs:
 
 def exposed_area(tlai, tsai, xp=np):
     """``(elai, esai)`` from the interpolated LAI and SAI: CLM's satellite phenology without
-    snow burial, ``max(., 0)``, and without CLM's cutoff of values below 0.05 (decision 31;
+    snow burial, ``max(., 0)``, and without CLM's cutoff of values below 0.05 (see the
     module docstring) (``xp``: ``numpy`` or ``jax.numpy``, same operations).
 
     Fortran reference: CTSM SatellitePhenologyMod.F90 (UpdateSatellitePhenologyCanopy), whose

@@ -1,9 +1,8 @@
 """
-Grid runs (Phase 6b; setup without prototypes since Phase 7.4): the setup and the runs of a
-grid run equal those of tower runs whose files hold the grid run's data, and thin layers keep
-their minimum plant area (issue 14).
+Grid runs: the setup and the runs of a grid run equal those of tower runs whose files hold
+the grid run's data, and thin layers keep their minimum plant area.
 
-Needs the Phase 6b input files on NCAR's GLADE file system (skipped elsewhere).
+Needs the 1° global input files on NCAR's GLADE file system (skipped elsewhere).
 """
 
 from __future__ import annotations
@@ -29,7 +28,7 @@ SURFACE = (
 
 needs_data = pytest.mark.skipif(
     not (Path(SURFACE).exists() and Path(TRENDY).exists() and Path(f"{HIST}.2000-07.nc").exists()),
-    reason="Phase 6b input files (NCAR GLADE) not available",
+    reason="1° global input files (NCAR GLADE) not available",
 )
 
 
@@ -44,7 +43,7 @@ def grid_run_files(tmp: Path, region: dict, start: str, days: float = 1, co2: di
     from tests.experiment_tools import make_experiment
 
     def run(d):
-        # Gregorian (the compset's is noleap, decision 109): the tower runs compared with it
+        # Gregorian (the compset's is noleap): the tower runs compared with it
         d["time"].update(start=start, length=f"{days} days", calendar="gregorian")
         d["forcing"]["gridded"]["co2"] = dict({"source": "constant"}, **(co2 or {"ppm": 383}))
         d["output"] = output or {
@@ -158,7 +157,7 @@ for name in ("grid", "tower"):
     runs[name] = load_experiment(tmp / name)
     outs[name] = runs[name].execute(write=name == "grid")["h"]  # the grid run's files
     np.savez(tmp / f"{{name}}_out.npz", **{{v: np.asarray(outs[name].data[v]) for v in ("latent_heat_flux", "gpp")}})
-# the grid run's gridcell file on the latitude-longitude map (decision 108)
+# the grid run's gridcell file on the latitude-longitude map
 import xarray as xr
 (path,) = sorted((tmp / "out").glob("*_gridcell.nc"))
 ds, g = xr.load_dataset(path), runs["grid"].domain.gridcells
@@ -217,10 +216,10 @@ def test_grid_run_equals_tower_runs_of_its_data(tmp_path):
     data: the outputs are equal to round-off (<= 1e-10 relative; measured <= 2e-13) through
     the night. After sunrise they differ (up to ~10 W m-2 in latent heat by evening): these
     1° patches amplify round-off (a 1e-15 relative change of LAI alone moves a tower run by
-    ~8 W m-2 within hours; open issue in docs/design/global_input.md), and the two
+    ~8 W m-2 within hours), and the two
     programs (vegetation and soil water formed inside the chunk vs read per step) round
     differently. The grid run's gridcell file has every gridcell at its latitude and
-    longitude (decision 108)."""
+    longitude."""
     import numpy as np
 
     _python(WRITE_RUNS.format(root=str(ROOT), tmp=str(tmp_path),
@@ -231,7 +230,7 @@ def test_grid_run_equals_tower_runs_of_its_data(tmp_path):
         night = np.max(np.abs(g[v][:12] - t[v][:12])) / np.max(np.abs(t[v]))  # 00-12 UTC
         assert night <= 1e-10, (v, night)
         assert np.max(np.abs(g[v] - t[v])) <= 0.1 * np.max(np.abs(t[v])), v
-    # decision 108: the gridcell file is on the latitude-longitude grid of the surface data
+    # the gridcell file is on the latitude-longitude grid of the surface data
     m = np.load(tmp_path / "grid_map.npz")
     np.testing.assert_array_equal(m["mapped"], m["mean"])
     np.testing.assert_array_equal(m["map_lat"], m["lat"])
@@ -273,12 +272,12 @@ print("stem area added max by patch", np.round(d["stem_area_added"].max(axis=0),
 
 @needs_data
 def test_thin_layers_keep_minimum_plant_area(tmp_path):
-    """Issue 14: a stems-only shrub (LAI 0, SAI 0.108) in Wyoming, January 2000, whose bottom
-    layer held 0.0013 m2 m-2: CLM-ml's 9-angle diffuse transmittance exceeded 1 there and
-    the leaf temperature ran away at a calm sunrise (13 January). With every leafy layer
-    kept at minimum_leafy_layer_plant_area (0.01, added as stems) the run completes (any failed check stops
-    the run, the canopy energy balance below freezing included: issue 12), every leafy layer transmits less than it receives, and leaf temperatures stay
-    physical."""
+    """A stems-only shrub (LAI 0, SAI 0.108) in Wyoming, January 2000, whose bottom layer
+    held 0.0013 m2 m-2: CLM-ml's 9-angle diffuse transmittance exceeded 1 there and the leaf
+    temperature ran away at a calm sunrise (13 January). With every leafy layer kept at
+    minimum_leafy_layer_plant_area (0.01, added as stems) the run completes (any failed check
+    stops the run, the canopy energy balance below freezing included), every leafy layer
+    transmits less than it receives, and leaf temperatures stay physical."""
     out = _python(THIN_LAYER_SCRIPT.format(root=str(ROOT), tmp=str(tmp_path)))
     value = lambda key: [float(x) for x in out.split(key)[1].split("\n")[0].split()]  # noqa: E731
     assert value("max td of leafy layers")[0] < 1.0, out

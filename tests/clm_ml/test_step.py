@@ -1,8 +1,8 @@
-"""clm_ml.step: the time and sun of one step (Phase 7.2, process 10c).
+"""clm_ml.step: the time and sun of one step.
 
-The step itself is checked end to end (bit-for-bit regression test; op by op against the
-legacy container step when it moved, decision C21). Here: the calendar days of the forcing
-records and sub-steps, and the solar zenith angle, against the legacy driver's formulas.
+The step itself is checked end to end (bit-for-bit regression test). Here: the calendar days
+of the forcing records and sub-steps, and the solar zenith angle, against the Fortran
+driver's formulas.
 """
 
 import math
@@ -70,7 +70,7 @@ def test_solar_zenith_matches_formula():
 
 
 def test_soil_level_ice_is_the_levels_own():
-    """Issue 19: root uptake stops in a frozen level, read from that level (Fortran
+    """Root uptake stops in a frozen level, read from that level (Fortran
     SoilResistance h2osoi_ice(c,j)), not from the level below it."""
     ice = np.zeros(25)
     ice[3] = 1.0  # level 4 (0-based index 3) frozen

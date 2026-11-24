@@ -1,10 +1,10 @@
 """
-Prescribed land data from user files (decision 14), end to end on CHATS7:
+Prescribed land data from user files, end to end on CHATS7:
 
 1. LAI, SAI and soil water written from the CLM history file itself, stamped at the start of
    each half-hour interval, reproduce the default run exactly (each step's midpoint is a
    record's midpoint, so the interpolation returns the record).
-   That run also reads its files split in time (plan §4.1): LAI/SAI from monthly files named
+   That run also reads its files split in time: LAI/SAI from monthly files named
    by a ``{year}-{month:02d}`` template (April is read for the halo), and the meteorology
    from daily tower files.
 2. A monthly LAI file gives the leaf area index interpolated between monthly midpoints.
@@ -117,7 +117,7 @@ def test_land_data_files(tmp_path):
 
     # 1. the history data as user files reproduce the default run: the inputs to round-off
     # (times in days -> seconds), the fluxes within the regression tolerance (round-off
-    # moves single steps by ~1e-8; numerics_and_regression.md §1)
+    # moves single steps by ~1e-8)
     for name in VARIABLES:
         rtol = 1e-12 if name.endswith("area_index") else 1e-6
         np.testing.assert_allclose(

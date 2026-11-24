@@ -1,9 +1,8 @@
 """
-Convert a Fortran-style ``clmML_inparm`` namelist into an experiment folder (decision 91).
+Convert a Fortran-style ``clmML_inparm`` namelist into an experiment folder.
 
-Used by ``clm-ml convert``. Paths in the namelist are interpreted the way
-the legacy driver did (``../input_files/...`` relative to ``data/namelists``) and
-written relative to the output directory.
+Used by ``clm-ml convert``. Paths in the namelist are found as the namelists in ``data/namelists`` write them
+(``../input_files/...``) and written relative to the output directory.
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ _DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 
 
 def _resolve_legacy_path(raw: str, namelist_dir: Path) -> Path | None:
-    """The legacy driver's search order: as given, relative to the namelist, then with
+    """Where a namelist path is looked for: as given, relative to the namelist, then with
     leading ``../`` stripped under the repository's ``data/``."""
     raw = raw.strip()
     if not raw:
@@ -42,7 +41,7 @@ def _datetime(ymd: int, tod: int) -> dt.datetime:
 
 def convert_namelist(namelist_path: Path, out_dir: Path) -> Path:
     """Write the experiment folder of ``namelist_path`` into ``out_dir``: the four complete
-    files (decision 91), the tower from its compset, ``pftcon_val = 1`` the ``chats``
+    files, the tower from its compset, ``pftcon_val = 1`` the ``chats``
     parameters (``clm5_defaults`` otherwise). Returns the folder."""
     import f90nml
 

@@ -1,8 +1,7 @@
 """Physical constants and fixed model coefficients of the processes in ``clm_ml.processes``
 (Python floats, so importing them creates no arrays and needs no JAX setting).
 
-Values from CLM-ml v2 (Phase 7.4; until then re-exported from the legacy
-``clm_src_main.clm_varcon`` and ``multilayer_canopy.MLclm_varcon``).
+Values from CLM-ml v2.
 
 Fortran reference: CLM-ml v2 ``clm_varcon.F90`` (CLM constants) and ``MLclm_varcon.F90``
 (multilayer canopy constants).

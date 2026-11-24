@@ -147,6 +147,23 @@ functions or plotting.
 Reason: quick to reuse by changing a few values; the case folder records the run.
 Source: maintainer, 2026-11-05.
 
+**128. Phase 9 starts with a clean-up (9.0): code comments describe the model, not its history**
+2026-11-24 · Phase 9.0 · maintainer · in force · Departure from Fortran: no
+Before the documentation, the repository is cleaned in three steps: 9.0a code comments,
+docstrings, messages and option explanations; 9.0b documents and other files; 9.0c a
+discussion of what documentation to write. In the code (`src/`): no references to phases,
+decisions, open items, issues, rounds or the refactor, and no pointers to `docs/design/`;
+comments say what the code does and why. Fortran is cited as module and subroutine
+(`Fortran reference: Module::Subroutine`), without line numbers. A departure from CLM-ml v2
+gets one short line saying what differs and the scientific reason, without a decision number.
+Tests keep a decision number where a test checks that decision, without phase or refactor
+wording. The development logs in `docs/design/` (phase, GPU and gradient logs, plan, input
+notes, API sketch) are deleted, not archived: they stay in git history. The numbers 126 and
+127 are used on branch `chats_demos` (not merged), so this is 128.
+Reason: the code is read by scientists who need to know what it computes and where it comes
+from in Fortran, not how it was developed; the history is in git and this register.
+Source: maintainer, 2026-11-24.
+
 ## B. Configuration and user interface
 
 **7. Names and platform**

@@ -1,12 +1,11 @@
-"""The model calendar (Phase 7.4; from the legacy ``clm_src_utils.clm_time_manager``, whose
-calendar was a module global): exact date arithmetic in the proleptic Gregorian or the
+"""The model calendar: exact date arithmetic in the proleptic Gregorian or the
 365-day (noleap) calendar, calendar days, and each model step's time.
 
 Calendars are named as in CLM (``GREGORIAN``, ``NOLEAP``; run.yaml ``time.calendar``:
 ``gregorian``, ``noleap``, :data:`CALENDARS`).
 
 Fortran reference: CLM-ml v2 ``clm_time_manager.F90`` (``isleap``, ``get_curr_date``,
-``get_curr_calday``), with exact calendar arithmetic as CTSM's ESMF clock (decision 34).
+``get_curr_calday``), with exact calendar arithmetic as CTSM's ESMF clock.
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""clm_ml.processes.leaf_boundary_layer and clm_ml.processes.photosynthesis (Phase 7.2, process 7).
+"""clm_ml.processes.leaf_boundary_layer and clm_ml.processes.photosynthesis.
 
 The physics is checked against what its definitions imply (Fortran's error checks of the
 stomatal models and the diffusion equation, the WUE optimum is the root of the marginal
@@ -23,7 +23,7 @@ from clm_ml.processes.constants import dh2o_to_dco2, gbh_min  # noqa: E402
 from clm_ml.state import PatchLayers  # noqa: E402
 
 # 6 slots: layer 0 without plant area, 1-3 leafy, 4 above the canopy, 5 padding
-N_SLOTS, NCAN, NTOP, NBOT = 6, 5, 4, 2  # legacy 1-based counts
+N_SLOTS, NCAN, NTOP, NBOT = 6, 5, 4, 2  # Fortran-style counts (1-based layer numbers)
 DPAI = np.array([0.0, 0.6, 0.9, 0.5, 0.0, 0.0])
 Params = namedtuple(
     "Params",
@@ -176,7 +176,7 @@ def test_low_light_gives_minimum_conductance():
 def test_minimum_conductance_gradient_without_a_root():
     """Where the WUE optimization has no root (no light) the conductance is gs_min: its
     derivative with respect to gs_min is 1, before and after the water-stress step
-    (decision 119; it was 0 and 0.5)."""
+    (the fallback value carries its own gradient)."""
     f = _inputs(apar_sun=0.0)
 
     def conductance(gs_min, name, water_stress):
@@ -216,7 +216,7 @@ def test_water_stress_derivative_rule_keeps_the_values_and_bounds_the_derivative
     """With ``hydraulics`` the water stress has the same values, and the derivative of the
     conductance with respect to the potential of the stage's start (far above 1 per MPa of
     its own drop near the threshold) is replaced by a bounded one with respect to the
-    potential of the sub-step's start (decision 124); reverse mode agrees with forward
+    potential of the sub-step's start; reverse mode agrees with forward
     mode."""
     f = _inputs(lwp=-1.55)  # sunlit at -1.55, shaded at -1.65 MPa: around psi50 = -1.6
 
@@ -257,7 +257,7 @@ def test_stress_potential_derivative_is_the_implicit_one():
 def test_no_water_stress_at_positive_water_potential():
     """Dew can raise leaf water potential slightly above zero: there is no water stress
     there, for any shape parameter, and the derivatives with respect to the water-stress
-    parameters and the water potential are zero, not NaN (decision 121)."""
+    parameters and the water potential are zero, not NaN."""
     f = _inputs(lwp=0.13)  # sunlit +0.13 MPa, shaded +0.03 MPa
 
     def conductance(psi50_gs, shape_gs, lwp):
@@ -293,7 +293,7 @@ def test_sun_and_shade_in_one_call_match_one_call_per_leaf():
         one = {k: (v[:, leaf : leaf + 1] if v.ndim == 2 else v) for k, v in f.items()}
         r = jax.jit(_run)(one)
         for name, a, b in zip(r._fields, r, both):
-            # XLA compiles the two shapes differently: last-bit differences (Phase 7 C16), which
+            # XLA compiles the two shapes differently: last-bit differences, which
             # the WUE check amplifies (a difference of net photosynthesis 0.001 apart in gs) to
             # ~3e-12 in gs, the noise-twin level; 1e-10 is the policy's defect threshold
             np.testing.assert_allclose(a[:, 0], b[:, leaf], rtol=1e-10, atol=0, err_msg=name)

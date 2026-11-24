@@ -1,7 +1,6 @@
 """CLM-ML-JAX: multilayer canopy model (CLM-ml v2) in JAX.
 
-An experiment is a folder with run.yaml, domain.yaml, model.yaml and params.yaml
-(docs/design/experiment_folders.md)::
+An experiment is a folder with run.yaml, domain.yaml, model.yaml and params.yaml::
 
     import clm_ml
 
@@ -10,7 +9,7 @@ An experiment is a folder with run.yaml, domain.yaml, model.yaml and params.yaml
     results = exp.execute()                              # run; outputs per stream
     model = clm_ml.Model.from_experiment(exp)            # chunks and gradients (calibration)
 
-The public API (stable from 1.0; decision 96) is these names: ``load_experiment``,
+The public API (stable from 1.0) is these names: ``load_experiment``,
 ``new_experiment``, ``upgrade_experiment``, ``Experiment`` and ``Model``. Everything else
 (``clm_ml.processes``, ``clm_ml.driver``, ``clm_ml.setup``, ...) is internal and may change.
 """
@@ -20,11 +19,11 @@ import os as _os
 # XLA's CPU compiler splits a program into pieces compiled in parallel and links them with
 # LLVM's JIT; for the large batched programs (e.g. C3 and C4 patch groups in one chunk) the
 # linker's recursion overflowed a compile thread's stack: an intermittent segmentation fault
-# during compilation (JAX 0.9.2 on Derecho, Phase 6; backtrace in llvm::orc
+# during compilation (JAX 0.9.2 on Derecho; backtrace in llvm::orc
 # RTDyldObjectLinkingLayer::emit). One piece avoids it (5 of 5 compilations clean; without it
 # about half of the compilations of these programs crashed). XLA reads the flag when it
 # starts, so it is set on import, unless the user's XLA_FLAGS already choose it. With JAX
-# 0.10.2 the crash was not seen without the flag (5 of 5 cold compiles, decision 105); the flag
+# 0.10.2 the crash was not seen without the flag (5 of 5 cold compiles); the flag
 # stays as a precaution.
 _SPLIT = "--xla_cpu_parallel_codegen_split_count=1"
 if "xla_cpu_parallel_codegen_split_count" not in _os.environ.get("XLA_FLAGS", ""):

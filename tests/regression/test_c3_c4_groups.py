@@ -1,13 +1,13 @@
 """
-Phase 6 step 4 test (decision 22): C3 and C4 patches in one compiled program.
+C3 and C4 patches in one compiled program.
 
 One gridcell with two C3 patches (the CHATS7 walnut, weight 0.5, and a needleleaf tree, 0.2)
 and a C4 patch (C4 grass, 0.5 m, explicit layer counts, 0.3), listed walnut, grass,
 needleleaf. They form two groups inside one program (contiguous slots: the C3 patches, then
 the C4 patch), each running only its own photosynthesis pathway. The run of the gridcell
 matches each patch run alone, and the gridcell value is the area-weighted sum. (With a C3
-group of one patch, an earlier implementation that scattered the groups' results into the
-scan's state passed this test but was wrong for larger groups.)
+group of one patch, scattering the groups' results into the scan's state would pass this
+test but be wrong for larger groups.)
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def test_c3_and_c4_patches_in_one_program(tmp_path):
         t = copy.deepcopy(chats)
         t["patches"] = [dict(patch, weight=1.0)]
         jobs[name] = {name: t}
-    # one after the other: runs are in this process (Phase 7.4), and netCDF is not
+    # one after the other: runs are in this process, and netCDF is not
     # thread-safe
     out = {k: _execute(tmp_path, k, v) for k, v in jobs.items()}
     shutil.rmtree(tmp_path, ignore_errors=True)

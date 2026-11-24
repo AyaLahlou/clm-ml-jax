@@ -1,6 +1,5 @@
 """
-Program size and compile time of a run's compiled chunk (Phase 7 "done when": the numbers
-before and after the restructure; GPU optimization comes after Phase 8).
+Program size and compile time of a run's compiled chunk.
 
 Sets the run up (``clm_ml.driver.simulation``), builds the compiled chunk of
 ``execution.chunk`` steps with one daily-mean stream, compiles it (ahead of time) and runs it

@@ -1,4 +1,4 @@
-"""clm_ml.processes.longwave (Phase 7.2, process 5), checked against what it must conserve."""
+"""clm_ml.processes.longwave, checked against what it must conserve."""
 
 import jax
 import numpy as np
@@ -11,13 +11,13 @@ from clm_ml.processes import longwave as lw  # noqa: E402
 from clm_ml.processes.constants import sb  # noqa: E402
 from clm_ml.state import PatchLayers  # noqa: E402
 
-N_SLOTS = 6  # layer slots; legacy arrays have N_SLOTS + 1 entries (index 0 ground/unused)
-NCAN, NTOP, NBOT = 5, 3, 2  # legacy 1-based counts: leafy layers 2..3, padding slot 6
+N_SLOTS = 6  # layer slots; the profiles below have N_SLOTS + 1 entries (index 0 the ground)
+NCAN, NTOP, NBOT = 5, 3, 2  # Fortran-style counts: leafy layers 2..3, padding slot 6
 EMLEAF = 0.98
 
 
 def _profiles():
-    """Plant area and diffuse transmittance of the legacy layer slots (leafy layers only)."""
+    """Plant area and diffuse transmittance of the ground and layer slots (leafy layers only)."""
     dpai = np.zeros(N_SLOTS + 1)
     td = np.zeros(N_SLOTS + 1)
     dpai[NBOT : NTOP + 1] = [1.2, 1.5]

@@ -7,7 +7,7 @@ setup (leaf and stem area profiles from beta distributions).
 Fortran reference: CLM-ml v2 ``MLMathToolsMod.F90``. Fortran's root finders that call a
 function threading the canopy container (``hybrid``, ``zbrent``, ``bisection``) are not
 translated here: the time step uses traceable solvers written for each problem (Obukhov length,
-intercellular CO2, stomatal conductance) and :func:`bisection_traceable` (Phase 7 decision C9).
+intercellular CO2, stomatal conductance) and :func:`bisection_traceable`.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ def is_concrete(*values) -> bool:
 
     Runtime checks that stop the model (Fortran ``endrun`` on conservation or
     convergence errors) can only run on concrete values. Under ``jit``/``grad``
-    tracing they are skipped; plan Phase 4 replaces them with ``checkify``.
+    tracing they are skipped.
     """
     return not any(isinstance(v, jax.core.Tracer) for v in values)
 
@@ -72,7 +72,7 @@ def bisection_traceable(
             undefined; defaults to ``xa`` as in :func:`bisection_scalar`).
         args: Further arguments of ``func`` (traced).
         unroll: The halvings written out instead of a compiled loop (the same halvings;
-            model.yaml ``numerics.solver_loops``, decision 117).
+            model.yaml ``numerics.solver_loops``; faster on a GPU).
 
     Returns:
         The last midpoint.
@@ -179,11 +179,11 @@ def tridiag(
         a, b, c: Lower, main and upper diagonals, shape ``(n,)``.
         r: Right-hand side, shape ``(n,)``.
         min_pivot: If given, every pivot ``bet`` is replaced by ``max(|bet|, min_pivot)``
-            (the guard the solar radiation and soil temperature solves have used since the
-            translation; not in Fortran). ``None``: Fortran's unguarded pivots.
+            (a guard not in Fortran, used by the solar radiation and soil temperature
+            solves). ``None``: Fortran's unguarded pivots.
         unroll: The rows written out one after another instead of compiled loops (the same
             operations in the same order; faster on a GPU, where every loop iteration is
-            a separate command; model.yaml ``numerics.solver_loops``, decision 117).
+            a separate command; model.yaml ``numerics.solver_loops``).
 
     Returns:
         The solution ``u``, shape ``(n,)``.
@@ -251,7 +251,7 @@ def tridiag_2eq(
     layer above, followed by back substitution from the top layer downward
     (:func:`_tridiag_2eq_solve`, Fortran's arithmetic).
 
-    Derivatives come from ``jax.lax.custom_linear_solve`` (decision 104, open item O71),
+    Derivatives come from ``jax.lax.custom_linear_solve``,
     not from differentiating the elimination, whose intermediate ``e``-coefficients can be
     huge and give NaN gradients. For ``A x = d``, JAX applies the implicit function theorem:
     forward mode solves ``A dx = dd - dA x`` with the same elimination; reverse mode solves

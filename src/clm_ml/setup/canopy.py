@@ -1,10 +1,10 @@
-"""The canopy at setup (Phase 7.4): leaf and stem area profile parameters, the layer grid
+"""The canopy at setup: leaf and stem area profile parameters, the layer grid
 and the leaf/stem area fractions of the layers, and the initial canopy-air and leaf state,
 as 0-based arrays (layer slots ``0 .. max_layers - 1``; slots above the top layer in use
-hold ``spval``, as the legacy containers did).
+hold ``spval``).
 
-The arithmetic is the legacy translation's, operation by operation, so the values equal the
-legacy setup's bit for bit (``tests/regression/test_setup.py``).
+The arithmetic follows the Fortran operation by operation; ``tests/regression/test_setup.py``
+checks the values bit for bit against a recorded setup.
 """
 
 from __future__ import annotations

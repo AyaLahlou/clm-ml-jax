@@ -6,7 +6,7 @@ under netCDF4 is built without thread safety here (its build settings say "Threa
 and netCDF4-python releases the GIL inside library calls, so two threads could be inside HDF5
 at once. Every netCDF file is therefore opened through :func:`dataset` (or written under
 :data:`LOCK`): reads and writes never overlap, while the device still runs the chunk during a
-read (open item O31, decision 100).
+read.
 """
 
 from __future__ import annotations

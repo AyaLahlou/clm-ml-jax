@@ -1,4 +1,4 @@
-"""model.yaml loading, validation, and mapping to the legacy option codes."""
+"""model.yaml loading, validation, and mapping to the Fortran option codes."""
 
 import pytest
 
@@ -67,8 +67,8 @@ def test_choices_map_to_codes():
         ({"processes": {"stomatal_conductanse": {}}}, "unknown key(s) ['stomatal_conductanse']"),
         ({"numerics": {"substep_seconds": "fast"}}, "expected a number"),
         ({"processes": {"turbulence": {"sparse_canopy": 1}}}, "expected true or false"),
-        ({"soil": {"columns": "shared"}}, "option B"),
-        # CLM soil layer structure only (C35)
+        ({"soil": {"columns": "shared"}}, "not implemented"),
+        # CLM soil layer structure only
         ({"soil": {"layer_structure": "clm4_5"}}, "unknown key(s) ['layer_structure']"),
         ({"canopy_layers": {"layer_counts": {"within": 10}}}, "above: required key is missing"),
         ({"physics": {}}, "unknown key(s) ['physics']"),

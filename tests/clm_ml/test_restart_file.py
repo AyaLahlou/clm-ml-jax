@@ -1,4 +1,4 @@
-"""Restart files as netCDF (Phase 7.5, clm_ml.io.restart): every value comes back exactly,
+"""Restart files as netCDF (clm_ml.io.restart): every value comes back exactly,
 the file follows the documented schema, and a broken file falls back to the previous one."""
 
 import datetime as dt
@@ -113,7 +113,7 @@ def test_pickle_restart_is_refused_clearly(tmp_path):
     import pickle
 
     (tmp_path / "r.nc").write_bytes(pickle.dumps({"version": 5}))
-    with pytest.raises(RestartError, match="pickle restart from before Phase 7.5"):
+    with pytest.raises(RestartError, match="a pickle restart"):
         read_restart(tmp_path / "r.nc")
 
 

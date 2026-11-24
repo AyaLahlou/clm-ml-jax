@@ -8,11 +8,11 @@ and shaded leaves are one computation over the leaf axis. Layers without plant a
 (conductance, rates) except as noted; results in padding slots (``>= n_layers``) are finite
 but meaningless.
 
-Iterative solvers (both run a fixed number of steps so they compile; deviations from Fortran
-in ``numerics_and_regression.md`` §4.2-4.3): the intercellular CO2 of the Medlyn and
+Iterative solvers (both run a fixed number of steps so they compile, where Fortran stops at a
+tolerance): the intercellular CO2 of the Medlyn and
 Ball-Berry models by 40 secant steps, the WUE-optimal conductance by 20 bisection halvings.
 Each ends with a Newton step whose derivative is held constant, which gives the
-implicit-function gradient (and shifts the forward value by the remaining residual; §2).
+implicit-function gradient (and shifts the forward value by the remaining residual).
 
 Fortran reference: CLM-ml v2 ``MLLeafPhotosynthesisMod.F90``. Bonan et al. (2014) Geosci.
 Model Dev. 7, 2193-2222; Bonan (2019) Climate Change and Terrestrial Ecosystem Modeling,
@@ -74,8 +74,7 @@ from clm_ml.state import PatchLayers
 #: ``gs_type`` 0, 1, 2)
 STOMATAL_CONDUCTANCE = ("medlyn", "ball_berry", "wue")
 #: Root finders of the WUE optimization by name (model.yaml ``processes.stomatal_conductance.wue_solver``; Fortran
-#: ``gs_solver`` 1 Brent, 2 bisection). Brent's method is registered but not supported
-#: (Phase 7 decision C16, open issue 18 in ``global_input.md``).
+#: ``gs_solver`` 1 Brent, 2 bisection). Brent's method is registered but not supported.
 WUE_SOLVER = ("bisection", "brent")
 
 #: Secant steps of the intercellular-CO2 solver (Fortran ``hybrid``'s ``itmax``)
@@ -382,8 +381,8 @@ def _ci_residual(ci, leaf: _Leaf, b, g0, g1, model, c3, colimitation):
 
 
 def _secant(f, x0, x1, n_iter):
-    """``n_iter`` secant steps from ``x0``, ``x1`` (no step where two residuals are equal:
-    ``numerics_and_regression.md`` §5)."""
+    """``n_iter`` secant steps from ``x0``, ``x1`` (no step where two residuals are equal,
+    which would otherwise give a step of any size)."""
     f0 = f(x0)
     f1 = f(x1)
 
@@ -406,8 +405,7 @@ def solve_ci(f, x0, x1, n_iter: int = CI_ITERATIONS):
     difference, 1e-4) held constant: the implicit-function gradient (where the derivative
     exceeds 1e-8 in magnitude).
 
-    Fortran reference: MLMathToolsMod.F90::hybrid (tol = 0.1; here fixed steps,
-    ``numerics_and_regression.md`` §4.3).
+    Fortran reference: MLMathToolsMod.F90::hybrid (tol = 0.1; here fixed steps).
     """
     x0 = jax.lax.stop_gradient(_secant(f, x0, x1, n_iter))
     fx = f(x0)
@@ -480,11 +478,10 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
     ``gs_min`` and :data:`GS_UPPER`, the midpoint after ``n_iter`` halvings, then one Newton
     step with the derivative (central difference, 1e-4) held constant (the implicit-function
     gradient, where the derivative exceeds 1e-6 in magnitude); elsewhere (low light)
-    ``gs_min``, whose gradient is that of ``gs_min`` (decision 119).
+    ``gs_min``, whose gradient is that of ``gs_min``.
 
     Fortran reference: MLLeafPhotosynthesisMod.F90::StomataOptimization and
-    MLMathToolsMod.F90::bisection (tol = 0.001; here fixed halvings,
-    ``numerics_and_regression.md`` §4.2).
+    MLMathToolsMod.F90::bisection (tol = 0.001; here fixed halvings).
     """
     fa = f(gs_min)
     fb = f(GS_UPPER)
@@ -500,7 +497,7 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
 
     init = (jnp.broadcast_to(gs_min, shape), jnp.full(shape, GS_UPPER), fa)
     a, b, _ = jax.lax.fori_loop(0, n_iter, body, init)
-    # Without a root the conductance is gs_min itself, with its gradient (decision 119)
+    # Without a root the conductance is gs_min itself, with its gradient
     gs0 = jnp.where(bracket_ok, jax.lax.stop_gradient(0.5 * (a + b)), gs_min)
 
     f0 = f(gs0)
@@ -515,17 +512,13 @@ def solve_gs_bisection(f, gs_min, shape, n_iter: int = GS_HALVINGS):
 
 
 def brent(*args, **kwargs):
-    """Brent's method for the WUE optimization: registered but not supported (Phase 7
-    decision C16; open issue 18 in ``global_input.md``). The JAX translation never had a
-    traceable Brent (``wue_solver: brent`` silently ran the bisection until Phase 7.2).
+    """Brent's method for the WUE optimization: registered but not supported (there is no
+    traceable Brent; use the bisection).
 
     Fortran reference: MLLeafPhotosynthesisMod.F90::StomataOptimization (``gs_solver = 1``,
     ``MLMathToolsMod.F90::zbrent``).
     """
-    raise NotImplementedError(
-        "photosynthesis: wue_solver brent is not supported (Phase 7 decision C16; see the "
-        "plan, 'After Phase 8: unsupported variants'); use bisection"
-    )
+    raise NotImplementedError("photosynthesis: wue_solver brent is not supported; use bisection")
 
 
 def _wue_model(leaf: _Leaf, b: Biochemistry, iota, gs_min, pref, c3, colimitation, wue_solver):
@@ -616,7 +609,7 @@ def leaf_photosynthesis(
     psi50_gs)^shape_gs), gs_min)`` (no reduction for ``lwp >= 0``), and photosynthesis recomputed for it, with the humidity
     and vapor pressure deficit at the leaf surface. Soil water does not limit vcmax
     (Fortran's ``btran`` is 1). With ``hydraulics`` (:class:`StressHydraulics`) the water
-    stress has the same value and the derivative of :func:`stress_potential` (decision 124).
+    stress has the same value and the derivative of :func:`stress_potential`.
 
     Inputs per layer: ``dpai`` (m2/m2), ``eair`` (Pa), ``cair`` (umol/mol); per layer and
     leaf: ``tleaf`` (K), the 25 C values ``vcmax25``, ``jmax25``, ``rd25``, ``kp25``,
@@ -689,12 +682,12 @@ def leaf_photosynthesis(
 
     # --- Water stress (Bonan et al. 2021, supplemental eq. 14) ----------------------------
     if water_stress:
-        # no stress at or above zero water potential (dew makes it slightly positive): the
-        # power of a negative base has no derivative in the exponent, and no value for an
-        # exponent that is not a whole number (decision 121)
+        # Differs from CLM-ml v2: no stress at or above zero water potential (dew makes it
+        # slightly positive): the power of a negative base has no derivative in the
+        # exponent, and no value for an exponent that is not a whole number
         if hydraulics is not None:
             # the same potential; its derivative is the one of the potential consistent
-            # with the transpiration it gives (decision 124)
+            # with the transpiration it gives
             h = hydraulics
             lsc1 = jnp.where(active, jnp.maximum(_layer(h.lsc), 1.0e-30), 1.0)
             deficit = jnp.where(active, jnp.maximum(leaf_esat - eair, 0.0), 0.0) / pref
@@ -744,7 +737,7 @@ class StressHydraulics(NamedTuple):
     """What the leaf water potential of the end of the sub-step follows from, besides the
     transpiration (the arguments of ``plant_hydraulics.leaf_water_potential`` and the dry
     fraction of ``flux_profile.leaf_fluxes``): for the derivative of the water stress
-    (:func:`stress_potential`, decision 124)."""
+    (:func:`stress_potential`)."""
 
     lwp_bef: Array  # (layer, leaf) leaf water potential at the start of the sub-step, MPa
     fdry: Array  # (layer,) dry fraction of the leaves (transpiring)
@@ -776,7 +769,7 @@ def _stress_residual(psi, gspot, gbv, drop, a0, k, lwp_bef, gs_min, psi50_gs, sh
 def stress_potential(lwp, gspot, gbv, drop, a0, k, lwp_bef, gs_min, psi50_gs, shape_gs):
     """The leaf water potential the water stress uses: ``lwp`` itself, the potential of the
     stage's start (Fortran's; forward values are not changed). Only its derivative is
-    another one (decision 124): that of the potential consistent with the transpiration it
+    another one: that of the potential consistent with the transpiration it
     gives (the root of :func:`_stress_residual`), by the implicit function at ``lwp``,
 
         ``d psi = -(d residual at fixed psi) / max(d residual / d psi, 1)``

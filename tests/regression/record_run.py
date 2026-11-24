@@ -1,14 +1,13 @@
 """
 Run the CHATS7 reference case and record its output at full precision, with noise twins.
 
-The six legacy ``.out`` files hold 3 decimal places, too coarse to catch refactoring mistakes.
+The six legacy ``.out`` files hold 3 decimal places, too coarse to catch small changes in results.
 This runs the case through ``clm_ml`` (``Run.execute``) and saves every field of each step's
 results (``clm_ml.outputs.step_fields``), as float64, at every time step.
 
 It also records two **noise twins**: the same run with ``leaf_emissivity × (1 ± 1e-12)``. Their
 differences from the reference measure the model's own sensitivity to round-off, which the
-regression test uses as its tolerance for changes that alter round-off
-(docs/design/numerics_and_regression.md §5–6).
+regression test uses as its tolerance for changes that alter round-off.
 
 Regenerate the reference after an intended change in results, or after a change that alters
 only round-off and passed the noise-twin test::
@@ -44,7 +43,7 @@ TWIN_PERTURBATION = 1e-12  # relative change of leaf_emissivity in the twins
 TWIN_PFT = "broadleaf_deciduous_temperate_tree"  # CHATS7's PFT
 
 # Prefixes of the recorded fields kept in the reference: every field of a step's results
-# (``clm_ml.outputs.step_fields``: diagnostics, prognostic state, layer grid; Phase 7.6).
+# (``clm_ml.outputs.step_fields``: diagnostics, prognostic state, layer grid).
 RECORDED_PREFIXES = ("diagnostics.", "state.", "layers.")
 
 
@@ -149,7 +148,7 @@ def update_reference() -> None:
             "which changes round-off; unset it to record the reference."
         )
     # The reference is recorded on CPU: JAX would otherwise use the GPUs of a Derecho login
-    # node, where compiling the same program twice can change the last bits (Phase 7, C4).
+    # node, where compiling the same program twice can change the last bits.
     os.environ.setdefault("JAX_PLATFORMS", "cpu")
     if os.environ["JAX_PLATFORMS"] != "cpu":
         raise SystemExit("JAX_PLATFORMS must be cpu (or unset) to record the reference.")

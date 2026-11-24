@@ -11,7 +11,7 @@ Experiment folders: an experiment is a folder with four complete files,
 package), :func:`new_experiment` writes one from a compset (``clm_ml/compsets``),
 :func:`upgrade_experiment` rewrites one in the current layout. ``Experiment.execute()`` sets
 the run up (``clm_ml.setup``) and runs it in this process (``clm_ml.driver``), with one clock
-for all gridcells (decision 24).
+for all gridcells.
 """
 
 from __future__ import annotations
@@ -195,7 +195,7 @@ class Experiment:
         from clm_ml.outputs import Outputs
 
         out = self.run_file.output
-        if write:  # the four files as read, a folder that repeats the run (decision 91)
+        if write:  # the four files as read, a folder that repeats the run
             self.write_copy(self.output_directory / "config")
         arrays = self._run_in_process(write, return_outputs)
 
@@ -276,7 +276,7 @@ class Experiment:
 
         def save_extra():
             # the output files in progress; a restart holds what the next run needs, not the
-            # records so far (review R6)
+            # records so far
             return {"writers": [w.state() for w in writers] if writers is not None else None}
 
         def restore_extra(saved):
@@ -344,7 +344,7 @@ class Experiment:
         return names[0] if len(names) == 1 else "domain"
 
     def legacy_tower_name(self, patch: int) -> str:
-        """Patch ``patch``'s entry in the legacy tower table: its gridcell's name, with
+        """Patch ``patch``'s tower name in the legacy ``.out`` files: its gridcell's name, with
         ``#k`` (its place on the gridcell) when the gridcell has several patches."""
         gidx = self.domain.patches.gridcell_index
         g = int(gidx[patch])
@@ -551,19 +551,18 @@ def _check_model(config: ModelConfig) -> None:
     if ps.radiation.solar == "norman":
         raise ConfigError(
             "model.yaml: processes.radiation.solar: norman is not supported: its JAX translation "
-            "was never validated and stops at the first CHATS7 step with a conservation error "
-            "(plan, open issues of Phases 4-5); use two_stream"
+            "was never validated and stops at the first CHATS7 step with a conservation error; "
+            "use two_stream"
         )
     if ps.stomatal_conductance.scheme == "wue" and ps.stomatal_conductance.wue_solver == "brent":
         raise ConfigError(
             "model.yaml: processes.stomatal_conductance.wue_solver: brent is not supported: the "
-            "JAX model has no traceable Brent solver (Phase 7 decision C16; global_input.md "
-            "issue 18); use bisection"
+            "JAX model has no traceable Brent solver; use bisection"
         )
     if ps.canopy_air.flux_profile_solution == "well_mixed":
         raise ConfigError(
             "model.yaml: processes.canopy_air.flux_profile_solution: well_mixed is not "
-            "supported: Fortran stops for it too (legacy code; Phase 7 decision D8); use implicit"
+            "supported: Fortran stops for it too; use implicit"
         )
 
 
@@ -650,8 +649,8 @@ def _check_towers_run(exp: Experiment, source: str, model_step: int) -> None:
                 raise ConfigError(f"{source}: {key}: file not found: {exp.path(text, tower)}")
     met = {tuple(exp.files(forcing.meteorology.files, t)) for t in domain.gridcells.names}
     if run_file.execution.devices > 1 and len(met) > 1:
-        # the device layout's padding slots can make a gridcell read another tower's forcing
-        # (Phase 6 review R1); several towers on several devices is not a use case
+        # the device layout's padding slots can make a gridcell read another tower's forcing;
+        # several towers on several devices is not a use case
         raise ConfigError(
             f"{source}: execution.devices > 1 with towers that have different meteorology "
             "files is not supported (one tower, or towers sharing their forcing)"
@@ -845,7 +844,7 @@ def new_experiment(
 
     ``devices`` (if given) is written to ``run.execution.devices``. On ``machine`` derecho the
     folder also gets ``submit.pbs``, a job running it on ``devices`` GPUs (``device`` gpu) or
-    a CPU node, charged to ``account`` (required) (decision 112); other machines get none."""
+    a CPU node, charged to ``account`` (required); other machines get none."""
     from clm_ml.batch import check_machine, write_job_script
 
     path = compsets_dir() / "experiments" / f"{compset}.yaml"
@@ -874,7 +873,7 @@ def new_experiment(
     return folder
 
 
-#: model.yaml settings renamed or moved (decision 93): old dotted key -> new dotted key
+#: model.yaml settings renamed or moved: old dotted key -> new dotted key
 RENAMED_MODEL = {
     "physics.stomatal_conductance": "processes.stomatal_conductance.scheme",
     "physics.water_stress_on_conductance": "processes.stomatal_conductance.water_stress",
@@ -895,7 +894,7 @@ RENAMED_MODEL = {
 
 
 def _migrate(key: str, data: dict, report: list) -> dict:
-    """A file's contents in an earlier layout moved to the current one (decisions 91, 93):
+    """A file's contents in an earlier layout moved to the current one:
     renamed keys, one key for each choice, named words for the old nulls."""
     name = FILES[key]
     data = dict(data or {})
@@ -966,8 +965,7 @@ def _migrate(key: str, data: dict, report: list) -> dict:
             if "organic_matter" in soil and soil["organic_matter"] is None:
                 raise ConfigError(
                     f"{name}: towers.{tname}.soil.organic_matter: a value is required now (kg "
-                    "m-3; a missing value was read as -999, giving a negative organic fraction: "
-                    "open issue 22)"
+                    "m-3; a missing value was read as -999, giving a negative organic fraction)"
                 )
             for patch in tower.get("patches") or []:
                 if "canopy_height" in patch and patch["canopy_height"] is None:

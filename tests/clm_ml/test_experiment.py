@@ -1,4 +1,4 @@
-"""Experiment folders (decision 91): loading and validation, strictness, overrides, compsets
+"""Experiment folders: loading and validation, strictness, overrides, compsets
 (`clm-ml new`), `clm-ml upgrade`, namelist conversion."""
 
 import datetime as dt
@@ -48,7 +48,7 @@ def test_run_reads_the_files_and_times_of_the_original_namelist(chats_run_dir):
     original = f90nml.read(str(CHATS_NAMELISTS / "nl.CHATS7.50steps"))["clmml_inparm"]
     assert int(f"{exp.start:%Y%m%d}") == original["start_ymd"]
     assert exp.n_steps == original["stop_n"]
-    assert original["clm_phys"] == "CLM5_0"  # the only soil layer structure (C35)
+    assert original["clm_phys"] == "CLM5_0"  # the only soil layer structure
     (source,) = gridcell_sources(exp)
     assert source.tower_file.paths[0].endswith(original["fin_tower"].replace("../", ""))
     assert source.clm_history_file.endswith(original["fin_clm"].replace("../", ""))
@@ -205,7 +205,7 @@ def test_new_from_a_compset(tmp_path, capsys):
 
 
 def test_new_with_a_derecho_job_script(tmp_path):
-    """Decision 112: on Derecho the folder gets submit.pbs (GPUs, account); elsewhere none."""
+    """On Derecho the folder gets submit.pbs (GPUs, account); elsewhere none."""
     from clm_ml.cli import main
 
     folder = tmp_path / "gpu_case"
@@ -246,7 +246,7 @@ def test_upgrade_adds_missing_keys_and_keeps_values(chats_run_dir):
 
 
 def test_upgrade_adds_the_stable_zeta_limit(chats_run_dir):
-    """A params.yaml written before decision 123 gets zeta_max_stable: 0.5 for shrubs,
+    """A params.yaml without zeta_max_stable gets it: 0.5 for shrubs,
     grasses and crops, no limit for trees; a value that is there is kept."""
 
     def old(d):
@@ -268,7 +268,7 @@ def test_upgrade_adds_the_stable_zeta_limit(chats_run_dir):
 
 
 def test_upgrade_converts_the_layout_before_experiment_folders(chats_run_dir, tmp_path):
-    """A folder as `clm-ml convert` wrote it before decision 91 becomes the same experiment
+    """A folder as `clm-ml convert` wrote it before experiment folders becomes the same experiment
     as the current conversion."""
     old = tmp_path / "old"
     old.mkdir()
@@ -301,7 +301,7 @@ def test_check_says_where_values_come_from(chats_run_dir):
 
 
 def test_upgrade_moves_the_earlier_keys(chats_run_dir):
-    """A folder written before decision 93 (physics section, end/days/steps, nulls for
+    """A folder in the earlier layout (physics section, end/days/steps, nulls for
     defaults taken elsewhere, separate texture keys and layer counts) becomes the current one
     with the same meaning."""
 

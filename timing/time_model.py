@@ -5,13 +5,13 @@ Timing test of the compiled model (clm_ml.model.Model) on CHATS7:
   compilation, the steady cost is the fastest of the third and fourth;
 - gradient: d(mean latent heat over the chunk)/d(parameters), likewise. The second call of
   an un-jitted ``jax.grad`` is not steady (several times slower than the calls after it;
-  reported as ``gradient_second_s``): until 2026-11-14 this script reported it as the
-  steady cost, so older gradient lines of the results file are too high.
+  reported as ``gradient_second_s``); gradient lines of the results file recorded before
+  2026-11-14 report it as the steady cost and are too high.
 
 Peak memory is the process's maximum resident set size. Appends one JSON line to
-``timing/results_model.jsonl``. Used before and after Phase 5b (mask-aware layers).
+``timing/results_model.jsonl``.
 
-    python timing/time_model.py [--steps 8] [--label "before 5b"] [--no-grad]
+    python timing/time_model.py [--steps 8] [--label "baseline"] [--no-grad]
 """
 
 from __future__ import annotations

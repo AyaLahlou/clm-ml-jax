@@ -1,5 +1,5 @@
 """
-Batch job script for an experiment folder (decision 112): on NCAR's Derecho,
+Batch job script for an experiment folder: on NCAR's Derecho,
 :func:`clm_ml.new_experiment` (``clm-ml new --machine derecho``) writes ``submit.pbs`` into
 the folder, which runs ``clm-ml run`` on the folder; the user submits it with ``qsub``. On
 any other machine no script is written.

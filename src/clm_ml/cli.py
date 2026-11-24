@@ -1,6 +1,6 @@
 """
 The ``clm-ml`` command. An experiment is a folder with run.yaml, domain.yaml, model.yaml and
-params.yaml (decision 91; docs/design/experiment_folders.md).
+params.yaml.
 
     clm-ml new DIR --from COMPSET            write a complete experiment folder from a compset
         [--machine derecho --account ACCOUNT [--device gpu --devices N --walltime HH:MM:SS]]

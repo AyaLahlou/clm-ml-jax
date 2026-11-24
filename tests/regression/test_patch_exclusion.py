@@ -1,5 +1,5 @@
 """
-Phase 6 step 3 test of decision 25: a patch that fails.
+A patch that fails.
 
 One gridcell with two patches (the CHATS7 walnut, weight 0.6, and a needleleaf evergreen tree,
 weight 0.4). The needleleaf patch is made to fail by starting the run (a restart at the run's

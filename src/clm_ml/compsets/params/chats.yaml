@@ -4,9 +4,7 @@
 # leaf_angle_index 0.53, leaf_reflectance [0.06, 0.42], leaf_transmittance [0.04, 0.43],
 # stem_reflectance [0.21, 0.49] (Bonan, Burns & Patton 2026, Table 2).
 #
-# Generated in Phase 1 from the legacy tables (pftconMod.py / MLpftconMod.py with
-# pftcon_val = 1; the generator went with the legacy code in Phase 7.4). This file is now the
-# source of these values.
+# Values of CLM-ml v2's pftcon / MLpftcon tables with pftcon_val = 1.
 # CHATS walnut orchard overrides (Bonan, Burns & Patton 2026, Table 2):
 # Vcmax25 and iota from Rosati et al. (2006); plant hydraulics from Tyree et al.
 # (1993, 1994); psi50 from SPA-walnut; optics from Majasalmi & Bright (2019).

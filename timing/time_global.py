@@ -1,7 +1,7 @@
 """
-Timing test of a synthetic global-size domain (plan Phase 6, step 6): many gridcells with
-several patches each, set up by ``clm_ml.setup`` (Phase 7.4) and run as one compiled chunk
-spread over the devices (``clm_ml.driver``).
+Timing test of a synthetic global-size domain: many gridcells with several patches
+each, set up by ``clm_ml.setup`` and run as one compiled chunk spread over the devices
+(``clm_ml.driver``).
 
 The domain is a towers.yaml of gridcells that all read CHATS7's forcing files, with every
 other input at random: latitude and longitude, sand, clay, organic matter, soil colour,

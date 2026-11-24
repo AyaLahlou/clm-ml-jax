@@ -1,4 +1,4 @@
-"""One time step of one patch on the 0-based step state (Phase 7.2, process 10c).
+"""One time step of one patch on the 0-based step state.
 
 ``step(state, inputs, constants, params, options) -> StepState``: the soil routines of
 CLM-ml v2's ``clm_driver`` around the multilayer canopy's ``MLCanopyFluxes``, built from the
@@ -12,7 +12,7 @@ and everything it changes is returned.
   its time.
 - :class:`PatchConstants`: the patch's values that every step reads and none changes: the
   layer grid, PFT and soil properties, location (set up once; slots the step does not
-  compute hold ``spval``, Phase 7.4b).
+  compute hold ``spval``).
 - :class:`StepOptions`: the static choices (code paths, step lengths).
 
 Fortran reference: CLM-ml v2 ``clm_driver.F90::clm_drv`` and
@@ -46,7 +46,7 @@ class StepOptions(NamedTuple):
 
     substep: canopy.SubstepOptions  # the canopy sub-step's choices
     step_seconds: int  # model time step (s)
-    layer_pai_floor: float  # minimum plant area of a leafy layer (m2/m2; issue 14)
+    layer_pai_floor: float  # minimum plant area of a leafy layer (m2/m2; not in CLM-ml v2)
     flux_profile_type: int  # canopy totals: fluxes at the top layer (1)
     n_soil_adjust: int  # soil levels multiplied by the history's adjustment factor
     n_soil: int  # hydrologically active soil levels (nlevsoi)
@@ -164,7 +164,7 @@ def interpolation_days(calday, calday_beg, options: StepOptions) -> tuple:
     """Calendar days of the previous, current and next forcing records (centred in their
     steps for the 3-point interpolation; 0 without interpolation).
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 105-130).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     days = options.step_seconds / 86400.0
     if options.substep.interpolation == "none":
@@ -176,7 +176,7 @@ def interpolation_days(calday, calday_beg, options: StepOptions) -> tuple:
 def substep_days(calday_beg, options: StepOptions) -> Array:
     """Calendar day of each sub-step (the sub-step's middle for the 3-point interpolation).
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 263-270).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     offset = 0.0 if options.substep.interpolation == "none" else 0.5
     dt = options.substep.dtime
@@ -191,7 +191,7 @@ def substep_days(calday_beg, options: StepOptions) -> Array:
 def solar_zenith(calday_beg, latdeg, londeg, options: StepOptions) -> Array:
     """Solar zenith angle at the beginning of the step (cosine at least 0.01).
 
-    Fortran reference: MLCanopyFluxesMod.F90::GetCLMVar (lines 92-110).
+    Fortran reference: MLCanopyFluxesMod.F90::GetCLMVar.
     """
     from clm_ml.processes.constants import rpi as pi
     from clm_ml.processes.orbit import shr_orb_cosz, shr_orb_decl
@@ -207,7 +207,7 @@ def solar_zenith(calday_beg, latdeg, londeg, options: StepOptions) -> Array:
 
 def _fill(like: Array) -> Array:
     """``spval`` shaped as ``like``: the value of slots the step does not compute (above the
-    top layer in use, soil levels below bedrock), as the legacy containers' fill (C26)."""
+    top layer in use, soil levels below bedrock), as CLM-ml v2 fills them."""
     return jnp.full(jnp.shape(like), canopy.SPVAL, dtype=jnp.float64)
 
 
@@ -218,8 +218,7 @@ def _record(errors: Array, check: int, err) -> Array:
 
 def soil_level_ice(ice, n_soil: int):
     """The ice of each hydrologically active soil level, ``(n_soil,)``: level j's own
-    (index j, 0-based), which stops root uptake from a frozen level. The legacy translation
-    took level j + 1's (open issue 19, fixed 2026-11-01, decision 95).
+    (index j, 0-based), which stops root uptake from a frozen level.
 
     Fortran reference: MLPlantHydraulicsMod.F90::SoilResistance (``h2osoi_ice(c,j)``)."""
     return ice[:n_soil]
@@ -355,7 +354,7 @@ def step(
     means = canopy.average(sums, options.n_substeps)
     up_to_top = jnp.arange(lay.dz.shape[0] + 1) <= lay.n_layers
 
-    # Canopy totals (the averages through a barrier, as Fortran stores them first: C19)
+    # Canopy totals (the averages through a barrier, as Fortran stores them first)
     leaves = canopy.CanopyLeaves(
         dpai=dpai, fracsun=end.fracsun_profile, fwet=end.fwet_profile, fdry=end.fdry_profile,
         wind=end.wind_profile, tair=end.tair_profile, vcmax25=end.vcmax25_profile,
@@ -377,7 +376,7 @@ def step(
     merged = canopy.merge_sun_shade(lay, dpai, end.fracsun_profile, end.tleaf_leaf, end.lwp_leaf)
 
     # Soil temperature — MLSoilTemperatureMod::SoilTemperature (thermal properties of
-    # before the canopy fluxes: unchanged in between, decision C11)
+    # before the canopy fluxes: unchanged in between)
     gsoi = means.gsoi
     t_soil_new, soil_error = soil.soil_temperature(
         t_soil, thermal.tk, thermal.cv, k.z, gsoi, options.step_seconds

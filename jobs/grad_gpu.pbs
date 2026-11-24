@@ -5,14 +5,14 @@
 #PBS -l select=1:ncpus=16:ngpus=1:mem=120GB
 #PBS -l walltime=01:30:00
 #PBS -j oe
-# GPU gradient tier (phase7_progress.md, "Testing in Phase 7"): the tests marked `gradient`
+# GPU gradient tier: the tests marked `gradient`
 # (Model chunk gradient against finite differences, test_differentiability.py) and the
 # patch-weight/PFT gradients of test_model_patches.py, on one A100, on a snapshot of REV.
 #
 #   qsub -v REV=<commit>,TAG=<name> jobs/grad_gpu.pbs
 #
 # Warm cache: compiled GPU programs persist in CACHE (default below) between jobs, so an
-# unchanged program reloads in ~1 min instead of compiling for ~7 (scope §7 C). Keep CACHE
+# unchanged program reloads in ~1 min instead of compiling for ~7. Keep CACHE
 # separate from the CPU cache ($SCRATCH/jax_compile_cache).
 set -u
 SCRATCH=${SCRATCH:-/glade/derecho/scratch/$USER}
@@ -33,7 +33,7 @@ git -C $REPO worktree add --detach $TREE ${REV:-HEAD} >/dev/null 2>&1 \
 cd $TREE && export PYTHONPATH=$TREE/src:$TREE
 git log --oneline -1; nvidia-smi --query-gpu=name --format=csv,noheader; date
 python -c "import jax; print(jax.devices())"
-# one pytest process per file (as tests/gradient_tier.py; O78)
+# one pytest process per file (as tests/gradient_tier.py)
 for f in tests/test_model_api.py tests/test_differentiability.py tests/test_gradient_accuracy.py \
          tests/regression/test_model_patches.py; do
   python -m pytest $f -m "gradient or regression or slow" \

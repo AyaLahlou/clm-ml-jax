@@ -1,4 +1,4 @@
-"""clm_ml.processes.soil (Phase 7.2, process 2)."""
+"""clm_ml.processes.soil."""
 
 import jax
 import numpy as np

@@ -1,12 +1,12 @@
 """
-Restarts and fixed-length chunks (decision 33): a run resumed from a mid-run restart gives
+Restarts and fixed-length chunks: a run resumed from a mid-run restart gives
 the same results, bit for bit, as the uninterrupted run, including an output record (a daily
 mean) that spans the restart; and a run in 23-step chunks, whose short last chunk is padded,
 gives the same results as the run in one chunk: bit for bit at every step, to round-off
 (1e-15) for a record spanning chunks.
 
 The 50-step CHATS7 run in 23-step chunks: steps 0-22, 23-45 and 46-49 (padded to 23 steps;
-chunks start at the first step since Phase 7.4). A restart is written after every chunk; the
+chunks start at the first step). A restart is written after every chunk; the
 end-of-run restart rotates the one after the second chunk to ``.prev``, which the resumed run
 reads.
 """

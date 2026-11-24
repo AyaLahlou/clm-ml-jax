@@ -6,7 +6,7 @@ The experiment files (``run.yaml``, ``domain.yaml``, ``model.yaml``) are parsed 
 :func:`from_dict`, which walks a dataclass's type annotations and checks each value.
 Unknown keys and invalid choices are errors, not silent defaults, so a typo in a config
 file can never be ignored. With ``strict=True`` every key must be present (experiment
-folders, decision 91): missing keys are listed together.
+folders): missing keys are listed together.
 
 Each setting is declared with :func:`option`, which records what it means (written into
 the generated files by :func:`render`), the Fortran name it replaces, the kind of run it

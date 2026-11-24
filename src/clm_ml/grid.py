@@ -17,14 +17,14 @@ What the loader takes from the surface data:
   longitude (``LATIXY``, ``LONGXY``).
 - **Patches**: one per PFT 1-16 with a non-zero area: natural PFTs 1-14 from
   ``PCT_NATVEG * PCT_NAT_PFT`` and the crop types 15-16 from ``PCT_CROP * PCT_CFT``. Bare
-  ground (PFT 0) and the other land units are left out (decision 29): the weights are the
+  ground (PFT 0) and the other land units are left out: the weights are the
   patches' fractions of the gridcell's vegetated area. Patches below ``min_patch_weight``
   are dropped and the rest renormalized (as for towers).
 - **Canopy top and bottom** (``MONTHLY_HEIGHT_TOP/BOT``): CLM's satellite-phenology values
   at the run's first step (:func:`clm_monthly_weights`); the layer structure is fixed at
   setup. (In the 2000 surface data the heights do not vary by month.) The bottom is kept in
   the domain but not used: CLM-ml's leaf-area profile runs from the ground to the top, and
-  CLM uses the bottom height only for snow burial, which this model does not have (step 5).
+  CLM uses the bottom height only for snow burial, which this model does not have.
 - **Forcing height** per patch, CLM's rule: ``forcing_height + z0m + displa`` with
   ``z0m = z0mr * htop`` and ``displa = displar * htop`` (CLM's ``ZengWang2007`` roughness;
   ``forc_hgt_u_patch = forc_hgt_u + z0m + displa``, ``Sa_z = 30 m`` in CLM's data
@@ -132,8 +132,7 @@ def satellite_phenology_date(
     As CTSM: ``interpMonthlyVeg`` (start of step n, ``get_curr_date(offset = dtime)``, the end
     of step n + one step) sets the weights that ``UpdateSatellitePhenologyCanopy`` uses after
     ``CanopyFluxes`` of step n, for the next step's leaf and stem area (``clm_driver.F90``):
-    step n + 1 sees the weights at its own end. (Phase 6 review, R9: the end of the step plus
-    one step had been used here, one step early.)"""
+    step n + 1 sees the weights at its own end."""
     from clm_ml.calendar import add_seconds
 
     return add_seconds(step_start, step_seconds, calendar)
@@ -155,7 +154,7 @@ def _in_region(lat, lon, region):
 
 
 def latlon_map(lat2, lon2, rows, cols, region):
-    """The latitude-longitude map of the gridcell output (decision 108): the gridcells at
+    """The latitude-longitude map of the gridcell output: the gridcells at
     ``rows``, ``cols`` of the surface data (``LATIXY``, ``LONGXY``) on the grid's rows and
     columns inside the ``region`` (all of them for ``global``). The longitudes of a region
     are in its own convention, increasing eastward from its west edge (e.g. -100 to -95,
@@ -335,7 +334,7 @@ def load_grid_domain(
     if isinstance(c.layer_counts, str):
         raise ConfigError(
             "domain.yaml type grid: set model.yaml canopy_layers.layer_counts to "
-            "{within: N, above: M} (constant layer counts, decision 28)"
+            "{within: N, above: M} (constant layer counts)"
         )
     if c.layer_counts.within + c.layer_counts.above > c.max_layers:
         raise ConfigError(

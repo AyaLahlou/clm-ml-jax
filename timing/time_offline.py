@@ -1,11 +1,10 @@
 """
-Timing test: wall-clock time of a whole run through ``clm-ml run`` (Phase 7.4: the
-``clm-ml-offline`` step-by-step driver this timed is gone).
+Timing test: wall-clock time of a whole run through ``clm-ml run``.
 
 Converts a namelist (``clm-ml convert``), then runs ``clm_ml.cli run`` in a fresh process and
 reports the total wall time (imports, setup, compilation or cache load, the run, writing the
 output files) and the seconds per simulated day. Steps run inside compiled chunks, so there is
-no per-step time any more; ``timing/time_model.py`` times the compiled chunk alone.
+no per-step time; ``timing/time_model.py`` times the compiled chunk alone.
 
 Results are printed and appended to ``timing/results.jsonl``.
 

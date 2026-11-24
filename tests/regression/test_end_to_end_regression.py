@@ -1,9 +1,9 @@
 """
 End-to-end regression: a 50-step CHATS7 run compared with the committed reference.
 
-Two checks (docs/design/numerics_and_regression.md §6):
+Two checks:
 
-- ``test_bit_identical_to_reference``: refactors that should not change the arithmetic must
+- ``test_bit_identical_to_reference``: code changes that should not change the arithmetic must
   reproduce the reference exactly.
 - ``test_within_noise_of_reference``: every change must stay within the model's own
   sensitivity to round-off, measured by two noise twins (``leaf_emissivity × (1 ± 1e-12)``).

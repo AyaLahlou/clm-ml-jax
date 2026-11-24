@@ -1,4 +1,4 @@
-"""Fortran's conservation checks (plan §6.8): recorded in the step instead of a host callback
+"""Fortran's conservation checks: recorded in the step instead of a host callback
 inside compiled code, and checked on the host; a run stops when a tolerance is exceeded."""
 
 import jax

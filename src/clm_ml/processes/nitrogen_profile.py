@@ -160,8 +160,8 @@ def canopy_nitrogen_profile(
     dpai_cumsum = jnp.where(active, dpai_v, 0.0)
     pai_above_v = jnp.concatenate([jnp.zeros(1), jnp.cumsum(dpai_cumsum[:-1])])
 
-    # fn and fn_sun are masked before they are combined, as in the legacy code (combined
-    # unmasked, the shaded leaves' values compiled 1 ulp differently in the chunk, C18)
+    # fn and fn_sun are masked before they are combined (combined unmasked, the shaded
+    # leaves' values compile 1 ulp differently in the chunk)
     fn, fn_sun = nitrogen_fractions(
         kn, pai_above_v, dpai_v, kb_v, tbi_v, clump, vary_with_height=vary_with_height
     )

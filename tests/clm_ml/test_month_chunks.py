@@ -1,5 +1,5 @@
-"""Chunk schedules: calendar months (decision 17, ``execution.chunk: 1 month``), a chunk is
-the steps starting in one month; fixed-length chunks (decision 33, the default)."""
+"""Chunk schedules: calendar months (``execution.chunk: 1 month``), a chunk is the steps
+starting in one month; fixed-length chunks (the default)."""
 
 import datetime as dt
 import types
@@ -36,7 +36,7 @@ def test_step_ending_at_midnight_belongs_to_the_month_it_starts_in():
     assert month_chunks(run, 0) == [(0, 48), (48, 1)]
 
 
-# Fixed-length chunks (decision 33), counted from the first step (Phase 7.4)
+# Fixed-length chunks, counted from the first step
 
 
 def test_fixed_chunks_pad_the_last_one_to_the_chunk_length():

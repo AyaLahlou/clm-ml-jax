@@ -1,4 +1,4 @@
-"""clm_ml.processes.turbulence (Phase 7.2, process 6).
+"""clm_ml.processes.turbulence.
 
 The physics is checked against what its definitions imply (the wind profile recovers the
 forcing wind and is continuous at the canopy top, the solvers find their roots) and the Obukhov
@@ -21,7 +21,7 @@ from clm_ml.state import PatchLayers  # noqa: E402
 # A 10 m canopy under a 23 m reference height: 4 layers within, 3 above, 1 padding slot
 ZTOP, ZREF = 10.0, 23.0
 ZW = np.array([0.0, 2.5, 5.0, 7.5, 10.0, 14.0, 18.5, 23.0, 23.0])  # ground + layer tops
-N_SLOTS, NCAN, NTOP, NBOT = 8, 7, 4, 2  # legacy 1-based counts
+N_SLOTS, NCAN, NTOP, NBOT = 8, 7, 4, 2  # Fortran-style counts (1-based layer numbers)
 
 
 def _layers():
@@ -72,7 +72,7 @@ def test_obukhov_length_is_the_root_or_the_limit(taf):
 
 
 def test_stable_zeta_limit():
-    """Decision 123: in stable conditions the stability at the reference height,
+    """In stable conditions the stability at the reference height,
     (zref - zdisp)/L with the displacement height of the Lc-limited length, is at most the
     PFT's zeta_max_stable; unstable conditions, and a limit that is not reached, change
     nothing; the limit has a derivative that agrees with finite differences."""
@@ -148,7 +148,7 @@ def test_lookup_psihat_on_nodes_and_outside():
 
 @pytest.mark.parametrize("search", ["unrolled", "compare_all"])
 def test_lookup_psihat_search_methods_agree(search):
-    """Every table search (numerics.table_search, decision 114) finds the same grid cell:
+    """Every table search (numerics.table_search) finds the same grid cell:
     the lookup is identical inside the grid, on its nodes, on its edges and outside."""
     m = default_rsl_tables().momentum
     rng = np.random.default_rng(0)
@@ -161,7 +161,7 @@ def test_lookup_psihat_search_methods_agree(search):
 
 def test_psi_rsl_shares_the_table_searches():
     """psi_rsl finds the places of its two heights and of (h - d)/L once for the four
-    lookups (decision 115): the same psihat values as four separate lookups."""
+    lookups: the same psihat values as four separate lookups."""
     tables = default_rsl_tables()
     za, hc, disp, obu, beta, PrSc = 23.0, 10.0, 7.3, -41.0, 0.33, 0.6
     psim, psic, _, psim_hat2 = turb.psi_rsl(za, hc, disp, obu, beta, PrSc, tables)
@@ -183,7 +183,7 @@ def test_psi_rsl_shares_the_table_searches():
 
 
 def test_tables_must_share_their_grids(tmp_path):
-    """The momentum and scalar tables are on one pair of grids (decision 115): a file where
+    """The momentum and scalar tables are on one pair of grids: a file where
     they differ is refused."""
     import xarray as xr
 
@@ -207,7 +207,7 @@ def test_table_search_follows_the_device():
 
 # moderately stable .. strongly unstable; at 298.3 K the Obukhov length is -8 m, where the
 # residual bends within a metre (a slope by finite differences with a 1 m step was 12 % off
-# there, 0.5 % at 298.0 K: decision 119)
+# there, 0.5 % at 298.0 K)
 @pytest.mark.parametrize("taf", [295.0, 295.8, 296.5, 297.5, 298.0, 298.3])
 def test_obukhov_gradient_is_the_implicit_one(taf):
     """d obu / d thref and d ustar / d thref by jax.grad (implicit-function correction, with
@@ -235,7 +235,7 @@ def test_solver_loops_follow_the_device():
 
 
 def test_substep_checkpoint_follows_the_device():
-    """numerics.checkpoint_substeps (decision 125): less gradient memory on a GPU at no cost
+    """numerics.checkpoint_substeps: less gradient memory on a GPU at no cost
     in time, six times slower on the CPU."""
     from clm_ml import driver
 
@@ -246,8 +246,8 @@ def test_substep_checkpoint_follows_the_device():
 
 @pytest.mark.parametrize("taf", [294.0, 295.8, 296.5])
 def test_unrolled_iterations_match_the_loops(taf):
-    """The Obukhov and roughness-length iterations written out (numerics.solver_loops,
-    decision 117) are the loops' iterations."""
+    """The Obukhov and roughness-length iterations written out (numerics.solver_loops)
+    are the loops' iterations."""
     loop, unrolled = _run(taf=taf), _run(taf=taf, unroll=True)
     for name in ("obu", "z0m", "ustar", "wind", "gac"):
         np.testing.assert_allclose(getattr(unrolled, name), getattr(loop, name), rtol=1e-12)
