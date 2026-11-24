@@ -1,6 +1,6 @@
-"""The multilayer canopy's options (Phase 7.4; from the legacy ``MLclm_varctl`` and
-``clm_ml.legacy.canopy``): :class:`MLOptions` (CLM-ml v2's option codes, built from model.yaml)
-and :func:`substep_options` (the codes as the sub-step's named, static choices).
+"""The multilayer canopy's options: :class:`MLOptions` (CLM-ml v2's ``MLclm_varctl`` option
+codes, built from model.yaml) and :func:`substep_options` (the codes as the sub-step's named,
+static choices).
 
 Fortran reference: CLM-ml v2 ``MLclm_varctl.F90``.
 """
@@ -44,13 +44,13 @@ class MLOptions(NamedTuple):
     met_type: int = 0
     dpai_min: float = 0.01
     # Minimum plant area of every leafy layer at every time step (m2/m2), added as stem area
-    # (not Fortran CLM-ml v2; Phase 6b, issue 14): the 9-angle diffuse transmittance exceeds 1
+    # (not in CLM-ml v2): the 9-angle diffuse transmittance exceeds 1
     # below ~0.005, which makes the longwave equations unstable. 0: CLM-ml v2 as in Fortran.
     # Value: CLM-ml v1's dpai_min ("minimum plant area index to be considered a vegetation
     # layer", m2/m2), applied per step instead of removing layers at setup.
     layer_pai_floor: float = 0.01
     # Layer slots of every canopy profile array (model.yaml canopy_layers.max_layers; Fortran:
-    # the parameter nlevmlcan = 100). Patches use 1..ncan; the rest is padding.
+    # the parameter nlevmlcan = 100). Patches use the first ncan slots; the rest is padding.
     max_layers: int = 50
 
     #: Fields used only to set up the canopy layers (``initVerticalStructure``, and
@@ -67,7 +67,7 @@ class MLOptions(NamedTuple):
 
     def step_options(self) -> "MLOptions":
         """These options with the setup-only fields (:attr:`SETUP_ONLY`) at their defaults:
-        what the time step receives (Phase 6 step 2). Compiled functions take the options as a
+        what the time step receives. Compiled functions take the options as a
         static argument, so patches and models that differ only in their layer settings share
         one compiled program."""
         return self._replace(**{f: self._field_defaults[f] for f in self.SETUP_ONLY})
@@ -103,14 +103,13 @@ def substep_options(
     water_stress_derivative: str = "stabilized",
     obukhov_derivative: str = "exact",
 ) -> canopy.SubstepOptions:
-    """The sub-step's choices from the legacy options (``MLOptions``), ``table_search``
+    """The sub-step's choices from the Fortran option codes (``MLOptions``), ``table_search``
     (how the psihat tables are searched), ``unroll_loops`` (the solver loops written out),
     ``wetted_fraction`` (implicit, or explicit as Fortran) and the derivative rules
-    ``water_stress_derivative`` and ``obukhov_derivative`` (decision 124; none is a Fortran
-    option), with the legacy
-    routines' checks: Norman solar radiation and the well-mixed flux-profile solution are
-    registered but not supported (Phase 7 decision D8: ``clm_ml.run`` refuses them), the other codes must be
-    valid."""
+    ``water_stress_derivative`` and ``obukhov_derivative`` (none is a Fortran option), with
+    the Fortran routines' checks: Norman solar radiation and the well-mixed flux-profile
+    solution are registered but not supported (``clm_ml.run`` refuses them), the other codes
+    must be valid."""
     if opts.light_type == 1:
         raise NotImplementedError("Norman solar radiation (light_type 1) is not supported")
     if opts.flux_profile_type in (0, -1):

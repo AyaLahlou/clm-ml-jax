@@ -1,5 +1,5 @@
 """
-Phase 6 step 5 test: patches spread over several devices (``execution.devices``,
+Patches spread over several devices (``execution.devices``,
 ``jax.shard_map``), on CPU with simulated devices (``--xla_force_host_platform_device_count``).
 
 A domain of three gridcells and four patches, C3 and C4: ``SITEA`` (a walnut and a C4 grass),
@@ -79,7 +79,7 @@ np.savez({npz!r}, patch_gridcell=np.asarray(out.patch_gridcell),
 
 def _execute_in_process(tmp: Path, devices: int) -> dict:
     """``_execute`` in a fresh Python process with four CPU devices (XLA reads the flag when
-    it starts; runs are in-process since Phase 7.4)."""
+    it starts; runs are in-process)."""
     import subprocess
 
     npz = tmp / f"out{devices}.npz"

@@ -2,7 +2,7 @@
 Model output: named variables with units, per patch and per gridcell.
 
 The variables below are computed from a step's results (:func:`step_fields`: the 0-based
-diagnostics, prognostic state and layer grid; Phase 7.6) inside the compiled chunk, where
+diagnostics, prognostic state and layer grid) inside the compiled chunk, where
 output streams accumulate them. Each variable says which legacy ``.out`` file column it
 corresponds to, so results can be compared with earlier runs and with the Fortran model.
 
@@ -197,7 +197,7 @@ VARIABLES: tuple[VariableSpec, ...] = (
     V("stem_area_index", "m2 m-2", "Stem area index (prescribed + stem_area_added)", (),
       "fsun.out col 3 (with lai)", lambda r: r["sai_canopy"]),
     V("stem_area_added", "m2 m-2",
-      "Stem area added so every leafy layer has min_layer_plant_area (issue 14)", (), "",
+      "Stem area added so every leafy layer has min_layer_plant_area", (), "",
       lambda r: r["sai_floor_canopy"]),
     V("leaf_area_index_by_leaf_class", "m2 m-2", "Sunlit and shaded leaf area index",
       ("leaf_class",), "fsun.out cols 4-5",
@@ -311,7 +311,7 @@ VARIABLES_BY_NAME: Mapping[str, VariableSpec] = {v.name: v for v in VARIABLES}
 # Variables that cannot be averaged across patches with different layer grids.
 _PATCH_ONLY_DIMS = {"layer"}
 
-#: Gridcell fields written with a grid run's gridcell output (decision 108): the file name,
+#: Gridcell fields written with a grid run's gridcell output: the file name,
 #: units and long name of clm_ml.domain.Gridcells' area, land_fraction, vegetated_fraction
 GRIDCELL_AREA = {
     "area": ("area", "km2", "Gridcell area (CLM history area)"),
@@ -346,11 +346,11 @@ class Outputs:
     soil_temperature: np.ndarray | None = None  # (time, patch, soil_layer) K
     soil_depth: np.ndarray | None = None  # (patch, soil_layer) m, node depth
     raw: Mapping[str, np.ndarray] = dataclasses.field(default_factory=dict, repr=False)
-    # Area-weighted gridcell sums formed at every step inside the run (Phase 6 step 3),
+    # Area-weighted gridcell sums formed at every step inside the run,
     # ``(time, gridcell, ...)``: used for the gridcell level, so min/max are right there
     gridcell_data: Mapping[str, np.ndarray] = dataclasses.field(default_factory=dict, repr=False)
     # Grid runs: the gridcells' latitude-longitude map (clm_ml.domain.LatLonMap), on which
-    # the gridcell level is written (decision 108); None: per gridcell
+    # the gridcell level is written; None: per gridcell
     gridcell_map: object = None
     # Grid runs: {Gridcells field: (gridcell,) values} of GRIDCELL_AREA, written on the map
     gridcell_area: Mapping[str, np.ndarray] = dataclasses.field(default_factory=dict, repr=False)
@@ -489,7 +489,7 @@ class Outputs:
         return ds
 
     def _latlon_xarray(self):
-        """The gridcell level of a grid run on its latitude-longitude map (decision 108):
+        """The gridcell level of a grid run on its latitude-longitude map:
         variables ``(time, ..., lat, lon)``, NaN where no gridcell was run (ocean, ice,
         unvegetated land, outside the region), ``run_mask`` (1 where one was) and the
         gridcells' area, land fraction and vegetated fraction (``GRIDCELL_AREA``)."""
@@ -546,7 +546,7 @@ class Outputs:
         for level in levels:
             out = Path(path).with_name(f"{Path(path).stem}_{level}.nc")
             ds = self.to_xarray(level)
-            with netcdf.LOCK:  # no forcing read while a file is written (O31)
+            with netcdf.LOCK:  # no forcing read while a file is written (netCDF is not thread-safe)
                 if append and out.exists():
                     with xr.open_dataset(out) as old:
                         ds = xr.concat(
@@ -600,7 +600,7 @@ class StreamFileWriter:
         for record in records:
             label = self._label_of(record[1])
             # a new file period: write the finished one (nothing is held if a restart has
-            # just written its records, O86)
+            # just written its records)
             if self._label is not None and label != self._label and self._records:
                 self._flush()
             self._label = label
@@ -612,7 +612,7 @@ class StreamFileWriter:
 
     def state(self) -> dict:
         """For a restart: the completed records are written to their file first (a restart
-        holds no output history, Phase 6 review R6); the run continuing from the restart
+        holds no output history); the run continuing from the restart
         appends to that file. Returns the file in progress."""
         if self._records:
             self._flush()

@@ -1,4 +1,4 @@
-"""Model calendars (review R2): exact Gregorian and noleap date arithmetic, as CTSM's clock."""
+"""Model calendars: exact Gregorian and noleap date arithmetic, as CTSM's clock."""
 
 import datetime as dt
 
@@ -35,7 +35,7 @@ def test_noleap_years_have_365_days_and_no_29_february():
 
 
 def test_vegetation_weights_use_the_end_of_the_step():
-    # CTSM: the leaf area of a step comes from the weights at the step's end (review R9)
+    # CTSM: the leaf area of a step comes from the weights at the step's end
     s = dt.datetime(2000, 2, 28, 23, 30)
     assert satellite_phenology_date(s, 1800) == dt.datetime(2000, 2, 29)
     assert satellite_phenology_date(s, 1800, "NOLEAP") == dt.datetime(2000, 3, 1)

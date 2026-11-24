@@ -1,6 +1,6 @@
 """
 ``run.yaml``: when an experiment runs, with which forcing and land data, and what it writes
-(one of the four files of an experiment folder, decision 91; ``docs/design/experiment_folders.md``).
+(one of the four files of an experiment folder).
 
 Every setting is declared here with :func:`clm_ml.io.yaml_schema.option` and its
 explanation, which ``clm-ml new`` and ``clm-ml upgrade`` write into the file. The folder is
@@ -169,7 +169,7 @@ def parse_length(text: str, key: str):
 
 
 def parse_chunk(text: str, key: str) -> Optional[int]:
-    """``"10 days"`` -> 10; ``"1 month"`` -> None (calendar months), decision 33."""
+    """``"10 days"`` -> 10; ``"1 month"`` -> None (calendar months)."""
     parts = str(text).split()
     if len(parts) == 2 and parts[0].isdigit() and int(parts[0]) >= 1:
         if parts[1] in ("day", "days"):
@@ -231,7 +231,7 @@ class InitialConditionsSection:
 
 @dataclasses.dataclass(frozen=True)
 class OutputStreamSection:
-    """One output stream, accumulated during the run (decision 16)."""
+    """One output stream, accumulated during the run."""
 
     name: str = option(doc="Name of the stream (in its file names).")
     frequency: Literal["step", "hourly", "daily", "monthly", "yearly"] = option(

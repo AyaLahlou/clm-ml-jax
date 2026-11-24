@@ -53,7 +53,7 @@ def _tableau(rows: dict, b, c) -> Tableau:
 TABLEAUS = {
     # Euler (10): one stage. The canopy sub-step keeps the processes' own result and never
     # calls the update (Fortran never calls RungeKuttaUpdate); b = [1] is still the correct
-    # weight, so an update would give bef + k = cur, not reset the state (open item O33)
+    # weight, so an update would give bef + k = cur, not reset the state
     "euler": Tableau(np.full((1, 1), _UNUSED), np.ones(1), np.zeros(1)),
     # 2nd-order trapezoidal rule (21; Butcher 1996)
     "rk2_trapezoid": _tableau({(1, 0): 1.0}, [1.0 / 2.0, 1.0 / 2.0], [0.0, 1.0]),
@@ -116,7 +116,7 @@ def runge_kutta_update(
     final ``bef + sum_j b_j k_j``; after it (the physics-only pass) ``cur`` unchanged.
     ``increments`` hold the earlier stages' increments on a trailing stage axis (which may
     be longer than the tableau). Earlier stages are summed first, then this stage's term
-    is added (the legacy order; Fortran adds them one by one). Layers not in use keep
+    is added (Fortran adds them one by one). Layers not in use keep
     their values; inputs there are zeroed so no fill values enter the arithmetic.
 
     Fortran reference: MLRungeKuttaMod.F90::RungeKuttaUpdate.

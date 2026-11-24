@@ -7,8 +7,7 @@ sunlit, 1 shaded (axis 1). Every slot is computed: padding slots take the top la
 system after the top layer, whose upward coupling is zero, so the solution is the one for
 the layers in use. The solution is chosen by name (``FLUX_PROFILE``, model.yaml
 ``processes.canopy_air.flux_profile_solution``): ``implicit`` (Fortran ``flux_profile_type = 1``);
-``well_mixed`` is registered but not supported (Phase 7 decision D8: Fortran stops after it
-too, "legacy code, not supported").
+``well_mixed`` is registered but not supported (Fortran stops after it too).
 
 Fortran reference: CLM-ml v2 ``MLFluxProfileSolutionMod.F90``, ``MLLeafFluxesMod.F90``,
 ``MLSoilFluxesMod.F90``. Bonan et al. (2018) Geosci. Model Dev. 11, 1467-1496.
@@ -228,7 +227,7 @@ def implicit(
     solve's loops over layers written out (``math.tridiag``).
 
     Fortran reference: MLFluxProfileSolutionMod.F90::ImplicitFluxProfileSolution (with
-    ``LeafFluxes`` and ``SoilFluxes``; the CO2 profile set to ``co2ref`` stays in the adapter).
+    ``LeafFluxes`` and ``SoilFluxes``; the CO2 profile set to ``co2ref`` is done in ``canopy``).
     Reads: ``dpai_profile``, ``fwet_profile``, ``fdry_profile``, ``fracsun_profile``,
     ``cpleaf_profile``, ``gac_profile``, ``tair_bef_profile``, ``eair_bef_profile``,
     ``gbh_leaf``, ``gbv_leaf``, ``gs_leaf``, ``rnleaf_leaf``, ``tleaf_bef_leaf``, the soil
@@ -422,8 +421,7 @@ class ImplicitErrors(NamedTuple):
 
 def implicit_errors(f: FluxProfile, canopy: Canopy, ground: Ground, layers: PatchLayers):
     """Fortran's checks of the implicit solution (:class:`ImplicitErrors`). The time step does
-    not run them (the legacy translation ran them only with a debug flag; Phase 7 decision
-    C17); the tests do.
+    not run them; the tests do.
 
     Fortran reference: MLFluxProfileSolutionMod.F90::ErrorCheck01, ErrorCheck02.
     """
@@ -468,17 +466,14 @@ def implicit_errors(f: FluxProfile, canopy: Canopy, ground: Ground, layers: Patc
 
 
 def well_mixed(*args, **kwargs):
-    """Well-mixed canopy air (or profiles from a dataset): registered but not supported
-    (Phase 7 decision D8).
+    """Well-mixed canopy air (or profiles from a dataset): registered but not supported.
 
     Fortran reference: MLFluxProfileSolutionMod.F90::WellMixed. Fortran stops after it
-    ("WellMixed option not valid": legacy code, not supported); the legacy translation is in
-    the git history (``src/clm_ml/legacy/flux_profile.py`` at 1f1b651) for the fix after
-    Phase 8.
+    ("WellMixed option not valid").
     """
     raise NotImplementedError(
-        "flux_profile_solution: well_mixed is not supported (Phase 7 decision D8; Fortran "
-        "stops for it too; see the plan, 'After Phase 8: unsupported variants'); use implicit"
+        "flux_profile_solution: well_mixed is not supported (Fortran stops for it too); "
+        "use implicit"
     )
 
 

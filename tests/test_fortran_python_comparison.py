@@ -10,13 +10,13 @@ Thresholds (from CLAUDE.md):
 
 Run after a full-month CHATS7 May-2007 simulation (the Fortran reference covers May), with
 the Fortran acclimation temperature (``processes.photosynthesis.temperature_acclimation: run_mean``; the
-default 10-day running mean, decision 15, departs from Fortran by design, by up to ~1%) and
+default 10-day running mean departs from Fortran by design, by up to ~1%) and
 the legacy ASCII output (``output.legacy_ascii: true``): ``configs/chats7_may2007_fortran``::
 
     clm-ml run configs/chats7_may2007_fortran --set run.output.directory=<dir>
     CLM_ML_COMPARE_DIR=<dir> pytest tests/test_fortran_python_comparison.py -m slow -v
 
-(Phase 7.6: ``clm-ml-offline`` is retired; without ``CLM_ML_COMPARE_DIR`` the tests skip.)
+Without ``CLM_ML_COMPARE_DIR`` the tests skip.
 """
 
 from __future__ import annotations

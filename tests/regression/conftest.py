@@ -44,7 +44,7 @@ def current_fields(current):
 @pytest.fixture(scope="session", autouse=True)
 def _default_cpu_code_generation():
     """The regression tests compare round-off: refuse to run them with LLVM optimization off
-    (the CPU gradient tier's flag under JAX 0.9.2, issue 16), which changes round-off."""
+    (the CPU gradient tier's flag under JAX 0.9.2), which changes round-off."""
     if "--xla_backend_optimization_level=0" in os.environ.get("XLA_FLAGS", ""):
         pytest.fail(
             "XLA_FLAGS sets --xla_backend_optimization_level=0 (LLVM optimization off); "

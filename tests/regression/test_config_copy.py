@@ -1,5 +1,5 @@
 """Each run writes the four files of its experiment, as the model read them, into
-``OUTPUT/config`` (decision 91): a folder that repeats the run."""
+``OUTPUT/config``: a folder that repeats the run."""
 
 from __future__ import annotations
 

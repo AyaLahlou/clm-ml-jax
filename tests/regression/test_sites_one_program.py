@@ -1,5 +1,5 @@
 """
-Phase 6 step 2 test: one compiled program serves sites that differ in every per-site field.
+One compiled program serves sites that differ in every per-site field.
 
 Site B is CHATS7's forcing and vegetation under another name with a different latitude and
 longitude, bedrock depth, soil colour class and explicit layer counts (towers.yaml), so every

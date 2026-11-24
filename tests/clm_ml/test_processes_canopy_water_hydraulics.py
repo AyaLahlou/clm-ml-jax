@@ -1,4 +1,4 @@
-"""clm_ml.processes.canopy_water and plant_hydraulics (Phase 7.2, process 5), checked against
+"""clm_ml.processes.canopy_water and plant_hydraulics, checked against
 what they must conserve."""
 
 from collections import namedtuple
@@ -18,8 +18,8 @@ from clm_ml.processes.constants import (  # noqa: E402
     mmh2o,
 )
 
-N_SLOTS = 6  # layer slots; legacy arrays have N_SLOTS + 1 entries (index 0 unused)
-N_SOI = 4  # soil levels; legacy arrays have N_SOI + 1 entries
+N_SLOTS = 6  # layer slots
+N_SOI = 4  # soil levels
 DTIME = 300.0
 Params = namedtuple(
     "Params",
@@ -70,7 +70,7 @@ def _implicit_cases():
 
 
 def test_implicit_wetted_fraction_solves_the_water_balance():
-    """Decision 122: the water left (by the explicit relation) plus the water evaporated is
+    """The water left (by the explicit relation) plus the water evaporated is
     the water there was, so a layer never evaporates more than it holds; at the cap where
     the water allows it; the explicit value without demand; 0 without plant area."""
     dpai, water, demand = _implicit_cases()

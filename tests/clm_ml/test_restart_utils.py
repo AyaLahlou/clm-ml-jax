@@ -44,7 +44,7 @@ def test_health_check_catches_nan_and_implausible_temperatures():
 
 
 def test_restart_boundaries():
-    # a restart at the first chunk end on or after a boundary (decision 33)
+    # a restart at the first chunk end on or after a boundary
     t = dt.datetime
     assert restart_boundary(t(2009, 12, 25), t(2010, 1, 1), (1, "year"))
     assert restart_boundary(t(2009, 12, 25), t(2010, 1, 4, 0, 30), (1, "year"))

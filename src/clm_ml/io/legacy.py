@@ -1,8 +1,7 @@
-"""The legacy ASCII output (Phase 7.4; from the legacy driver ``CLMml_driver.output``): the
-six ``.out`` files of CLM-ml v2 (``flux``, ``aux``, ``profile``, ``fsun``, ``fluxprofile``,
-``soiltemp``) of one patch, written step by step from the step's legacy view
-(converted to the legacy layout here; run.yaml ``output.legacy_ascii``, for the comparison with the
-Fortran output, ``tests/test_fortran_python_comparison.py``).
+"""The legacy ASCII output: the six ``.out`` files of CLM-ml v2 (``flux``, ``aux``,
+``profile``, ``fsun``, ``fluxprofile``, ``soiltemp``) of one patch, written step by step from
+the step's fields in the legacy 1-based layout (run.yaml ``output.legacy_ascii``, for the
+comparison with the Fortran output, ``tests/test_fortran_python_comparison.py``).
 
 Fortran reference: CLM-ml v2 ``CLMml_driver.F90::output``.
 """
@@ -426,8 +425,8 @@ def output(
     # ------------------------------------------------------------------
     soiltemp_cols = ""
     for ic in range(1, 11):  # Fortran: ic=1,10
-        soiltemp_cols += _fmt10(soil_z[ic - 1])  # (the legacy read column 1, clamped to 0)
-        soiltemp_cols += _fmt10(temperature_inst.t_soisno_col[0, ic])  # (legacy: [1, ic], clamped)
+        soiltemp_cols += _fmt10(soil_z[ic - 1])  # 0-based soil level
+        soiltemp_cols += _fmt10(temperature_inst.t_soisno_col[0, ic])  # patch 0, 1-based level
     nout6.write(f"{time_stamp:12.7f}" + soiltemp_cols + "\n")
 
 

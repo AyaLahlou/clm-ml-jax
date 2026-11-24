@@ -1,19 +1,17 @@
-"""Running the model (Phase 7.4): the patches set up in this process, advanced together in
+"""Running the model: the patches set up in this process, advanced together in
 compiled chunks that accumulate the output streams.
 
 - :class:`Simulation`: a run's patches (constants, initial state, parameters, C3/C4 flag,
   gridcell map and weights; padded or laid out for devices), its clock, options and forcing
   reader. :func:`simulation` builds it from a :class:`clm_ml.experiment.Experiment`.
 - :func:`make_runner`: the compiled chunk: a ``jax.lax.scan`` over steps whose step is
-  ``clm_ml.step.step`` vmapped over the patches (C3 and C4 patches in contiguous groups,
-  decision 22), with the output streams accumulated inside (plan §6.9), split over devices
-  with ``jax.shard_map`` (Phase 6 step 5).
-- :func:`run_streams`: the run loop: chunks of fixed length (decision 33) from the first
-  step (an ordinary step since Phase 7.4: the setup gives the state before it), the next
-  chunk's forcing read on a background thread, conservation and health checks, restarts.
+  ``clm_ml.step.step`` vmapped over the patches (C3 and C4 patches in contiguous groups),
+  with the output streams accumulated inside, split over devices with ``jax.shard_map``.
+- :func:`run_streams`: the run loop: chunks of fixed length from the first step (an
+  ordinary step: the setup gives the state before it), the next chunk's forcing read on a
+  background thread, conservation and health checks, restarts.
 
-Moved from ``offline_executable.main`` (the legacy driver), without the legacy containers:
-the constants of every patch are an input of the compiled chunk (C23 b).
+The constants of every patch are an input of the compiled chunk.
 """
 
 from __future__ import annotations
@@ -39,7 +37,7 @@ jax.config.update("jax_enable_x64", True)
 
 def _default_cache_dir() -> str:
     """``$SCRATCH/jax_compile_cache`` where the system defines a scratch directory (NCAR's
-    machines do; the cache grows to gigabytes and home quotas are small, decision 106),
+    machines do; the cache grows to gigabytes and home quotas are small),
     ``~/.cache/jax_compile_cache`` otherwise."""
     scratch = os.environ.get("SCRATCH", "")
     if scratch and os.path.isdir(scratch):
@@ -147,7 +145,7 @@ class Simulation:
 
     @property
     def groups(self) -> list:
-        """``[(c3, patch indices), ...]``: the C3 group, then the C4 group (decision 22),
+        """``[(c3, patch indices), ...]``: the C3 group, then the C4 group,
         each a contiguous range of slots, present only if it has patches."""
         if self.layout is not None:
             _, _, n3, n4 = self.layout
@@ -248,7 +246,7 @@ class Simulation:
                     else:
                         src.append(plist[-1] if plist else fallback)
                         real.append(False)
-                        # the copied patch's gridcell when it is in this block (open item O29)
+                        # the copied patch's gridcell when it is in this block
                         gi.append(int(gidx[plist[-1]]) if plist else d * gd + gd - 1)
                     names.append(self.names[src[-1]] if real[-1] else f"padding {len(src) - 1}")
         src, real = np.array(src), np.array(real)
@@ -312,7 +310,7 @@ class TowerReader:
 
 
 def table_search(choice: str) -> str:
-    """The psihat table search of a run (model.yaml ``numerics.table_search``; decision 114):
+    """The psihat table search of a run (model.yaml ``numerics.table_search``):
     ``auto`` is ``unrolled`` on a GPU (1.9x faster for the 1 degree globe: a loop costs one
     command per iteration there) and ``loop`` on the CPU (faster there, and the arithmetic of
     the regression reference)."""
@@ -322,8 +320,8 @@ def table_search(choice: str) -> str:
 
 
 def solver_loops(choice: str) -> bool:
-    """Whether a run writes its solver loops out (model.yaml ``numerics.solver_loops``;
-    decision 117): the loops over layers of the radiation, longwave and flux-profile solves
+    """Whether a run writes its solver loops out (model.yaml ``numerics.solver_loops``):
+    the loops over layers of the radiation, longwave and flux-profile solves
     and the Obukhov and roughness-length iterations. ``auto`` is ``unrolled`` on a GPU (the
     1 degree globe ran 1.5x faster in the prototype: a loop costs commands and copies per
     iteration there, and the written-out rows merge with the physics around them) and
@@ -335,7 +333,7 @@ def solver_loops(choice: str) -> bool:
 
 def checkpoint_substeps(choice: str) -> bool:
     """Whether a run's gradients recompute each sub-step (model.yaml
-    ``numerics.checkpoint_substeps``; decision 125). ``auto`` is ``always`` on a GPU (a
+    ``numerics.checkpoint_substeps``). ``auto`` is ``always`` on a GPU (a
     fifth of the memory for 1 024 patches at the same speed; 4 096 patches do not fit on a
     40 GB A100 without it) and ``never`` on the CPU (a box of 18 patches ran 6x slower with
     it)."""
@@ -470,7 +468,7 @@ def _patch_names(run) -> list:
 
 def advance_acclimation(sim: Simulation, state, tref):
     """The state with the acclimation temperature's running mean advanced by this step's
-    forcing air temperature ``tref`` (decision 15): ``mean += (T - mean) / min(n, N)``, with
+    forcing air temperature ``tref``: ``mean += (T - mean) / min(n, N)``, with
     ``n`` the steps averaged so far (this one included) and ``N`` the steps in
     ``acclimation_days`` (CLM's ``runmean`` accumulation). The setup starts it at the first
     step's air temperature with no steps, so the first step leaves it unchanged. Unchanged
@@ -531,7 +529,7 @@ def make_runner(sim: Simulation, streams, gridcell_vars):
     """A compiled function ``(state, xg, xp, slots, buffers, params, weight, alive, gidx,
     constants, active=None, *, tables) -> (state, buffers, errors)`` advancing all patches
     of ``sim`` over a chunk as one ``jax.lax.scan``, the one-patch step (:func:`patch_step`)
-    ``vmap``ped over the patch axis (Phase 6 step 3).
+    ``vmap``ped over the patch axis.
 
     ``state``, ``params`` (``CanopyParams`` per patch) and ``constants``
     (``PatchConstants``) have a leading patch axis; ``constants`` is an input, so patches
@@ -544,10 +542,10 @@ def make_runner(sim: Simulation, streams, gridcell_vars):
     (``gridcell:<variable>``). ``errors``: ``(patch, check)``. ``active`` (``(step,)``
     bool): steps marked False (the padding of a short last chunk) change nothing.
 
-    ``alive`` ``(patch,)`` marks the patches still in the run (decision 25): an excluded
+    ``alive`` ``(patch,)`` marks the patches still in the run: an excluded
     patch, or one whose value is not finite, is left out of its gridcell's sum (the others'
     weights renormalized) and its parameters enter through ``stop_gradient``.
-    ``tables``: the psihat lookup tables, one copy for every patch and step (C22)."""
+    ``tables``: the psihat lookup tables, one copy for every patch and step."""
     from clm_ml import output_streams as S
     from clm_ml.step import step_inputs as combine_inputs
 
@@ -562,7 +560,7 @@ def make_runner(sim: Simulation, streams, gridcell_vars):
     def batched_step(constants, state, x_patch, params, tables):
         """Every patch's step: per group (contiguous slot ranges), vmapped; the groups'
         results joined in patch order (slices and concatenation only: scattering into the
-        scan's carry gave wrong states on CPU, Phase 6 step 5)."""
+        scan's carry gave wrong states on CPU)."""
         vmapped = [jax.vmap(s, in_axes=(0, 0, 0, 0, None)) for s in group_steps]
         if len(groups) == 1:
             return vmapped[0](constants, state, x_patch, params, tables)
@@ -621,8 +619,8 @@ def make_runner(sim: Simulation, streams, gridcell_vars):
 
         if not active:
             return advance(carry), None
-        # A padded step of a short last chunk changes nothing (decision 33) and is not
-        # computed (decision 116): lax.cond runs only the branch taken, where jnp.where on the
+        # A padded step of a short last chunk changes nothing and is not
+        # computed: lax.cond runs only the branch taken, where jnp.where on the
         # results computed the whole step and discarded it
         return jax.lax.cond(active[0], advance, lambda c: c, carry), None
 
@@ -657,7 +655,7 @@ def make_runner(sim: Simulation, streams, gridcell_vars):
 
 
 def _sharded(run_chunk, n_devices: int):
-    """``run_chunk`` run on ``n_devices`` devices with ``jax.shard_map`` (Phase 6 step 5):
+    """``run_chunk`` run on ``n_devices`` devices with ``jax.shard_map``:
     every array with a patch or gridcell axis is split into the devices' blocks along that
     axis (axis 0, or axis 1 behind a time/record axis); each device runs the chunk on its
     block. The parameters come per patch, so their gradients are summed over the devices
@@ -731,7 +729,7 @@ def place_patches(sim: Simulation, tree):
 
 def pad_steps(tree, length: int):
     """Every leaf's leading (step) axis extended to ``length`` by repeating its last entry
-    (the padded steps of a short last chunk, decision 33); numpy leaves stay numpy."""
+    (the padded steps of a short last chunk); numpy leaves stay numpy."""
 
     def pad(a):
         n = a.shape[0]
@@ -795,7 +793,7 @@ def _output_shapes(sim: Simulation, names) -> dict:
 
 def month_chunks(sim: Simulation, first_step: int) -> list:
     """``(first_step, n_steps)`` chunks covering run steps ``first_step ... n_steps - 1``, one
-    per calendar month of the steps' start times (plan decision 17)."""
+    per calendar month of the steps' start times."""
     chunks = []
     for k, start in zip(range(first_step, sim.n_steps), sim.step_starts(first_step,
                                                                           sim.n_steps - first_step)):  # fmt: skip
@@ -809,7 +807,7 @@ def month_chunks(sim: Simulation, first_step: int) -> list:
 
 def chunk_schedule(sim: Simulation, first_step: int, chunk_steps: Optional[int] = None):
     """``(chunks, length)``: the ``(first_step, n_steps)`` chunks covering run steps
-    ``first_step ... n_steps - 1`` and the length every chunk is run at (decision 33).
+    ``first_step ... n_steps - 1`` and the length every chunk is run at.
     ``chunk_steps``: fixed-length chunks counted from step 0, each run at ``length =
     min(chunk_steps, n_steps)`` steps (a short last chunk padded, so one compiled program
     serves the run; a run resumed from a restart written at a chunk end keeps the same
@@ -955,7 +953,7 @@ def real_mask(sim: Simulation) -> np.ndarray:
 def batch_failures(errors, state, sim: Simulation, alive=None) -> dict:
     """``{patch: [problem, ...]}`` for the patches (of those ``alive``) that fail a
     conservation check or whose state is unhealthy; padding slots are not checked (they are
-    copies with weight 0, outside every output and gradient; open item O29)."""
+    copies with weight 0, outside every output and gradient)."""
     errors = np.asarray(errors, dtype=float).reshape(sim.n_patches, len(BALANCE_CHECKS))
     state = jax.tree.map(np.asarray, state)  # one transfer from the devices
     failed = {}
@@ -976,7 +974,7 @@ def batch_failures(errors, state, sim: Simulation, alive=None) -> dict:
 
 def check_batch_balance(errors, sim: Simulation, where: str, alive=None) -> None:
     """Fortran's conservation checks per patch: stop the run naming the patches that fail
-    (decision 25, default); padding slots are not checked."""
+    (by default); padding slots are not checked."""
     errors = np.asarray(errors, dtype=float).reshape(sim.n_patches, len(BALANCE_CHECKS))
     failed = []
     real = real_mask(sim)
@@ -992,7 +990,7 @@ def check_batch_balance(errors, sim: Simulation, where: str, alive=None) -> None
 
 def check_batch(errors, state, sim: Simulation, where: str) -> None:
     """Conservation checks and the state's health, per patch: stop the run naming the
-    patches that fail (decision 25, default)."""
+    patches that fail (the default)."""
     check_batch_balance(errors, sim, where)
     state = jax.tree.map(np.asarray, state)  # one transfer from the devices
     for p in np.flatnonzero(real_mask(sim)):
@@ -1070,8 +1068,8 @@ def run_streams(
     chunk_steps: Optional[int] = None,
     timing: bool = False,
 ) -> None:
-    """Run the model with output streams (plan §6.9): compiled chunks of ``chunk_steps``
-    steps from the first step (decision 33; a short last chunk padded, so one program serves
+    """Run the model with output streams: compiled chunks of ``chunk_steps``
+    steps from the first step (a short last chunk padded, so one program serves
     the run; None: calendar months), accumulating every stream inside the scan. The next
     chunk's forcing is read and placed on the devices while one runs. After each chunk the
     conservation checks and the state's health are checked, and a restart is written
@@ -1089,7 +1087,7 @@ def run_streams(
     ``save_extra()``/``restore_extra(saved)`` carry the caller's bookkeeping (e.g. output
     files in progress). ``params`` (per patch) replaces the patches' own parameters.
 
-    A patch that fails a conservation check or the health check (decision 25): with
+    A patch that fails a conservation check or the health check: with
     ``on_patch_error="stop"`` the run stops naming it; with ``"exclude"`` it is left out from
     then on (its state frozen at its last good chunk, its outputs fill values, gridcell values
     from the other patches with renormalized weights), and the run stops when more than

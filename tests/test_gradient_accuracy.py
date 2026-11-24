@@ -1,5 +1,5 @@
 """Accuracy of the model's derivatives where the solvers' implicit-function gradients are
-hardest (decision 119; ``docs/design/gradient_progress.md`` round 2): the CHATS7 morning
+hardest: the CHATS7 morning
 transition, with Obukhov lengths of 10-15 m at the limit of the roughness-sublayer
 functions (Lc/L = 1) and leaves at the minimum stomatal conductance. Forward-mode
 derivatives of the fluxes of four steps against central finite differences.
@@ -54,7 +54,7 @@ def derivatives():
         return jnp.stack([out["s"][v][:, 0] for v in VARIABLES])
 
     zero = jnp.zeros(len(PARAMETERS))
-    values(zero)  # fills the host caches outside a trace (O76)
+    values(zero)  # fills the host caches outside a trace
     eye = jnp.eye(len(PARAMETERS))
     ad = np.asarray(jax.jit(jax.vmap(lambda d: jax.jvp(values, (zero,), (d,))[1]))(eye))
     run = jax.jit(values)

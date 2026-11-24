@@ -1,8 +1,8 @@
-"""A chunk's inputs as 0-based arrays (Phase 7.3): the step's time and meteorology per
+"""A chunk's inputs as 0-based arrays: the step's time and meteorology per
 gridcell (:class:`clm_ml.step.MetInputs`) and its land data per patch
 (:class:`clm_ml.step.LandInputs`), stacked along a leading step axis.
 
-The forcing is prepared on the host a chunk ahead (plan decision 36): the meteorology at the
+The forcing is prepared on the host a chunk ahead: the meteorology at the
 model step (already interpolated from the data records), the previous and next steps'
 forcing records of the canopy's 3-point time interpolation (``*_bef``/``*_next`` in
 Fortran), the leaf and stem area and the soil water. Grid runs form the land data inside the

@@ -40,7 +40,7 @@ class ForcingRecord(NamedTuple):
 
 
 class AtmForcing(NamedTuple):
-    """Forcing at the reference height for one sub-step (legacy ``<name>_forcing`` fields)."""
+    """Forcing at the reference height for one sub-step (CLM-ml v2 ``<name>_forcing`` fields)."""
 
     uref: Array  # wind speed, at least ``wind_forc_min`` (m/s)
     tref: Array  # air temperature (K)

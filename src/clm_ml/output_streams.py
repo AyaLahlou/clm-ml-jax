@@ -1,5 +1,5 @@
 """
-Output streams: statistics accumulated inside the compiled chunk (plan §6.9, decision 16).
+Output streams: statistics accumulated inside the compiled chunk.
 
 A stream is a set of variables written at one frequency with one statistic (mean,
 instantaneous, min, max). Following jax-gcm, outputs are accumulated during the scan, so a

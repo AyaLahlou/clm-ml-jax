@@ -1,4 +1,4 @@
-"""Restart files as netCDF (Phase 7.5, decision D2).
+"""Restart files as netCDF.
 
 A restart holds what a run needs to continue from the end of a chunk; the setup (constants,
 parameters, layer grid) is rebuilt from the run's configuration, deterministically, so it is
@@ -15,7 +15,7 @@ Schema (format version :data:`FORMAT_VERSION`; netCDF4, groups):
 - group ``state``: the prognostic state (``clm_ml.state.State``) of every patch, one variable
   per field (``canopy_air_temperature`` (patch, layer) K, ...), with ``units`` and
   ``long_name``;
-- variable ``alive`` (patch): 1 for the patches still in the run (decision 25);
+- variable ``alive`` (patch): 1 for the patches still in the run;
 - group ``streams``, one subgroup per output stream (``stream_0``, ...) holding the record in
   progress (attributes ``name``, ``statistic``, ``pending``: 0 or 1, ``key`` (JSON, typed),
   ``end`` (ISO 8601)) and its partial buffers (``sum``/``count`` or ``value`` subgroups, one
@@ -179,7 +179,7 @@ def write_restart(path: Path, content: dict, calendar: str = "GREGORIAN") -> Non
             var.units, var.long_name = UNITS[name]
             var[...] = np.asarray(getattr(getattr(state, part), name), dtype=np.float64)
         alive = ds.createVariable("alive", "i1", ("patch",))
-        alive.long_name = "1: the patch is still in the run (decision 25)"
+        alive.long_name = "1: the patch is still in the run"
         alive[...] = np.asarray(content.get("alive", np.ones(temp.shape[0], bool)), dtype="i1")
         streams = ds.createGroup("streams")
         names = content.get("streams") or [None] * len(content.get("collectors", []))
@@ -203,9 +203,9 @@ def _read_one(path: Path) -> dict:
     from clm_ml.state import CanopyState, SoilState, State
 
     with open(path, "rb") as fh:
-        if fh.read(1) == b"\x80":  # a pickle (formats 1-5, before Phase 7.5)
+        if fh.read(1) == b"\x80":  # a pickle (formats 1-5: older restart files were pickles)
             raise RestartError(
-                "a pickle restart from before Phase 7.5 (format 1-5): this code reads netCDF "
+                "a pickle restart (format 1-5, an older version of clm-ml): this code reads netCDF "
                 f"restarts (format {FORMAT_VERSION}); run again from the start"
             )
     with netcdf.dataset(path) as ds:

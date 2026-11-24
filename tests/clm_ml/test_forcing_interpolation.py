@@ -1,4 +1,4 @@
-"""Forcing interpolation to the model step (decision 13): 6-hourly means made from the CHATS7
+"""Forcing interpolation to the model step: 6-hourly means made from the CHATS7
 half-hourly data and interpolated back to 30 minutes conserve daily shortwave and
 precipitation, put no sunlight at night, and interpolate temperature linearly."""
 

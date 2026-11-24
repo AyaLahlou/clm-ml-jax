@@ -1,10 +1,9 @@
-"""The soil columns at setup (Phase 7.4): layer structure, bedrock, hydraulic and thermal
+"""The soil columns at setup: layer structure, bedrock, hydraulic and thermal
 properties, roots, soil colour albedos and the initial soil temperature, as 0-based arrays
 (soil levels from the top down; one column per patch).
 
-The arithmetic is the legacy translation's, operation by operation (Python floats where it
-used them, ``jax.numpy`` where it did), so the values equal the legacy setup's bit for bit
-(``tests/regression/test_setup.py``).
+The arithmetic follows the Fortran operation by operation; ``tests/regression/test_setup.py``
+checks the values bit for bit against a recorded setup.
 """
 
 from __future__ import annotations
@@ -14,8 +13,8 @@ import numpy as np
 from clm_ml.io import netcdf
 from clm_ml.setup import tables
 
-#: Hydrologically active and all ground levels of the CLM soil layer structure (the only
-#: one: decision C35). Fortran reference: clm_varpar.F90::clm_varpar_init (clm_phys CLM5_0)
+#: Hydrologically active and all ground levels of the CLM soil layer structure (CLM5's, the
+#: only one supported). Fortran reference: clm_varpar.F90::clm_varpar_init (clm_phys CLM5_0)
 NLEVSOI = 20
 NLEVGRND = 25
 
@@ -31,7 +30,7 @@ def soil_layers() -> tuple:
     import jax.numpy as jnp
 
     nlevsoi, n = NLEVSOI, NLEVGRND
-    z = jnp.zeros(n + 1, dtype=jnp.float64)  # 1-based work arrays, as the legacy code
+    z = jnp.zeros(n + 1, dtype=jnp.float64)  # 1-based work arrays, as in Fortran
     dz = jnp.zeros(n + 1, dtype=jnp.float64)
     zi = jnp.zeros(n + 1, dtype=jnp.float64)
     for j in range(1, 5):
@@ -85,8 +84,7 @@ def soil_properties(sand, clay, organic, texture, z, nlevsoi: int):
     (``watsat``, ``sucsat`` mm, ``hksat`` mm/s, ``bsw``, ``tkmg``, ``tkdry``, ``csol``), from
     its sand and clay (percent; NaN: from the texture class ``texture``) and organic matter
     (kg m-3); ``z`` (nlevgrnd,) node depths. A texture class's values are the row of its
-    class in the tables (issue 21, fixed 2026-11-01: the legacy translation took the next
-    class's row, as Fortran's 1-based class number indexed the 0-based tables).
+    class in the tables (the class number is 1-based, the tables' rows 0-based).
 
     Fortran reference: SoilStateInitTimeConstMod.F90::SoilStateInitTimeConst."""
     csol_bedrock = 2.0e6  # clm_varcon

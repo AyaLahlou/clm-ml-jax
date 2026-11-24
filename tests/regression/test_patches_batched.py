@@ -1,5 +1,5 @@
 """
-Phase 6 step 3 test: many gridcells and patches in one run.
+Many gridcells and patches in one run.
 
 A domain of two gridcells and three patches, every per-patch field different:
 
@@ -113,7 +113,7 @@ def test_patches_batched(tmp_path):
         ),
         **{name: ({name: t}, [name]) for name, t in singles.items()},
     }  # fmt: skip
-    # one after the other: runs are in this process (Phase 7.4), and netCDF is not
+    # one after the other: runs are in this process, and netCDF is not
     # thread-safe
     out = {k: _execute(tmp_path, k, *v) for k, v in jobs.items()}
     shutil.rmtree(tmp_path, ignore_errors=True)

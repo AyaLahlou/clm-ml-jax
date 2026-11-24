@@ -77,7 +77,7 @@ class StomatalConductanceOptions:
     wue_solver: Literal["bisection", "brent"] = option(
         "bisection",
         "Root finder of the WUE optimization: bisection (CLM-ml v2). brent is refused (not "
-        "translated as traceable code; decisions.md).",
+        "translated as traceable code).",
         "gs_solver 2/1",
         when={"scheme": "wue"},
     )
@@ -139,7 +139,7 @@ class CanopyAirOptions:
     flux_profile_solution: Literal["implicit", "well_mixed"] = option(
         "implicit",
         "Coupled implicit solution of air temperature, vapour and leaf temperature in every "
-        "layer. well_mixed is refused (Fortran calls it legacy, not supported).",
+        "layer. well_mixed is refused (Fortran stops for it too).",
         "flux_profile_type 1/0",
     )
 
@@ -193,9 +193,9 @@ class NumericsOptions:
         "implicit",
         "Wetted fraction of the leaves in a sub-step: implicit (of the intercepted water left "
         "at the end of the sub-step, so leaves cannot evaporate more water than they hold; "
-        "decision 122) or explicit (of the water at the start of each Runge-Kutta stage, as "
-        "Fortran CLM-ml v2: almost dry leaves alternate between wet and dry and their water "
-        "turns negative; for comparison with Fortran).",
+        "differs from CLM-ml v2) or explicit (of the water at the start of each Runge-Kutta "
+        "stage, as Fortran CLM-ml v2: almost dry leaves alternate between wet and dry and "
+        "their water turns negative; for comparison with Fortran).",
         "",
     )
     water_stress_derivative: Literal["stabilized", "exact"] = option(
@@ -207,8 +207,7 @@ class NumericsOptions:
         "days. stabilized: the derivative of the potential consistent with the transpiration "
         "it gives (bounded; 30-day mean derivatives of stressed patches within about 6 % of "
         "a finite change instead of 35-360 % off; no cost), an approximation: not the exact "
-        "derivative of the forward values at a stressed step. exact: the exact derivative "
-        "(decision 124).",
+        "derivative of the forward values at a stressed step. exact: the exact derivative.",
         "",
     )
     obukhov_derivative: Literal["exact", "stabilized"] = option(
@@ -222,7 +221,7 @@ class NumericsOptions:
         "the derivative of the length consistent with the air the stage gives (bounded; "
         "monthly-mean derivatives within about 12 % of a finite change; the gradient takes "
         "1.7 times as long and half as much memory again), an approximation: not the exact "
-        "derivative of the forward values at an affected step (decision 124).",
+        "derivative of the forward values at an affected step.",
         "",
     )
     checkpoint_steps: bool = option(
@@ -239,7 +238,7 @@ class NumericsOptions:
         "of a whole step. always: about a fifth of the memory with many patches, at the same "
         "speed on a GPU (4 096 patches do not fit on a 40 GB GPU without it) but six times "
         "slower on the CPU (18 patches). never: the reverse. auto: always on a GPU, never on "
-        "the CPU. Results are the same either way (decision 125).",
+        "the CPU. Results are the same either way.",
         "",
     )
     table_search: Literal["auto", "loop", "unrolled", "compare_all"] = option(
@@ -247,8 +246,7 @@ class NumericsOptions:
         "How the psihat lookup tables are searched: loop (a binary search as a compiled loop, "
         "fastest on the CPU), unrolled (the same binary search without the loop, fastest on a "
         "GPU, where every loop iteration is a separate command) or compare_all. auto: "
-        "unrolled on a GPU, loop on the CPU. The table indices are the same either way "
-        "(decision 114).",
+        "unrolled on a GPU, loop on the CPU. The table indices are the same either way.",
         "",
         hidden=True,
     )
@@ -259,7 +257,7 @@ class NumericsOptions:
         "loop (compiled loops: small programs, fastest on the CPU) or unrolled (the same "
         "operations written out one after another: faster on a GPU, about three times the "
         "compile time). auto: unrolled on a GPU, loop on the CPU. Results agree to round-off; "
-        "the stomatal solvers, sub-steps and soil always stay loops (decision 117).",
+        "the stomatal solvers, sub-steps and soil always stay loops.",
         "",
         hidden=True,
     )
@@ -332,7 +330,7 @@ class CanopyLayerOptions:
         0.01,
         "At every step: every leafy layer keeps at least this plant area (m2 m-2), the missing "
         "part added as stem area: thinner layers transmit more diffuse radiation than they "
-        "receive (decisions.md; CLM-ml v1's dpai_min). 0 reproduces CLM-ml v2.",
+        "receive (CLM-ml v1's dpai_min; not in CLM-ml v2). 0 reproduces CLM-ml v2.",
         "",
     )
 
@@ -344,8 +342,8 @@ class SoilOptions:
 
     columns: Literal["per_patch", "shared"] = option(
         "per_patch",
-        "per_patch: each patch has its own soil column (option A). shared: patches on a "
-        "gridcell share one column (option B; not yet implemented).",
+        "per_patch: each patch has its own soil column. shared: patches on a "
+        "gridcell share one column (not yet implemented).",
         "",
     )
 
@@ -362,8 +360,7 @@ class ModelConfig:
     def __post_init__(self):
         if self.soil.columns == "shared":
             raise ConfigError(
-                "model.yaml: soil.columns: 'shared' (option B) is planned but not implemented; "
-                "use 'per_patch'"
+                "model.yaml: soil.columns: 'shared' is not implemented; use 'per_patch'"
             )
         if self.processes.photosynthesis.acclimation_days <= 0:
             raise ConfigError(
@@ -410,7 +407,7 @@ class ModelConfig:
         return ModelConfig.from_dict(data, source="replace()")
 
     def to_fortran_codes(self, interpolation: str) -> dict:
-        """Values for the legacy ``MLclm_varctl`` module variables.
+        """Values for the Fortran ``MLclm_varctl`` module variables.
 
         ``interpolation`` comes from ``run.yaml`` (``forcing.meteorology.interpolation``), because it
         describes the forcing data rather than the processes.

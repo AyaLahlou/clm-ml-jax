@@ -1,10 +1,9 @@
-"""CLM history files of tower runs (Phase 7.4; from the legacy ``offline_driver.clmDataMod``):
-leaf and stem area index, volumetric soil water, the optional soil-water adjustment factor and
-the initial soil temperature.
+"""CLM history files of tower runs: leaf and stem area index, volumetric soil water, the
+optional soil-water adjustment factor and the initial soil temperature.
 
 The records a run needs are read before its time loop, chunk by chunk
 (:func:`read_clm_history_series`). The history must have the CLM soil levels (``nlevsoi``
-levels of ``H2OSOI``; decision C35).
+levels of ``H2OSOI``).
 
 Fortran reference: CLM-ml v2 ``clmDataMod.F90`` (``readCLMveg``, ``readCLMsoil``,
 ``readSoilWatFactor``) and ``CLMml_driver.F90::SoilInit``.

@@ -1,4 +1,4 @@
-"""clm_ml.processes.solar_radiation (Phase 7.2, process 4), checked against what it must
+"""clm_ml.processes.solar_radiation, checked against what it must
 conserve."""
 
 from collections import namedtuple
@@ -14,8 +14,8 @@ import jax.numpy as jnp  # noqa: E402
 from clm_ml.processes import solar_radiation as solar  # noqa: E402
 from clm_ml.state import PatchLayers  # noqa: E402
 
-N_SLOTS = 6  # layer slots; legacy arrays have N_SLOTS + 1 entries (index 0 ground/unused)
-NCAN, NTOP, NBOT = 5, 3, 2  # legacy 1-based counts: leafy layers 2..3, padding slot 6
+N_SLOTS = 6  # layer slots; the profiles below have N_SLOTS + 1 entries (index 0 the ground)
+NCAN, NTOP, NBOT = 5, 3, 2  # Fortran-style counts: leafy layers 2..3, padding slot 6
 Params = namedtuple(
     "Params",
     "leaf_reflectance leaf_transmittance stem_reflectance stem_transmittance "
@@ -28,7 +28,7 @@ PARAMS = Params(
 
 
 def _profiles():
-    """Leaf and stem area of the legacy layer slots (leafy layers only)."""
+    """Leaf and stem area of the ground and layer slots (leafy layers only)."""
     dlai = np.zeros(N_SLOTS + 1)
     dsai = np.zeros(N_SLOTS + 1)
     dlai[NBOT : NTOP + 1] = [0.8, 1.2]
@@ -58,8 +58,8 @@ def _physics(leaf_angle_index=PARAMS.leaf_angle_index):
 @pytest.mark.parametrize("chil", [-0.5, -0.4, -0.3, 0.0, 0.01, 0.25, 0.53, 0.6])
 def test_avmu_is_the_fortran_formula_for_any_leaf_angle_index(chil):
     """The average inverse diffuse optical depth with phi2 as it is, negative for a negative
-    leaf angle index (decision 120: a guard max(phi2, 1e-10) gave 1 / (2 phi1), 0.757
-    instead of 1.077 at -0.3, with amplified rounding noise), and energy is conserved."""
+    leaf angle index (a guard max(phi2, 1e-10) would give 1 / (2 phi1), 0.757 instead of
+    1.077 at -0.3, with amplified rounding noise), and energy is conserved."""
     optics, fluxes, _, _, _ = _physics(chil)
     x = min(max(chil, -0.4), 0.6)
     x = 0.01 if abs(x) <= 0.01 else x

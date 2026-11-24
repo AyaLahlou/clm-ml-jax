@@ -35,7 +35,7 @@ tests/
   clm_ml/              unit tests (fast)
   fortran_validation/  160+ routine tests against Fortran golden values (rtol 1e-9)
   regression/          end-to-end runs against committed references
-docs/design/    decisions.md (decision register), open_items.md, model_overview.md, plan
+docs/design/    decisions.md (decision register), open_items.md, model_overview.md, numerics
 ```
 
 ## Adding a process or a scheme
@@ -78,7 +78,7 @@ End-to-end runs cost about a minute each, so test in tiers:
   (`python -m pytest tests/regression/test_end_to_end_regression.py
   tests/regression/test_clm_ml_equivalence.py -m regression -q`), plus the changed feature's own
   end-to-end test;
-- **at the end of a phase:** all of `tests/regression -m regression`, the gradient tier
+- **before merging into `main`:** all of `tests/regression -m regression`, the gradient tier
   (`python tests/gradient_tier.py`) and the slow tests.
 
 A refactor that should not change the arithmetic must pass **bit for bit**. Every change must
@@ -94,15 +94,18 @@ Fortran validation tests: capture golden I/O from the Fortran build, add the JSO
 ## Code style
 
 ```bash
-black --check --line-length 100 src tests timing && ruff check src tests timing
+black --check --line-length 100 src tests timing examples && ruff check src tests timing examples
 ```
 
-Both run in CI.
+Both run in CI, as does the documentation build
+(`sphinx-build -W --keep-going -b html docs docs/_build/html`; warnings are errors). The settings
+reference is generated from the option declarations (`docs/_ext/settings_reference.py`), so a
+new setting's explanation is its documentation.
 
 ## Workflow
 
-Work happens on one branch per phase (e.g. `phase8a/housekeeping`); commits are made when the
-tests of the tiers above pass. Record design decisions in `docs/design/decisions.md` and open
+Work happens on a branch per piece of work, merged into `main` by pull request; commits are
+made when the tests of the tiers above pass. Record design decisions in `docs/design/decisions.md` and open
 questions in `docs/design/open_items.md` in the same commit as the change.
 
 ## Reporting bugs

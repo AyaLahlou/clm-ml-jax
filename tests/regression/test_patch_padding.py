@@ -1,5 +1,5 @@
 """
-Phase 6 step 3 test: padding the patch and gridcell counts (``execution.patch_count``,
+Padding the patch and gridcell counts (``execution.patch_count``,
 ``gridcell_count``) lets domains of different sizes share one compiled program.
 
 Domain A has two gridcells and three patches; domain B one gridcell and one patch. Both are

@@ -1,7 +1,7 @@
 # CLM-ML-JAX: the CLM-ml v2 multilayer canopy model in JAX
 
 [![CI](https://github.com/linniahawkins/clm-ml-jax/actions/workflows/ci.yml/badge.svg)](https://github.com/linniahawkins/clm-ml-jax/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSD-3](https://img.shields.io/badge/License-BSD--3-green.svg)](LICENSE)
 
 CLM-ml v2 is the multilayer canopy model developed for the Community Land Model by Gordon
@@ -10,14 +10,14 @@ results as the Fortran model ([gbonan/CLM-ml_v2.CHATS](https://github.com/gbonan
 and adds GPU execution, gradients for calibration and sensitivity analysis, and runs from one
 flux tower up to the whole globe.
 
-How the model is organized, what runs when, and how it differs from the Fortran:
-[`docs/how_the_model_works.md`](docs/how_the_model_works.md).
+**Documentation:** <https://linniahawkins.github.io/clm-ml-jax/> (getting started, your own
+tower, examples, how the model works, every setting).
 
 ---
 
 ## Install
 
-You need Python 3.10 or newer and git.
+You need Python 3.11 or newer and git.
 
 ```bash
 git clone https://github.com/linniahawkins/clm-ml-jax.git
@@ -125,7 +125,7 @@ clm-ml run chats7 --set params.broadleaf_deciduous_temperate_tree.vcmax25=100
 ## Tests
 
 The JAX model is checked against the Fortran model routine by routine (160+ tests) and end to
-end (CHATS7, May 2007). Every change must also pass a bit-for-bit regression test:
+end (CHATS7, May 2007). Every change must also pass a regression test against a recorded reference run:
 
 ```bash
 pip install -e ".[dev]"

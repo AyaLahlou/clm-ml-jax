@@ -56,7 +56,7 @@ def plant_area(
     CLM history) spread with the layers' fractions (``dlai_frac_profile``,
     ``dsai_frac_profile``, set at initialization).
 
-    Not Fortran (Phase 6b, issue 14): every leafy layer keeps at least ``layer_pai_floor`` of
+    Not in CLM-ml v2: every leafy layer keeps at least ``layer_pai_floor`` of
     plant area, the missing part added as stem area, and the canopy's stem area includes it.
     CLM-ml's 9-angle diffuse transmittance exceeds 1 below ~0.005 m2/m2, which makes a layer's
     net longwave grow with its temperature and the leaf temperature run away. Layers at or
@@ -64,7 +64,7 @@ def plant_area(
     is that thin (CHATS7). Value: CLM-ml v1's ``dpai_min`` (m2/m2).
 
     Every slot is computed (padding with the top layer's fractions); the caller keeps the
-    layers in use. Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 220-243).
+    layers in use. Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     dlai = pad_with_top(layers, dlai_frac) * lai
     dsai = pad_with_top(layers, dsai_frac) * sai
@@ -81,7 +81,7 @@ def soil_surface_humidity(smp: Array, t_soil: Array) -> Array:
     """Relative humidity of the air at the soil surface (``rhg_soil``) from the matric
     potential (mm) and temperature (K) of the first soil layer.
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 259-262).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     return jnp.exp(grav * mmh2o * smp * 1.0e-3 / (rgas * t_soil))
 
@@ -92,8 +92,8 @@ def soil_surface_humidity(smp: Array, t_soil: Array) -> Array:
 
 
 class SubstepFluxes(NamedTuple):
-    """The values averaged over the sub-steps of a step (the legacy container's field of the
-    same name, without its suffix). Every slot of the layer, level and leaf axes."""
+    """The values averaged over the sub-steps of a step (the CLM-ml v2 ``mlcanopy_type`` field of
+    the same name, without its suffix). Every slot of the layer, level and leaf axes."""
 
     ustar: Array  # () friction velocity, m/s (_canopy)
     beta: Array  # () u*/U(h) (_canopy)
@@ -115,7 +115,7 @@ class SubstepFluxes(NamedTuple):
     swskyb: Array  # (band,) direct beam shortwave, W/m2 (_forcing)
     swskyd: Array  # (band,) diffuse shortwave, W/m2 (_forcing)
     lwsky: Array  # () atmospheric longwave, W/m2 (_forcing)
-    # Not Fortran (issue 12): the canopy-top latent heat flux of the sub-step, with the
+    # Not in CLM-ml v2: the canopy-top latent heat flux of the sub-step, with the
     # sub-step's own latent heat (Fortran multiplies the averaged water vapor flux by the last
     # sub-step's LatVap(tref), which differs when tref crosses freezing within the step)
     lhtop: Array  # () W/m2 (_canopy)
@@ -145,7 +145,7 @@ class SubstepFluxes(NamedTuple):
 
 def canopy_top_latent_heat(layers: PatchLayers, etair: Array, tref: Array) -> Array:
     """The sub-step's latent heat flux at the canopy top (top layer in use), W/m2: the
-    ``lhtop`` entry of :class:`SubstepFluxes` (not Fortran, issue 12)."""
+    ``lhtop`` entry of :class:`SubstepFluxes` (not in CLM-ml v2)."""
     return jnp.take(etair, layers.n_layers - 1, axis=0) * lat_vap(tref)
 
 
@@ -196,8 +196,8 @@ class CanopyLeaves(NamedTuple):
 class CanopyTotals(NamedTuple):
     """Canopy totals of a step (``*_canopy`` fields; per m2 ground) and the layers' mean leaf
     water potential, with the errors of Fortran's four energy checks. Only what outputs and
-    checks read (D6; the other totals and profiles of Fortran's ``CanopyFluxesDiagnostics``
-    are listed in ``docs/design/phase7_removed_diagnostics.md``)."""
+    checks read (not the other totals and profiles of Fortran's
+    ``CanopyFluxesDiagnostics``)."""
 
     swveg: Array  # (band,) absorbed shortwave: vegetation, W/m2
     swvegsun: Array  # (band,) absorbed shortwave: sunlit canopy, W/m2
@@ -258,8 +258,8 @@ def canopy_totals(
     plant area; layers without plant area and the padding contribute nothing.
 
     ``flux_profile_type`` (static): 1 the canopy's turbulent fluxes are those at the top layer
-    (``lhflx`` the sub-step average of the canopy-top latent heat flux, issue 12; Fortran
-    ``etair(ncan) * LatVap(tref)`` with the averaged ``etair`` and the last sub-step's
+    (``lhflx`` the sub-step average of the canopy-top latent heat flux, not in CLM-ml v2;
+    Fortran ``etair(ncan) * LatVap(tref)`` with the averaged ``etair`` and the last sub-step's
     ``tref``); 0 or -1 the vegetation's plus the ground's.
 
     Fortran reference: MLCanopyFluxesMod.F90::CanopyFluxesDiagnostics.
@@ -484,8 +484,7 @@ def merge_sun_shade(
     are kept for output (``*_hist``).
 
     Every slot is computed (layers without plant area and the padding unchanged); the caller
-    keeps the layers in use. Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes
-    (lines 355-375).
+    keeps the layers in use. Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     has_pai = (dpai > 0.0) & layers.in_use
 
@@ -520,24 +519,25 @@ class SubstepOptions(NamedTuple):
     integrator: str  # processes.integrators.TABLEAUS
     table_search: str = "loop"  # psihat table search: processes.turbulence.TABLE_SEARCH
     #: the loops over layers (radiation, longwave and flux-profile solves) and the Obukhov and
-    #: roughness-length iterations written out instead of compiled loops (decision 117)
+    #: roughness-length iterations written out instead of compiled loops (faster on a GPU)
     unroll_loops: bool = False
     #: wetted fraction of the leaves: of the water left at the end of the sub-step
-    #: (implicit, decision 122) or at the start of the stage (explicit, Fortran)
+    #: (implicit, not in CLM-ml v2: bounded derivatives when leaves are almost dry) or at the
+    #: start of the stage (explicit, Fortran)
     wetted_fraction: str = "implicit"
     #: derivative of the water stress: the exact one of the forward values (exact), or of
     #: the leaf water potential consistent with its own transpiration, which stays bounded
-    #: over days (stabilized); the same forward values (decision 124)
+    #: over days (stabilized); the same forward values
     water_stress_derivative: str = "stabilized"
     #: derivative of the Obukhov length: the exact one of the forward values (exact) or,
     #: where the loop through the canopy-top air overshoots, the one consistent with the air
     #: the stage gives, which stays bounded over days (stabilized); the same forward values
-    #: (decision 124)
     obukhov_derivative: str = "exact"
 
 
 class SubstepInputs(NamedTuple):
-    """Values fixed over a step's sub-steps (legacy container field in parentheses)."""
+    """Values fixed over a step's sub-steps (CLM-ml v2 ``mlcanopy_type`` field in
+    parentheses)."""
 
     layers: PatchLayers
     forcing_bef: object  # processes.atm_forcing.ForcingRecord at the previous step
@@ -570,7 +570,7 @@ class SubstepInputs(NamedTuple):
     psis: Array  # () soil water potential, MPa (psis_soil)
 
 
-#: Fields of :class:`Substep` by kind (their legacy container names; the kind gives the
+#: Fields of :class:`Substep` by kind (their CLM-ml v2 ``mlcanopy_type`` names; the kind gives the
 #: shape: scalar (), band (band,), layer (layer,), level (level,), level_band (level, band),
 #: leaf (layer, leaf), leaf_band (layer, leaf, band), stage (stage,), layer_stage
 #: (layer, stage), leaf_stage (layer, leaf, stage), checks (check,))
@@ -609,20 +609,21 @@ SUBSTEP_KINDS = {
 #: :class:`SubstepInputs` (the prognostic variables, their values at the start of the
 #: sub-step, the Runge-Kutta increments, and the processes' results that later processes,
 #: the averages, the canopy totals or the outputs read). Every slot of each axis; padding
-#: slots keep their values where the legacy routines kept them.
+#: slots keep their values where the Fortran routines keep them.
 Substep = NamedTuple("Substep", [(f, Array) for fields in SUBSTEP_KINDS.values() for f in fields])
 
 
-#: The fill value of the legacy containers (clm_varcon.spval): slots no routine has written
+#: The fill value of CLM-ml v2's ``mlcanopy_type`` (clm_varcon.spval): slots no routine has
+#: written
 SPVAL = 1.0e36
 
 
 def initial_substep(n_layers: int, n_stage_slots: int, n_checks: int) -> Substep:
     """The sub-step carry at the start of a step, before the prognostic state is put in:
     ``spval`` in every slot (the work values are written before they are read; the slots no
-    step writes, above the canopy or the top layer, keep it, as the legacy containers did)
+    step writes, above the canopy or the top layer, keep it, as in CLM-ml v2)
     and no conservation errors. ``n_layers``: layer slots; ``n_stage_slots``: the
-    Runge-Kutta increments' slots (the method's stages + 1). Phase 7.4 (C26)."""
+    Runge-Kutta increments' slots (the method's stages + 1)."""
     shapes = {
         "scalar": (), "band": (2,), "layer": (n_layers,), "level": (n_layers + 1,),
         "level_band": (n_layers + 1, 2), "leaf": (n_layers, 2), "leaf_band": (n_layers, 2, 2),
@@ -638,8 +639,8 @@ def initial_substep(n_layers: int, n_stage_slots: int, n_checks: int) -> Substep
 
 
 def stage_slots(integrator: str) -> int:
-    """Slots of the Runge-Kutta increments in the carry: the method's stages + 1 (the
-    legacy ``nrk + 1``)."""
+    """Slots of the Runge-Kutta increments in the carry: the method's stages + 1
+    (``nrk + 1``)."""
     from clm_ml.processes.integrators import TABLEAUS
 
     return len(TABLEAUS[integrator].b) + 1
@@ -660,7 +661,7 @@ def _keep(mask, new, old):
 def save_start(c: Substep, layers: PatchLayers) -> Substep:
     """The values at the start of the sub-step (``*_bef``), layers in use (padding kept).
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 272-285).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     use = layers.in_use
     return c._replace(
@@ -748,7 +749,7 @@ def _fluxes(c: Substep, x: SubstepInputs, params, errors, tables, opt, c3: bool,
     canopy-top air (:func:`_fluxes_stabilized_obukhov`). Returns the values, the errors and
     the interception.
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 309-322).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     from clm_ml.checks import LEAF_ENERGY, SOIL_ENERGY
     from clm_ml.processes import (
@@ -796,7 +797,9 @@ def _fluxes(c: Substep, x: SubstepInputs, params, errors, tables, opt, c3: bool,
         x.qflx_rain, x.qflx_snow, x.lai, x.sai, x.dpai, c.h2ocan_bef_profile, opt.dtime
     )
 
-    # Wetted fraction of the water left at the end of the sub-step (decision 122; every slot)
+    # Wetted fraction from the water left at the end of the sub-step (every slot; differs
+    # from CLM-ml v2, which uses the water at the start: almost dry leaves otherwise make the
+    # derivatives explode)
     if opt.wetted_fraction == "implicit":
         demand = canopy_water.wet_leaf_demand(
             c.tleaf_leaf, c.eair_profile, gbv, c.fracsun_profile, x.dpai, c.pref_forcing,
@@ -852,8 +855,8 @@ def _fluxes(c: Substep, x: SubstepInputs, params, errors, tables, opt, c3: bool,
     )  # fmt: skip
     errors = _record(errors, SOIL_ENERGY, fp.soil.error)
     errors = _record(errors, LEAF_ENERGY, fp.leaf.error)
-    # cair: the reference CO2 in layers 0..ncan-2, as the legacy translation set it
-    # (Fortran: all layers; no effect while cair is constant, numerics doc §4.5)
+    # cair: the reference CO2 in layers 0..ncan-2 (differs from CLM-ml v2, which sets all
+    # layers; no effect while cair is constant)
     below_top = lay.index < lay.n_layers - 1
     c = c._replace(
         tair_profile=_keep(use, fp.tair, c.tair_profile),
@@ -876,15 +879,14 @@ def _fluxes(c: Substep, x: SubstepInputs, params, errors, tables, opt, c3: bool,
 #: Gain per stage of the loop canopy-top air -> Obukhov length -> fluxes -> canopy-top air
 #: between which the derivative of the Obukhov length goes from the model's own (the lagged
 #: loop settles: gain above the first) to the consistent one (it overshoots: gain below the
-#: second), linearly (decision 124)
+#: second), linearly
 OBUKHOV_GAIN_BLEND = (-1.0, -2.0)
 
 
 def _fluxes_stabilized_obukhov(opt: SubstepOptions, c3: bool):
     """:func:`_fluxes` (without its ``opt``, ``c3`` and ``obu``) with the same values and
     another derivative of the Obukhov length ``L``, as a derivative rule
-    (``jax.custom_jvp``; model.yaml ``numerics.obukhov_derivative: stabilized``,
-    decision 124).
+    (``jax.custom_jvp``; model.yaml ``numerics.obukhov_derivative: stabilized``).
 
     Each stage solves ``L`` from the canopy-top air (temperature and humidity) of the
     stage's start and then gives new canopy-top air: the loop air -> L -> fluxes -> air is
@@ -986,7 +988,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
     only computes the fluxes): the canopy processes, then the state update. ``tables``: the
     psihat lookup tables (``turbulence.RSLTables``).
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 295-328).
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes.
     """
     from clm_ml.checks import LONGWAVE
     from clm_ml.processes import canopy_water, integrators, longwave, plant_hydraulics
@@ -1024,7 +1026,7 @@ def _stage(c: Substep, x: SubstepInputs, params, tables, opt: SubstepOptions, c3
 
     # Turbulence, leaf boundary layers, interception, wetted fraction, photosynthesis and the
     # flux-profile solution (with numerics.obukhov_derivative: stabilized, the same values
-    # with the derivative rule of decision 124)
+    # with a derivative rule that keeps the derivative bounded)
     if opt.obukhov_derivative == "stabilized":
         c, errors, i = _fluxes_stabilized_obukhov(opt, c3)(c, x, params, errors, tables)
     else:
@@ -1121,7 +1123,7 @@ def substep(
     :class:`Substep` values and the sums of :class:`SubstepFluxes`. ``tables``: the psihat
     lookup tables (``turbulence.RSLTables``), an input like ``params``.
 
-    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes (lines 261-330) and
+    Fortran reference: MLCanopyFluxesMod.F90::MLCanopyFluxes and
     MLTimeStepFluxIntegration (the sums).
     """
     c, sums = carry

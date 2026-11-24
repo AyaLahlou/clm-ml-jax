@@ -6,8 +6,8 @@ One list of everything still open after Phase 7, gathered from the design docume
 CLAUDE.md, the code, and the Phase 8 survey. Each item keeps its original IDs under
 "Source" so its history can be traced. Items appearing in several places are merged.
 
-**Status (2026-11-01): Phase 8 closed** (8b reduced to a README, one docs page and two
-examples: decision 103); the documentation items are Phase 9, scoped in `phase9_scope.md`.
+**Status (2026-11-24): Phase 9 closed** (a clean-up and a small documentation site:
+decisions 128, 129); the scope document was deleted at its close (git history).
 
 **Targets:** **8a** = housekeeping before the documentation; **9** = documentation and
 release (was 8b; decision 103); **after 8** = after Phase 8 (already planned that way); **known** = a known model
@@ -19,6 +19,10 @@ as usual).
 group and in the summary table. When an item is settled, move it to "Recently closed" with
 the commit and, if a decision was made, its number in [`decisions.md`](decisions.md).
 The model as it is now: [`model_overview.md`](model_overview.md).
+
+**Sources:** the development logs named under "Source" (`global_input.md`,
+`phase6_progress.md`, `phase7_*.md`, `gpu_progress.md`, `gradient_progress.md`, the plan) were
+deleted in Phase 9.0 (decision 128); read them with `git show 4f33cd7:docs/design/<file>`.
 
 ## Summary
 
@@ -90,14 +94,14 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 | O69 | ~~Plan says output is a nested scan (records × steps); the code is one scan with a record slot per step~~ (closed: plan and CLAUDE.md corrected) | housekeeping | closed | I |
 | O70 | ~~Implement experiment folders~~ (closed: decision 91 implemented) | housekeeping | closed | I |
 | **5. Documentation (Phase 9)** |||||
-| O45 | Getting-started guide (a README version in 8b) | documentation | 9 | I |
-| O46 | Reference of every YAML key, generated from the code | documentation | 9 | I |
-| O47 | Examples: gradient calibration, ensemble, multi-tower (tower and global scripts in 8b) | documentation | 9 | M (calibration target) |
-| O48 | Page for Fortran CLM-ml users (namelist and option codes to YAML) | documentation | 9 | I |
-| O49 | API reference from docstrings | documentation | 9 | I |
-| O50 | CONTRIBUTING: "add a process variant", testing tiers, regression policy | documentation | 9 | I |
-| O51 | Output caveats for users (`soil_water_stress` = 1 with WUE; NaN above the top layer; `stem_area_added`) | documentation | 9 | I |
-| O52 | Release 1.0.0: version, CHANGELOG, CITATION.cff, tag | documentation | 9 | M |
+| O45 | ~~Getting-started guide (a README version in 8b)~~ (closed 2026-11-24: getting started page; decision 129) | documentation | 9 | I |
+| O46 | ~~Reference of every YAML key, generated from the code~~ (closed 2026-11-24: generated settings reference; decision 129) | documentation | 9 | I |
+| O47 | ~~Examples: gradient calibration, ensemble, multi-tower (tower and global scripts in 8b)~~ (closed 2026-11-24: examples: tower, sensitivity, global; no calibration example; decision 129) | documentation | 9 | M (calibration target) |
+| O48 | ~~Page for Fortran CLM-ml users (namelist and option codes to YAML)~~ (closed 2026-11-24: a `clm-ml convert` section in getting started; decision 129) | documentation | 9 | I |
+| O49 | API reference from docstrings (not in Phase 9: decision 129) | documentation | 9 | I |
+| O50 | CONTRIBUTING: "add a process variant", testing tiers, regression policy (not in Phase 9: decision 129) | documentation | 9 | I |
+| O51 | ~~Output caveats for users (`soil_water_stress` = 1 with WUE; NaN above the top layer; `stem_area_added`)~~ (closed 2026-11-24: known limitations and output caveats in how_the_model_works.md; decision 129) | documentation | 9 | I |
+| O52 | Release 1.0.0: version, CHANGELOG, CITATION.cff, tag (not in Phase 9: decision 129) | documentation | 9 | M |
 | **6. Deferred to after Phase 8** |||||
 | O53 | Round-off amplification in real 1° patches (issue 10) | science issue | after 8 | M |
 | O54 | Bare-ground patches (issue 13) | deferred feature | after 8 | M |
@@ -603,7 +607,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **What:** the maintainer's use is sensitivity experiments (parameters, states, forcings),
   at a tower first and globally later. Speed first, then the quality and accuracy of the
   gradients (zeros, NaNs, agreement with finite differences). Branch `gpu_grad` (from
-  `gpu_opt`); log [`gradient_progress.md`](gradient_progress.md).
+  `gpu_opt`); log `gradient_progress.md` (git history).
 - **Round 1 (2026-11-14, measurements only):** the gradient timings up to 2026-11-13 were of
   the second call, which is not steady (decision 118). Steady state: a tower on the CPU runs
   forward at 9.3 ms per step, one forward-mode derivative at 17, the reverse-mode gradient

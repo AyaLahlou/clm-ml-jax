@@ -97,7 +97,7 @@ def _grid_outputs(n_time=2):
 
 
 def test_grid_gridcell_level_is_on_the_latlon_map():
-    """Decision 107: a grid run's gridcell values at their latitude and longitude, NaN where
+    """A grid run's gridcell values at their latitude and longitude, NaN where
     no gridcell was run, extra dimensions before (lat, lon)."""
     out = _grid_outputs()
     ds = out.to_xarray("gridcell")

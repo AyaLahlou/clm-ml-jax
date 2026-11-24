@@ -6,7 +6,7 @@
 #PBS -l walltime=01:30:00
 #PBS -j oe
 # Program size and compile time of the 1° global chunk (10 days) on one A100, on a snapshot
-# of REV (timing/time_program.py; Phase 7 "done when").
+# of REV (timing/time_program.py).
 #
 #   qsub -v REV=<commit>,TAG=<name> jobs/program_gpu.pbs
 set -u

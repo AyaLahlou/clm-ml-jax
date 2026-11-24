@@ -47,7 +47,7 @@ processes:
     water_stress: true
 
     # Root finder of the WUE optimization: bisection (CLM-ml v2). brent is refused (not translated
-    # as traceable code; decisions.md).
+    # as traceable code).
     # choices: bisection | brent; used with scheme: wue; Fortran: gs_solver 2/1; default:
     # bisection.
     wue_solver: bisection
@@ -96,7 +96,7 @@ processes:
     # Air temperature and vapour in the canopy layers.
 
     # Coupled implicit solution of air temperature, vapour and leaf temperature in every layer.
-    # well_mixed is refused (Fortran calls it legacy, not supported).
+    # well_mixed is refused (Fortran stops for it too).
     # choices: implicit | well_mixed; Fortran: flux_profile_type 1/0; default: implicit.
     flux_profile_solution: implicit
 
@@ -121,10 +121,10 @@ numerics:
   integrator: rk4
 
   # Wetted fraction of the leaves in a sub-step: implicit (of the intercepted water left at the
-  # end of the sub-step, so leaves cannot evaporate more water than they hold; decision 122) or
-  # explicit (of the water at the start of each Runge-Kutta stage, as Fortran CLM-ml v2: almost
-  # dry leaves alternate between wet and dry and their water turns negative; for comparison with
-  # Fortran).
+  # end of the sub-step, so leaves cannot evaporate more water than they hold; differs from CLM-ml
+  # v2) or explicit (of the water at the start of each Runge-Kutta stage, as Fortran CLM-ml v2:
+  # almost dry leaves alternate between wet and dry and their water turns negative; for comparison
+  # with Fortran).
   # choices: implicit | explicit; default: implicit.
   wetted_fraction: implicit
 
@@ -135,7 +135,7 @@ numerics:
   # potential consistent with the transpiration it gives (bounded; 30-day mean derivatives of
   # stressed patches within about 6 % of a finite change instead of 35-360 % off; no cost), an
   # approximation: not the exact derivative of the forward values at a stressed step. exact: the
-  # exact derivative (decision 124).
+  # exact derivative.
   # choices: stabilized | exact; default: stabilized.
   water_stress_derivative: stabilized
 
@@ -147,7 +147,7 @@ numerics:
   # overshoots, the derivative of the length consistent with the air the stage gives (bounded;
   # monthly-mean derivatives within about 12 % of a finite change; the gradient takes 1.7 times as
   # long and half as much memory again), an approximation: not the exact derivative of the forward
-  # values at an affected step (decision 124).
+  # values at an affected step.
   # choices: exact | stabilized; default: exact.
   obukhov_derivative: exact
 
@@ -161,8 +161,7 @@ numerics:
   # step): the gradient keeps the intermediate values of one sub-step instead of a whole step.
   # always: about a fifth of the memory with many patches, at the same speed on a GPU (4 096
   # patches do not fit on a 40 GB GPU without it) but six times slower on the CPU (18 patches).
-  # never: the reverse. auto: always on a GPU, never on the CPU. Results are the same either way
-  # (decision 125).
+  # never: the reverse. auto: always on a GPU, never on the CPU. Results are the same either way.
   # choices: auto | always | never; default: auto.
   checkpoint_substeps: auto
 
@@ -216,8 +215,8 @@ canopy_layers:
   merge_thin_layers_below: 0.01
 
   # At every step: every leafy layer keeps at least this plant area (m2 m-2), the missing part
-  # added as stem area: thinner layers transmit more diffuse radiation than they receive
-  # (decisions.md; CLM-ml v1's dpai_min). 0 reproduces CLM-ml v2.
+  # added as stem area: thinner layers transmit more diffuse radiation than they receive (CLM-ml
+  # v1's dpai_min; not in CLM-ml v2). 0 reproduces CLM-ml v2.
   # default: 0.01.
   minimum_leafy_layer_plant_area: 0.01
 
@@ -225,7 +224,7 @@ soil:
   # The soil under the patches (the CLM soil layer structure: 20 hydrologically active levels, 25
   # in all).
 
-  # per_patch: each patch has its own soil column (option A). shared: patches on a gridcell share
-  # one column (option B; not yet implemented).
+  # per_patch: each patch has its own soil column. shared: patches on a gridcell share one column
+  # (not yet implemented).
   # choices: per_patch | shared; default: per_patch.
   columns: per_patch

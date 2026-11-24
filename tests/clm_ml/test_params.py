@@ -1,5 +1,4 @@
-"""params.yaml loading (the built-in files equalled the legacy PFT tables exactly when the
-legacy tables were deleted, Phase 7.4)."""
+"""params.yaml loading."""
 
 import subprocess
 import sys
@@ -31,7 +30,7 @@ def test_chats_values_match_paper_table_2():
 
 @pytest.mark.parametrize("name", ["chats", "clm5_defaults", "clm6"])
 def test_stable_zeta_limit_of_the_compsets(name):
-    """Decision 123: CLM's 0.5 for shrubs, grasses and crops, no limit for trees."""
+    """zeta_max_stable: CLM's 0.5 for shrubs, grasses and crops, no limit for trees."""
     from clm_ml.params import NO_ZETA_LIMIT, ZETA_MAX_STABLE_DEFAULT
     from clm_ml.processes import turbulence
 
@@ -92,7 +91,7 @@ def test_set_returns_copy():
     assert (p.get(WALNUT, "vcmax25"), q.get(WALNUT, "vcmax25")) == (125.0, 90.0)
 
 
-# --- clm-ml params: CLM parameter files and flattened params files (Phase 6b) -------------
+# --- clm-ml params: CLM parameter files and flattened params files ------------------------
 
 
 def _fake_clm_parameter_file(path, n_pft=20):

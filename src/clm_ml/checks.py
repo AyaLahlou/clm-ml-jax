@@ -1,6 +1,6 @@
-"""Fortran's conservation checks (plan §6.8): recorded inside the compiled step (the largest
+"""Fortran's conservation checks: recorded inside the compiled step (the largest
 error of each check, ``Diagnostics.balance_error``) and checked on the host after each
-chunk. Moved from the legacy ``multilayer_canopy.MLCanopyFluxesType`` (Phase 7.4).
+chunk.
 
 Fortran reference: CLM-ml v2, the ``endrun`` checks of ``MLLeafFluxesMod``,
 ``MLLongwaveRadiationMod``, ``MLCanopyNitrogenProfileMod``, ``MLSoilFluxesMod``,

@@ -1,7 +1,7 @@
 """clm_ml.model.Model: a compiled chunk in this process, differentiable with respect to the
-parameters in reverse mode (``jax.grad``) and forward mode (``jax.jvp``; decision 104), both
+parameters in reverse mode (``jax.grad``) and forward mode (``jax.jvp``), both
 checked against a finite difference; the gradient with a checkpoint on each sub-step
-(``numerics.checkpoint_substeps``, decision 125); the derivative rules of decision 124
+(``numerics.checkpoint_substeps``); the derivative-only rules
 (``numerics.water_stress_derivative``, ``numerics.obukhov_derivative``): the same forward
 values, derivatives that stay close to the finite difference where their feedbacks are weak.
 The first three tests use the exact derivatives (``water_stress_derivative: exact``).
@@ -32,7 +32,7 @@ from clm_ml.output_streams import StreamSpec
 tmp = Path(tempfile.mkdtemp())
 convert_namelist(Path({namelist!r}), tmp)
 # the exact derivatives of the forward values (the default replaces the water stress's by a
-# bounded approximation, decision 124: checked further down)
+# bounded approximation: checked further down)
 EXACT = ["model.numerics.water_stress_derivative=exact"]
 model = Model.from_experiment(load_experiment(tmp, EXACT))
 state, params = model.initial_state(), model.default_params()
@@ -49,19 +49,19 @@ def steps_of(m):
 def loss(p):
     return steps_of(model)(p).mean()
 
-# vcmax25 is per PFT (the table, Phase 6): the derivative along a 0.1 % change of every
+# vcmax25 is per PFT (the table): the derivative along a 0.1 % change of every
 # entry (only the patch's PFT matters) against a centred finite difference
 d = 1e-3 * params.vcmax25
 g = float((jax.grad(loss)(params).vcmax25 * d).sum())
 up, down = (steps_of(model)(params._replace(vcmax25=params.vcmax25 + e)) for e in (d, -d))
 fd_steps = (up - down) / 2
 fd = float(fd_steps.mean())
-# forward mode along the same direction (decision 104: tridiag_2eq through
-# custom_linear_solve; a custom_vjp rule refused jvp)
+# forward mode along the same direction (tridiag_2eq goes through custom_linear_solve,
+# which supports jvp)
 tangent = jax.tree.map(jnp.zeros_like, params)._replace(vcmax25=d)
 _, jvp = jax.jvp(loss, (params,), (tangent,))
-# the same gradient with a checkpoint on each sub-step too (decision 125; never on the CPU
-# unless asked for)
+# the same gradient with a checkpoint on each sub-step too (never on the CPU unless asked
+# for)
 other = Model.from_experiment(
     load_experiment(tmp, EXACT + ["model.numerics.checkpoint_substeps=always"])
 )
@@ -70,7 +70,7 @@ values = steps_of(model)(params)
 res = {{"grad": g, "fd": fd, "jvp": float(jvp), "grad_substeps": gs,
         "fd_steps": [float(v) for v in fd_steps]}}
 
-# the derivative rules of decision 124: the defaults (the water stress stabilized), and
+# the derivative-only rules: the defaults (the water stress stabilized), and
 # the Obukhov length stabilized too
 for name, override in (("default", []),
                        ("obukhov", ["model.numerics.obukhov_derivative=stabilized"])):
@@ -90,7 +90,7 @@ print("RESULT" + json.dumps(res))
 def chunk_derivatives():
     """d(mean latent heat over 8 steps) along a 0.1 % change of vcmax25: reverse mode,
     forward mode and a centred finite difference, with the exact derivatives and with the
-    derivative rules of decision 124 (one subprocess)."""
+    derivative-only rules (one subprocess)."""
     script = SCRIPT.format(
         src=str(ROOT / "src"),
         root=str(ROOT),
@@ -133,7 +133,7 @@ def test_model_chunk_gradient_same_with_substep_checkpoint(chunk_derivatives):
 @pytest.mark.slow
 @pytest.mark.gradient
 def test_derivative_rules_keep_the_forward_values(chunk_derivatives):
-    """The derivative rules of decision 124 change derivatives only: every step's value is
+    """The derivative-only rules change derivatives only: every step's value is
     bit for bit the same with the water stress stabilized (the default) or exact, and with
     the Obukhov length stabilized."""
     result = chunk_derivatives

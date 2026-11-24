@@ -1,6 +1,4 @@
-# Generated in Phase 1 from the legacy tables (pftconMod.py / MLpftconMod.py with
-# pftcon_val = 0; the generator went with the legacy code in Phase 7.4). This file is now the
-# source of these values.
+# Values of CLM-ml v2's pftcon / MLpftcon tables with pftcon_val = 0.
 # CLM5 / CLM-ml v1 default parameters for PFTs 1-16.
 
 units:

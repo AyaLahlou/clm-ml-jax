@@ -1,12 +1,11 @@
-"""Derivatives on real 1° patches, where two defects of the time stepping made them useless
-(``docs/design/gradient_progress.md`` rounds 5-7): almost dry leaves that alternated between
-wet and dry (decision 122: derivatives of 1e35 after a day of drizzle on the Great Plains)
-and short canopies whose stable turbulence collapsed and recovered from stage to stage
-(decision 123: the daily-mean derivative 40 % off in the cerrado). One day of each box: the
-forward-mode derivative of latent heat with respect to ``iota`` stays bounded, and its
-daily mean agrees with a ±1 % change of ``iota``.
+"""Derivatives on real 1° patches, where two defects of the time stepping made them useless:
+almost dry leaves that alternated between wet and dry (derivatives of 1e35 after a day of
+drizzle on the Great Plains) and short canopies whose stable turbulence collapsed and
+recovered from stage to stage (the daily-mean derivative 40 % off in the cerrado). One day
+of each box: the forward-mode derivative of latent heat with respect to ``iota`` stays
+bounded, and its daily mean agrees with a ±1 % change of ``iota``.
 
-Gradient tier (``tests/gradient_tier.py``). Needs the Phase 6b input files on NCAR's GLADE
+Gradient tier (``tests/gradient_tier.py``). Needs the 1° global input files on NCAR's GLADE
 file system (skipped elsewhere).
 """
 
@@ -54,7 +53,7 @@ def test_daily_mean_derivative_matches_a_finite_change(case):
         _, out = model.run_chunk(state, forcing, 1, p, streams=[stream])
         return out["s"]["latent_heat_flux"].T
 
-    latent_heat(0.0)  # fills the host caches outside a trace (O76)
+    latent_heat(0.0)  # fills the host caches outside a trace
     ad = np.asarray(jax.jit(lambda e: jax.jvp(latent_heat, (e,), (jnp.ones(()),))[1])(0.0))
     run_ = jax.jit(latent_heat)
     fd = (np.asarray(run_(0.01)) - np.asarray(run_(-0.01))) / 0.02

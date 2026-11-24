@@ -5,7 +5,7 @@ keep results where a mask is true, so one compiled program serves any layer coun
 slots first take the top layer's inputs (:func:`pad_with_top`): the top layer is above the
 canopy and leafless, so padding computes a harmless leafless layer instead of arithmetic on
 fill values (which would give infinities and NaN gradients even though the results are
-discarded). Same rules as the legacy ``multilayer_canopy.MLLayersMod`` had (1-based slots).
+discarded).
 """
 
 from __future__ import annotations

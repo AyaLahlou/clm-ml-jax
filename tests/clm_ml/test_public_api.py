@@ -1,4 +1,4 @@
-"""The public API (decision 96): the names ``import clm_ml`` offers."""
+"""The public API: the names ``import clm_ml`` offers."""
 
 import clm_ml
 

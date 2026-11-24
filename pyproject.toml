@@ -7,11 +7,11 @@ name = "clm-ml-jax"
 version = "0.1.0"
 description = "JAX translation of CLM-ml v2, the multilayer canopy model for the Community Land Model"
 authors = [{ name = "Linnia Hawkins" }, { name = "Aya Lahlou" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "BSD-3-Clause"
 dependencies = [
-    "jax>=0.4.30",
-    "jaxlib>=0.4.30",
+    "jax>=0.10.2",
+    "jaxlib>=0.10.2",
     "numpy>=1.22",
     "matplotlib>=3.7.0",
     "f90nml>=1.4.0",
@@ -26,6 +26,9 @@ dev = [
     "pytest-cov>=4.0.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
+    "sphinx>=7.0",
+    "myst-parser>=2.0",
+    "furo",
 ]
 
 [project.scripts]
@@ -37,11 +40,11 @@ include = ["clm_ml*"]
 
 [tool.black]
 line-length = 100
-target-version = ["py310"]
+target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

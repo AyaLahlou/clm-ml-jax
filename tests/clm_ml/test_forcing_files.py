@@ -1,4 +1,4 @@
-"""Forcing split in time over several files (plan §4.1): the CHATS7 month split into daily
+"""Forcing split in time over several files: the CHATS7 month split into daily
 tower files reads the same records as the single file; gaps are rejected; land-data files
 split in time read as one series."""
 

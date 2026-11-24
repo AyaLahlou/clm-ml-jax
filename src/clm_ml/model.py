@@ -1,5 +1,5 @@
 """
-The model in this Python process: initial state, compiled chunks, gradients (plan Phase 4).
+The model in this Python process: initial state, compiled chunks, gradients.
 
 ``Experiment.execute()`` runs the model and writes files. :class:`Model` is for working in
 a notebook or script instead: it exposes the pieces a calibration or sensitivity study needs::
@@ -10,7 +10,7 @@ a notebook or script instead: it exposes the pieces a calibration or sensitivity
     model = Model.from_experiment(clm_ml.load_experiment("configs/chats7_1day"))
     state = model.initial_state()          # after the first (initializing) step
     params = model.default_params()        # CanopyParams table, one row per PFT of the domain
-    first, n = model.chunks()[0]           # fixed-length chunks (decision 33)
+    first, n = model.chunks()[0]           # fixed-length chunks
     forcing = model.forcing(first, n)
     daily = StreamSpec("daily", "daily", "mean", ("latent_heat_flux",))
 
@@ -22,13 +22,13 @@ a notebook or script instead: it exposes the pieces a calibration or sensitivity
 
 ``run_chunk`` is differentiable with respect to the state, the parameters, the forcing and
 the patch weights. All patches of the run (any number of gridcells and patches) advance
-together, the time step batched over the patch axis (Phase 6 step 3): state and outputs have
+together, the time step batched over the patch axis: state and outputs have
 a leading patch axis, and gridcell outputs (``gridcell:<variable>``) are the area-weighted
 sums of the patches.
 
-Each model holds its own options, parameters, constants and state (no module globals since
-Phase 7.4), so a process can hold several models, of the same or different towers and soil
-layer structures, e.g. to compare schemes, parameter sets or sites.
+Each model holds its own options, parameters, constants and state (no module globals), so a
+process can hold several models, of the same or different towers and soil layer structures,
+e.g. to compare schemes, parameter sets or sites.
 """
 
 from __future__ import annotations
@@ -44,8 +44,8 @@ import numpy as np
 # runtime computes them, with or without jax.checkpoint on the step. XLA reads this flag
 # when it starts, so it is set here, on import, unless already chosen. (Normal runs,
 # Experiment.execute and the command line, keep the default runtime.) JAX 0.9.2 no longer supports
-# the flag (the new runtime is the only one) and computes these gradients without crashing
-# (Phase 6, step 0c), so it is set only for JAX < 0.7.
+# the flag (the new runtime is the only one) and computes these gradients without crashing,
+# so it is set only for JAX < 0.7.
 _LEGACY_CPU_RUNTIME = "--xla_cpu_use_thunk_runtime=false"
 
 
@@ -139,7 +139,7 @@ class Model:
 
     def chunks(self) -> list:
         """``(first_step, n_steps)`` of the run's chunks after the first step
-        (``execution.chunk``, decision 33; the last one may be shorter; None: calendar
+        (``execution.chunk``; the last one may be shorter; None: calendar
         months)."""
         from clm_ml import driver
 
@@ -271,7 +271,7 @@ class Model:
         (:meth:`default_params`); ``weights``: the patches' area fractions (default
         :meth:`weights`). ``program``: run this model's inputs through another model's
         compiled program (same number of patches, layer slots and soil levels). ``alive``:
-        the patches still in the run (default all; decision 25): the others are left out of
+        the patches still in the run (default all): the others are left out of
         gridcell values and of parameter gradients. ``tables``: the psihat lookup tables
         (``clm_ml.processes.turbulence.RSLTables``; default: the package's). ``constants``: the
         patches' :class:`clm_ml.step.PatchConstants` (default :meth:`constants`).

@@ -1,4 +1,4 @@
-"""Prescribed land data from daily/monthly files (decision 14): linear interpolation between
+"""Prescribed land data from daily/monthly files: linear interpolation between
 interval midpoints (irregular intervals, held at the ends) and the windowed file reader."""
 
 import datetime as dt

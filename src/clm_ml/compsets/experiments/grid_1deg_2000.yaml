@@ -1,6 +1,6 @@
 # Compset for `clm-ml new DIR --from grid_1deg_2000`: the settings that differ from the
 # defaults. `new` writes the four complete files. The inputs are on NCAR's Derecho/Campaign
-# storage (docs/design/global_input.md).
+# storage.
 description: >-
   A 1 degree (f09) grid run of 2000 over the whole globe (14 346 gridcells, 72 575 patches;
   needs a GPU, execution.devices: 4 on a 4-GPU node): CRUJRA v4.10 forcing, CLM6

@@ -2,8 +2,8 @@
 Parameter ensemble: jax.vmap of a compiled chunk over a batch of CanopyParams.
 
 A member with the default parameters must reproduce the single run, and every member must
-give finite results. (Plan Phase 4: a 32-member, one-day vcmax25 ensemble runs in ~11 s on
-CPU; the members differ in the daytime as expected.)
+give finite results. (A 32-member, one-day vcmax25 ensemble runs in ~11 s on CPU; the members
+differ in the daytime as expected.)
 """
 
 from __future__ import annotations

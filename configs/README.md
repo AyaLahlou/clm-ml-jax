@@ -1,7 +1,6 @@
 # Configurations
 
-Ready-to-run experiment folders, one per compset, written by `clm-ml new` (decision 91;
-`docs/design/experiment_folders.md`). Each folder holds the four files of an experiment, every
+Ready-to-run experiment folders, one per compset, written by `clm-ml new`. Each folder holds the four files of an experiment, every
 setting listed with its explanation:
 
 - `run.yaml`: when and with what: dates, forcing and land-data files, initial conditions,

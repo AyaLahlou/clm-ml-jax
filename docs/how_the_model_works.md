@@ -8,7 +8,7 @@ to `src/clm_ml/` unless they start with the repository's top folders (`configs/`
 
 **Contents:** 1. What the model computes · 2. How the code is organized · 3. Skeleton: what
 runs when · 4. Three kinds of value · 5. How the JAX version differs from Fortran ·
-6. Gradients · 7. Where to read more
+6. Gradients · 7. Known limitations · 8. Where to read more
 
 ---
 
@@ -169,7 +169,7 @@ What is carried from one step to the next (`state.State`, the restart file's con
 | `canopy.acclimation_temperature`, `canopy.acclimation_steps` | one value | K, steps |
 | `soil.temperature` | 25 soil levels | K |
 
-Everything else a step computes is in `state.Diagnostics` (about 95 fields with the
+Everything else a step computes is in `state.Diagnostics` (about 80 fields with the
 CLM-ml names), which the output variables (`outputs.VARIABLES`, 64 named variables) are
 computed from.
 
@@ -205,7 +205,7 @@ take gradients with respect to.
 - **Differentiable: data that `jax.grad` can follow.** The PFT parameters of `params.yaml`
   (`vcmax25`, `iota`, `psi50_gs`, optics, ...), the state, the forcing and the patch weights.
   A few PFT parameters act only at setup (root profile, default canopy height and area
-  profiles) and so have no gradient through a run (open item O66).
+  profiles) and so have no gradient through a run.
 
 ---
 
@@ -214,7 +214,7 @@ take gradients with respect to.
 The JAX model computes what CLM-ml v2 computes. The Fortran results are reproduced routine
 by routine (160+ tests at a relative tolerance of 1e-9) and end to end: CHATS7, May 2007,
 with every output column within 2.5 % of Fortran and correlation r ≥ 0.9999 (largest
-relative difference 0.07 % at the end of Phase 7, `tests/test_fortran_python_comparison.py`).
+relative difference 0.07 %, `tests/test_fortran_python_comparison.py`).
 What differs is mostly how the code is written. The few science departures are listed in 5b.
 
 ### 5a. How the code is written
@@ -225,50 +225,47 @@ What differs is mostly how the code is written. The few science departures are l
 | Loops over patches (`do fp = 1, num_filter`) and over layers (`do ic = 1, ncan`) | The step is written for **one patch** and `jax.vmap` runs it over all patches at once; layers are whole arrays with masks | One program for one tower or 70 000 patches, on CPU or GPU |
 | Each patch has its own number of layers (`ncan`) | Fixed `max_layers` slots per patch, with masks | Arrays of equal shape are needed to batch patches; padding never changes the results |
 | Time loop in the driver, one step at a time | `jax.lax.scan` over the steps of a chunk, compiled once; sub-steps and Runge–Kutta stages are scans too | The compiled program is reused for every chunk; scans can be differentiated |
-| Iterative solvers stop at a tolerance (Obukhov length: hybrid secant/Brent; stomatal conductance: bisection; intercellular CO₂: hybrid) | Fixed numbers of iterations that stop updating when converged; gradients by the implicit function theorem, which does not change the forward value | Compiled code needs a known number of iterations; differentiating through every iteration gives wrong or exploding gradients. Within the validation tolerance (open item O5) |
+| Iterative solvers stop at a tolerance (Obukhov length: hybrid secant/Brent; stomatal conductance: bisection; intercellular CO₂: hybrid) | Fixed numbers of iterations that stop updating when converged; gradients by the implicit function theorem, which does not change the forward value | Compiled code needs a known number of iterations; differentiating through every iteration gives wrong or exploding gradients. Within the validation tolerance |
 | 1-based indexing (layers `1..ncan`, bands `1..2`, leaves `isun=1, isha=2`) | 0-based everywhere (layer 0 at the ground; band 0 visible, 1 near-infrared; leaf 0 sunlit, 1 shaded) | Python convention; only the legacy `.out` writer rebuilds the 1-based layout |
 | Namelist (`nl.*`) with integer option codes | Four YAML files with named choices (`stomatal_conductance: wue`); `clm-ml convert` translates a namelist | Readable, complete and checked: a typo is an error, not a silent default |
-| `.out` text files, every step | Output streams: chosen variables, frequency (step to yearly), statistic (mean, instantaneous, min, max), patch or gridcell level (a grid run's gridcell files on the latitude-longitude grid, decision 108), one netCDF file per run, year or month; `output.legacy_ascii` still writes the `.out` files for one patch | Configurable output whose memory does not grow with run length |
-| Conservation checks stop the run at the failing step (`endrun`) | The step records each check's largest error; the host tests them after each chunk and stops, or leaves the failing patch out (`on_patch_error`) | A host call inside compiled code pauses the device every step and prevents caching. Fortran's 15 checks of the implicit flux-profile solution are not run (open item O4) |
+| `.out` text files, every step | Output streams: chosen variables, frequency (step to yearly), statistic (mean, instantaneous, min, max), patch or gridcell level (a grid run's gridcell files on the latitude-longitude grid), one netCDF file per run, year or month; `output.legacy_ascii` still writes the `.out` files for one patch | Configurable output whose memory does not grow with run length |
+| Conservation checks stop the run at the failing step (`endrun`) | The step records each check's largest error; the host tests them after each chunk and stops, or leaves the failing patch out (`on_patch_error`) | A host call inside compiled code pauses the device every step and prevents caching. Fortran's 15 checks of the implicit flux-profile solution are not run |
 | Forcing read record by record from whole-run arrays | Forcing streams read a chunk at a time (with one record either side for the time interpolation), on a background thread | Global, multi-decade runs need memory independent of run length |
 | One tower per executable | Any number of towers or a grid in one run; patches grouped by C3/C4 pathway; split over several GPUs with `jax.shard_map` | Spatial scale from one tower to global |
 | Double precision | float64 | Same precision as Fortran |
 
 ### 5b. Science departures (all recorded in `docs/design/decisions.md`)
 
-- **Acclimation temperature** (decision 48): a 10-day running mean of air temperature,
+- **Acclimation temperature**: a 10-day running mean of air temperature,
   carried in the state. Fortran uses the mean over the whole run, which needs all of the
   forcing before the run starts. `temperature_acclimation: run_mean` keeps Fortran's choice
   for validation (the May 2007 comparison uses it).
-- **Minimum plant area in every leafy layer** (decision 49): each leafy layer keeps at least
+- **Minimum plant area in every leafy layer**: each leafy layer keeps at least
   0.01 m² m⁻², the missing part added as stem area. Without it, layers with almost no leaf
   area make the longwave solution unstable (diffuse transmittance above 1). Setting it to 0
   reproduces CLM-ml v2. CHATS7 is unchanged.
-- **Canopy-top latent heat** (decision 50): averaged per sub-step, so the reported value is
+- **Canopy-top latent heat**: averaged per sub-step, so the reported value is
   right when the air crosses 0 °C. This changes a diagnostic only.
-- **Wetted fraction of the leaves** (decision 122): taken from the intercepted water left at
+- **Wetted fraction of the leaves**: taken from the intercepted water left at
   the end of each 5-minute sub-step, so leaves cannot evaporate more water than they hold.
   Fortran takes it from the water at the start of each Runge–Kutta stage: almost dry leaves
   (after rain, in drizzle, with dew) then alternate between wet and dry, their water turns
   negative and latent heat flickers by several W m⁻². `numerics.wetted_fraction: explicit`
   keeps Fortran's choice (the May 2007 comparison uses it). Dry days are unchanged.
-- **A stable limit on zeta for short canopies** (decision 123): the PFT parameter
+- **A stable limit on zeta for short canopies**: the PFT parameter
   `zeta_max_stable` limits how stable the surface layer can become, as CLM's `zetamaxstable`:
   0.5 for shrubs, grasses and crops, no limit (1e30) for trees. Without it the turbulence of
   short canopies collapses on calm nights (friction velocity near zero) and switches on and
   off within a time step. It raises their night-time friction velocity and warms their
   canopy air at night. Trees, and so CHATS7, are unchanged; 1e30 for every PFT reproduces
   CLM-ml v2.
-- **No water stress at or above zero leaf water potential** (decision 121): with dew, leaf
+- **No water stress at or above zero leaf water potential**: with dew, leaf
   water potential rises slightly above zero; the stress factor is then 1. Values are
   unchanged for the default parameters.
 - **Configurable model step** with forcing interpolated to it, and **daily or monthly leaf
-  area, stem area and soil water** files (Phase 4b). The default (30-minute step, CLM history
-  input) is the Fortran setup.
-- **Translation errors fixed to match Fortran** (decisions 51, 92, 95): the Runge–Kutta update
-  of the top canopy-air layer, soil texture classes, and the soil ice level used for root
-  uptake. None changes CHATS7.
-- **Not available** (refused with an error, open items O18, O19, O56): Norman shortwave
+  area, stem area and soil water** files. The default (30-minute step, CLM history input) is
+  the Fortran setup.
+- **Not available** (refused with an error): Norman shortwave
   radiation, the well-mixed canopy air, profiles read from a dataset, and the Brent solver
   for stomatal conductance.
 
@@ -325,8 +322,8 @@ Use reverse mode for calibration (one loss, many parameters) and forward mode fo
 of sensitivities to a few parameters or forcing directions (`jax.jacfwd` stacks several).
 
 `run_chunk` is differentiable, in reverse and forward mode, with respect to the state, the
-forcing, the PFT parameters and the patch weights. Gradients through iterative solvers come from the implicit function
-theorem, so they never change the forward values.
+forcing, the PFT parameters and the patch weights. Gradients through iterative solvers come
+from the implicit function theorem, so they never change the forward values.
 
 **Gradients over many days: two derivative rules.** Two quantities are taken from the start of
 each Runge-Kutta stage and the fluxes react strongly to them: the leaf water potential the
@@ -334,7 +331,7 @@ water stress of the stomata reads, and the Obukhov length (solved from the canop
 Near the stress threshold, and in stability transitions, the model alternates from stage to
 stage, and its exact derivative grows without bound over days (a true slope, but useless as
 a sensitivity). Two settings in `model.yaml` replace those two derivatives with bounded ones;
-the forward results are the same, bit for bit, either way (decision 124):
+the forward results are the same, bit for bit, either way:
 
 | Setting (`numerics`) | Default | What it does | Cost |
 |---|---|---|---|
@@ -347,13 +344,47 @@ these rules a gradient is the slope of a smoother model than the one that runs: 
 sensitivities were within about 7 % (Great Plains, July) and 12 % (cerrado, January) of the
 response to a 1 % change of a parameter, where the exact derivative was off by factors of
 thousands; a finite difference at a single affected step disagrees by design. Check a new
-case against finite differences of time means (the probe script `gradbox.py`; where it is:
-`docs/design/gradient_progress.md`, "How to measure"). Tested for one
-parameter (`iota`) and latent heat, in two 1° boxes, one month each.
+case against finite differences of time means. Tested for one parameter (`iota`) and latent
+heat, in two 1° boxes, one month each.
 
 ---
 
-## 7. Where to read more
+## 7. Known limitations
+
+What the model does not do, or does differently from what a user might expect:
+
+- **Model limitations of CLM-ml v2** (science questions, unchanged): near-ground air several
+  degrees too warm in strongly stable conditions (first-order closure cannot represent
+  non-local mixing in the canopy); daytime latent heat biased high at CHATS (about
+  70 W m⁻²); soil heat flux biased high; soil moisture prescribed, not predicted.
+- **No snow and no frozen soil water:** there is no snowpack on the ground, and all
+  prescribed soil water is liquid.
+- **No bare ground:** every patch has a canopy; a patch with almost no leaves is a sparse
+  canopy, not bare soil.
+- **Solvers** run a fixed number of iterations instead of Fortran's tolerances, and Fortran's
+  checks of the implicit flux-profile solution are not run; results agree with Fortran within
+  the validation tolerance.
+- **Transpiration and canopy-evaporation latent heat** outputs use the last sub-step's latent
+  heat of vaporization; on steps where the air crosses 0 °C they are slightly off.
+- **Not differentiable:** the nitrogen-profile coefficient (`nitrogen_profile`, a model.yaml
+  setting) and the PFT parameters used only at setup (root profile, C3/C4 pathway, default
+  canopy heights and leaf/stem profiles) give zero gradient through `Model`.
+- **Gradients** over many days of water-stressed weather use derivative rules that are not
+  the exact derivative of the forward values (section 6).
+- **Grid runs:** orbital parameters are those of the start year; real 1° patches amplify
+  round-off (a 1e-15 change in leaf area can move latent heat by several W m⁻² in some
+  patches after sunrise); a patch that fails a check still counts in its chunk's gridcell
+  means.
+- **Output caveats:** layers above a patch's top layer are NaN; `soil_water_stress` is 1
+  with the WUE stomatal scheme (which uses leaf water potential instead);
+  `stem_area_added` is the stem area added to keep every leafy layer above the minimum plant
+  area.
+- `Model.chunks()` starts at step 1 (the setup runs step 0).
+
+The open issues are tracked in
+[`docs/design/open_items.md`](repo:docs/design/open_items.md).
+
+## 8. Where to read more
 
 - `README.md`: install and run CHATS7.
 - `examples/run_tower.py`, `examples/run_global.py`: a tower run and a global run from Python.

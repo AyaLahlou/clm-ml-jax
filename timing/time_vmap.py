@@ -1,7 +1,7 @@
 """
-Timing test of ``vmap`` over patches (plan Phase 6, step 1b): the compiled CHATS7 chunk run on
-the patch and N - 1 identical copies (``execution.patch_count`` padding), batched over the
-patch axis as a domain runs (``clm_ml.model.Model``; Phase 7.4).
+Timing test of ``vmap`` over patches: the compiled CHATS7 chunk run on the patch and N - 1
+identical copies (``execution.patch_count`` padding), batched over the patch axis as a domain
+runs (``clm_ml.model.Model``).
 
 Measures, for one N per process (so peak device memory is per N):
 
@@ -9,9 +9,9 @@ Measures, for one N per process (so peak device memory is per N):
   first call compiles; the steady cost is the fastest of the third and fourth); patch-steps
   per second;
 - gradient (``--grad``): d(mean latent heat of the CHATS7 patch)/d(parameters), likewise.
-  The second call of an un-jitted ``jax.grad`` is not steady (``gradient_second_s``): until
-  2026-11-14 this script reported it as the steady cost, so older gradient lines of the
-  results file are too high;
+  The second call of an un-jitted ``jax.grad`` is not steady (``gradient_second_s``); gradient
+  lines of the results file recorded before 2026-11-14 report it as the steady cost and are
+  too high;
 - peak device memory (``memory_stats``; GPU only) and peak resident set size;
 - check: the CHATS7 patch equals its one-patch run (largest relative difference).
 

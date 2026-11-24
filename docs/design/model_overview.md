@@ -1,6 +1,5 @@
-# How CLM-ML-JAX works (after Phase 7)
+# How CLM-ML-JAX works, in detail
 
-Written from the code at `3370570` (branch `phase8a/housekeeping`), not from the plan.
 Paths are relative to `src/clm_ml/`. "P" = patches, "G" = gridcells, "L" = `max_layers`
 (50), "S" = soil levels (`nlevgrnd` = 25; `nlevsoi` = 20 hydrologically active).
 
@@ -8,8 +7,7 @@ Paths are relative to `src/clm_ml/`. "P" = patches, "G" = gridcells, "L" = `max_
 
 ## 1. Configuration: an experiment folder of four files -> Python objects
 
-An experiment is a folder with four complete files (decision 91,
-[`experiment_folders.md`](experiment_folders.md)), loaded by
+An experiment is a folder with four complete files (decisions.md 91), loaded by
 `experiment.load_experiment` into `experiment.Experiment`:
 
 | File | Says | Loaded into | What kind of value |
@@ -17,7 +15,7 @@ An experiment is a folder with four complete files (decision 91,
 | `run.yaml` | when and with what: dates, calendar, forcing files (and the tower data interval), land-data sources, initial conditions, output streams, chunks, restarts, devices | `run.RunFile` (`TimeSection`, `ForcingSection`, `InitialConditionsSection`, `OutputSection`, `ExecutionSection`) | **host bookkeeping and data** (file names, dates). Run length and chunk length are host-side; the forcing they select is data |
 | `domain.yaml` | where: towers (location, forcing height, soil: texture, sand/clay, organic matter, colour, bedrock; patches: PFT, weight, canopy height, root biomass, beta profiles, optional layer counts) or a grid (`grid.GridSection`: CLM surface dataset, land mask, region) | `domain.DomainFile` -> `domain.Domain` (gridcells, patches, soil columns) | **data used at setup** (become `PatchConstants`) |
 | `model.yaml` | `processes` (each process's parameterization), numerics (including the model step), canopy layers, soil | `config.ModelConfig` -> `options.MLOptions` -> `step.StepOptions` + `canopy.SubstepOptions` (`driver.step_options`) | **static**: changing any of them recompiles; none is differentiable |
-| `params.yaml` | every parameter of every PFT 1-16 | `params.Params` (specs in `PARAM_SPECS`) -> `params.CanopyParams` (25 fields), one row per PFT in the domain | **differentiable** (gradients come back per PFT), except the few read at setup (below) |
+| `params.yaml` | every parameter of every PFT 1-16 | `params.Params` (specs in `PARAM_SPECS`) -> `params.CanopyParams`, one row per PFT in the domain | **differentiable** (gradients come back per PFT), except the few read at setup (below) |
 
 Every option is declared once in the code (`yaml_schema.option`: explanation, Fortran name,
 the kind of run it applies to, hidden test settings, paths); `clm-ml new` writes the files
@@ -39,14 +37,14 @@ Three kinds of "value" (the JAX distinction):
 
 ### 2a. Meteorological forcing (per gridcell, per step)
 Towers: tower netCDF files (`ZBOT TBOT RH/QBOT UBOT FSDS (or FSDS_DIRECT/DIFFUSE) FLDS PBOT
-PRECTmms`), read by `io/tower.py` (`TowerMetRaw`, `derive_tower_met` `io/tower.py:321`: shortwave
+PRECTmms`), read by `io/tower.py` (`TowerMetRaw`, `derive_tower_met` `io/tower.py`: shortwave
 split into direct/diffuse × vis/nir, q from RH, missing longwave/pressure filled, CO2 383 ppm,
 O2 = 0.209·P) in `tower_forcing.TowerForcingSource` (chunk by chunk; interpolated on the host to
 the model step if it is shorter than the data interval: `forcing_interpolation.py`).
 Grid: CRUJRA `TPQW`/`Precip`/`Solar` streams + CO2 time series, mapped and time-interpolated as
 CDEPS datm does (`grid_forcing.GridInputs`).
 
-In the compiled chunk: `step.MetInputs` (`step.py:91`), shape (step, G, ...):
+In the compiled chunk: `step.MetInputs` (`step.py`), shape (step, G, ...):
 
 | Variable | Meaning | Units |
 |---|---|---|
@@ -60,25 +58,25 @@ In the compiled chunk: `step.MetInputs` (`step.py:91`), shape (step, G, ...):
 | `calday`, `calday_beg` | calendar day at the end / start of the step | days |
 
 ### 2b. Prescribed land data (per patch, per step)
-`step.LandInputs` (`step.py:113`), shape (step, P, ...): `elai`, `esai` (m2 m-2), `h2osoi`
+`step.LandInputs` (`step.py`), shape (step, P, ...): `elai`, `esai` (m2 m-2), `h2osoi`
 (volumetric soil water, (nlevsoi,), m3 m-3), `h2osoi_factor` (CHATS soil-moisture correction;
 1 if none). Towers: from the CLM history file (`io/clm_history.py`, `ELAI ESAI H2OSOI`, one
 time slice per step) or user daily/monthly files (`forcing.vegetation` / `forcing.soil_water`
 with `source: file`, `forcing_interpolation.read_land_data`). Grid: monthly LAI/SAI from the
 surface dataset (CLM satellite-phenology weights) and monthly soil water, interpolated
 **inside** the compiled chunk (`grid_forcing.land_record`, `Simulation.land_fn`).
-Host -> chunk arrays: `chunk_inputs.forcing_inputs` (`chunk_inputs.py:104`).
+Host -> chunk arrays: `chunk_inputs.forcing_inputs` (`chunk_inputs.py`).
 
 ### 2c. Time and orbit
-One clock for the run (decision 24; `calendar.py`, gregorian/noleap). Orbital parameters of the
+One clock for the run (`calendar.py`, gregorian/noleap). Orbital parameters of the
 start year (`processes/orbit.shr_orb_params`) are static fields of `StepOptions` (`eccen`,
 `mvelpp`, `lambm0`, `obliqr`); latitude/longitude are per-patch constants. Solar zenith angle:
 `step.solar_zenith` at the step's start.
 
-### 2d. Per-patch constants (`step.PatchConstants`, `step.py:129`; set up once, data)
-Built by `setup.patches.build_patches` (`setup/patches.py:45`, NumPy) from `Domain` + `Params`
+### 2d. Per-patch constants (`step.PatchConstants`, `step.py`; set up once, data)
+Built by `setup.patches.build_patches` (`setup/patches.py`, NumPy) from `Domain` + `Params`
 + `ModelConfig`:
-- layer grid `PatchLayers` (`state.py:172`): `n_layers`, `n_within` (layers in the canopy),
+- layer grid `PatchLayers` (`state.py`): `n_layers`, `n_within` (layers in the canopy),
   `first_leafy`, `dz`, `zs`, `zw` (L / L+1) — from canopy height, forcing height, `dz_tall`
   0.5 m / `dz_short` 0.1 m or explicit layer counts (`setup/canopy.vertical_structure`);
 - `dlai_frac`, `dsai_frac` (L): leaf/stem area fraction per layer (beta profiles);
@@ -93,22 +91,22 @@ Photosynthesis/stomata: `vcmax25`, `iota`, `gs_min`, `g0/g1_ball_berry`, `g0/g1_
 `psi50_gs`, `shape_gs`; hydraulics/roots: `plant_conductance`, `plant_capacitance`,
 `root_radius`, `root_density`, `root_resistivity`; leaf/radiation: `leaf_dimension`,
 `leaf_angle_index`, `sla_top`, `leaf_emissivity`, `clumping_index`, `leaf/stem_reflectance`,
-`leaf/stem_transmittance` (spectral fields `[unused, vis, nir]`, legacy 1-based band layout);
-turbulence: `zeta_max_stable` (decision 123).
+`leaf/stem_transmittance` (spectral fields `[vis, nir]`);
+turbulence: `zeta_max_stable` (decisions.md 123).
 Read at setup only (not differentiable through the run): `root_profile_beta` (root fractions),
 `c3_photosynthesis` (C3/C4 group, static), PFT default canopy height / beta profiles.
 
 ### 2f. psihat tables
 `processes.turbulence.RSLTables` from `data/psihat.nc` (`io/rsl_tables.default_rsl_tables`): the
-RSL ψ̂ lookup; one copy per chunk (`tables=`; broadcast over patches), data. The momentum and scalar
-tables are on one pair of grids (checked when read; decision 115), and how the grids are
-searched is `numerics.table_search` (decision 114). Whether the loops over layers and the
-Obukhov and roughness-length iterations are compiled as loops or written out is
-`numerics.solver_loops` (decision 117); both settings are hidden and follow the device, as
-does `numerics.checkpoint_substeps` (gradients recompute each sub-step: less memory on a
-GPU, much slower on the CPU; decision 125). Two derivative rules leave the forward values
-alone and replace a derivative that grows without bound over days (decision 124):
-`numerics.water_stress_derivative` (`photosynthesis.stress_potential`, `stabilized` by default) and
+RSL ψ̂ lookup; one copy per chunk (`tables=`; broadcast over patches), data. The momentum and
+scalar tables are on one pair of grids (checked when read), and how the grids are searched is
+`numerics.table_search`. Whether the loops over layers and the Obukhov and roughness-length
+iterations are compiled as loops or written out is `numerics.solver_loops`; both settings are
+hidden and follow the device, as does `numerics.checkpoint_substeps` (gradients recompute
+each sub-step: less memory on a GPU, much slower on the CPU). Two derivative rules leave the
+forward values alone and replace a derivative that grows without bound over days
+(decisions.md 124): `numerics.water_stress_derivative` (`photosynthesis.stress_potential`,
+`stabilized` by default) and
 `numerics.obukhov_derivative` (`canopy._fluxes_stabilized_obukhov`, `exact` by default: the
 gradient takes 1.7 times as long). The stage's processes from the turbulence to the
 flux-profile solution are one function, `canopy._fluxes`, so that the rule can evaluate
@@ -127,7 +125,7 @@ them along the Obukhov length.
 
 ## 3. State, diagnostics, layer grid (`state.py`)
 
-**`State`** (`state.py:58`) — prognostic, the `lax.scan` carry, what a restart stores:
+**`State`** (`state.py`) — prognostic, the `lax.scan` carry, what a restart stores:
 
 | Field | Shape | Units | Meaning |
 |---|---|---|---|
@@ -138,14 +136,14 @@ them along the Obukhov length.
 | `canopy.leaf_water_potential` | (L, 2) | MPa | sunlit / shaded (merged likewise) |
 | `canopy.intercepted_water` | (L,) | kg m-2 | |
 | `canopy.ground_temperature` | () | K | |
-| `canopy.acclimation_temperature` | () | K | 10-day running mean (decision 15) |
+| `canopy.acclimation_temperature` | () | K | 10-day running mean |
 | `canopy.acclimation_steps` | () | – | steps in the running mean |
 | `soil.temperature` | (S,) | K | soil column |
 
 Inside a step, the sub-step's own carry (`processes/canopy.Substep`, ~100 work fields incl.
 Runge-Kutta stage increments) exists only within the step.
 
-**`Diagnostics`** (`state.py:65`) — ~95 fields computed by every step, CLM-ml names: forcing at
+**`Diagnostics`** (`state.py`) — about 80 fields computed by every step, CLM-ml names: forcing at
 the reference height, vegetation (LAI, SAI, added stem area, sunlit/shaded LAI, `dpai`,
 `fracsun`), canopy totals (albedo, absorbed shortwave, net radiation, H, LE, storage, u*, β,
 sunlit/shaded H/LE/GPP/Vcmax25/gs/wind/leaf T, transpiration, evaporation), soil surface (Rn,
@@ -165,19 +163,19 @@ from the configuration).
 
 ## 4. The time loop
 
-1. **`Run.execute()`** (`run.py:307`) or the CLI (`cli.main`, `clm-ml run`): builds
-   `driver.Simulation` (`driver.simulation`, `driver.py:335`): every patch's constants and
+1. **`Experiment.execute()`** (`experiment.py`) or the CLI (`cli.main`, `clm-ml run`): builds
+   `driver.Simulation` (`driver.simulation`, `driver.py`): every patch's constants and
    initial state (`setup/`), the PFT table, C3/C4 flags, gridcell index and weights, the
    psihat tables, the forcing reader; `.laid_out(devices, patch_count, gridcell_count)` pads and
    orders patches into C3/C4 groups and device blocks.
-2. **`driver.run_streams`** (`driver.py:984`), on the host: fixed-length chunks (default 10
-   days, decision 33; short last chunk padded with inactive steps → one compiled program); the
+2. **`driver.run_streams`** (`driver.py`), on the host: fixed-length chunks (default 10
+   days; short last chunk padded with inactive steps → one compiled program); the
    next chunk's forcing read and placed on the devices on a background thread
    (`ThreadPoolExecutor`) while the current chunk runs; after each chunk: conservation checks
    (`check_batch_balance`), health check (`check_health`), patch exclusion if
    `on_patch_error: exclude`, completed output records handed to the writers, restart at
    `restart_every` boundaries and at the end.
-3. **The compiled chunk** (`driver.make_runner`, `driver.py:472`): `jax.jit` of one
+3. **The compiled chunk** (`driver.make_runner`, `driver.py`): `jax.jit` of one
    `jax.lax.scan` over the chunk's steps (each step `jax.checkpoint`ed); per step: gather the
    gridcell meteorology to patches; (grid) form land data; `batched_step` = `jax.vmap` of the
    one-patch step over each C3/C4 group (contiguous slices, joined by concatenation); accumulate
@@ -185,24 +183,24 @@ from the configuration).
    area-weighted gridcell sums (`segment_sum`, NaN-safe, renormalized for excluded patches);
    max of the conservation errors. With `devices > 1`: `jax.shard_map` over patch blocks
    (`driver._sharded`).
-4. **One step of one patch** (`driver.patch_step` → `step.step`, `step.py:215`), in order:
+4. **One step of one patch** (`driver.patch_step` → `step.step`, `step.py`), in order:
    1. acclimation running mean advanced with this step's `tref` (`driver.advance_acclimation`);
    2. soil water from the prescribed record (capped at porosity above bedrock;
       `processes/soil.soil_water_from_history`);
    3. soil albedo, evaporative resistance, thermal and hydraulic properties (`processes/soil`);
    4. the canopy's forcing for the step (`processes/atm_forcing.clm_forcing_to_ml`), solar zenith
       angle;
-   5. plant area per layer for this step's LAI/SAI, with the per-layer minimum (decision 30;
-      `canopy.plant_area`);
+   5. plant area per layer for this step's LAI/SAI, with the per-layer minimum
+      (`canopy.plant_area`);
    6. soil and plant resistance, leaf-specific conductance, leaf heat capacity, soil-surface
       humidity (`processes/plant_hydraulics`, `leaf_heat_capacity`);
-   7. **six 5-min sub-steps** (`lax.scan` over `canopy.substep`, `processes/canopy.py:939`), see
+   7. **six 5-min sub-steps** (`lax.scan` over `canopy.substep`, `processes/canopy.py`), see
       below;
    8. averages over the sub-steps (`canopy.average`), canopy totals and energy-balance checks
       (`canopy.canopy_totals`), sunlit/shaded leaves merged to the layer mean
       (`canopy.merge_sun_shade`);
    9. soil temperature (heat diffusion, ground heat flux from the canopy solution;
-      `processes/soil.soil_temperature`, `processes/soil.py:317`).
+      `processes/soil.soil_temperature`, `processes/soil.py`).
    Returns `StepState(state, diagnostics)`.
 5. **One sub-step** (`processes/canopy.substep`):
    - save the start-of-sub-step values (`save_start`);
@@ -215,22 +213,23 @@ from the configuration).
      Harman–Finnigan RSL turbulence (wind profile, u*, β, aerodynamic conductances, Obukhov
      length; `turbulence.harman_finnigan`, psihat tables) → leaf boundary layer
      (`leaf_boundary_layer`) → interception and the wetted fraction of the water left at the
-     end of the sub-step (`canopy_water.interception`, `wetted_fraction_implicit`; decision
-     122; with `numerics.wetted_fraction: explicit` the wetted fraction of the stage's water
-     comes first, `canopy_water.wetted_fraction`, as Fortran) → photosynthesis and stomatal conductance (WUE optimization by
-     bisection with the hydraulic constraint, or Medlyn/Ball–Berry; `photosynthesis.
-     leaf_photosynthesis`) → implicit flux–profile solution (tridiagonal system for air T,
-     vapour, leaf T, ground T; `flux_profile.implicit`) → leaf water potential
+     end of the sub-step (`canopy_water.interception`, `wetted_fraction_implicit`;
+     decisions.md 122; with `numerics.wetted_fraction: explicit` the wetted fraction of the
+     stage's water comes first, `canopy_water.wetted_fraction`, as Fortran) → photosynthesis
+     and stomatal conductance (WUE optimization by bisection with the hydraulic constraint,
+     or Medlyn/Ball–Berry; `photosynthesis.leaf_photosynthesis`) → implicit flux–profile
+     solution (tridiagonal system for air T, vapour, leaf T, ground T;
+     `flux_profile.implicit`) → leaf water potential
      (`plant_hydraulics.leaf_water_potential`) → evaporation of the intercepted water
-     (`canopy_water.evaporation`) → Runge–Kutta update of {air T, vapour, intercepted water, leaf T, leaf
-     ψ, ground T} (`integrators.runge_kutta_update`);
+     (`canopy_water.evaporation`) → Runge–Kutta update of {air T, vapour, intercepted water,
+     leaf T, leaf ψ, ground T} (`integrators.runge_kutta_update`);
    - the sub-step's fluxes added to the step's sums.
 
 ---
 
 ## 5. Outputs
 
-- **Variables:** 64 named output variables (`outputs.VARIABLES`, `outputs.py:152`) computed
+- **Variables:** 64 named output variables (`outputs.VARIABLES`, `outputs.py`) computed
   from a step's fields (`outputs.step_fields`: `diagnostics.*`, `state.*`, `layers.*`); raw
   fields can be requested by name (validation).
 - **Streams** (run.yaml `output.streams`; `output_streams.py`): each with variables,
@@ -241,7 +240,7 @@ from the configuration).
   (`outputs.StreamFileWriter`) as soon as a period completes.
 - **Gridcell level:** area-weighted sum of patches, formed at every step in the chunk. A grid
   run writes it on the surface data's latitude-longitude grid (`domain.LatLonMap`, built by
-  `grid.latlon_map`; `Outputs._latlon_xarray`; decision 108), with `area`, `landfrac` and
+  `grid.latlon_map`; `Outputs._latlon_xarray`), with `area`, `landfrac` and
   `vegetated_fraction` (values are per m2 of vegetated land); tower runs per gridcell.
 - **Legacy `.out`** (`output.legacy_ascii`, one patch only, validation vs Fortran): an extra
   internal per-step stream in the *same* run, written by `io/legacy.py`.
@@ -251,12 +250,12 @@ from the configuration).
 
 ---
 
-## 6. Gradients (`model.Model`, `model.py:74`)
+## 6. Gradients (`model.Model`, `model.py`)
 
-`Model.from_run(run)` sets up the patches and runs the first step. Pieces: `initial_state()`,
+`Model.from_experiment(...)` sets up the patches and runs the first step. Pieces: `initial_state()`,
 `default_params()` (PFT table), `patch_params()`, `weights()`, `constants()`, `chunks()`,
 `forcing(first, n)`. `Model.run_chunk(state, forcing, first_step, params, streams, weights,
-program, alive, tables, constants)` (`model.py:252`) runs one compiled chunk and returns
+program, alive, tables, constants)` (`model.py`) runs one compiled chunk and returns
 `(state, records)`; it is differentiable with respect to the state, forcing, PFT parameters,
 weights (and, as inputs, the constants and psihat tables). `jax.grad` of a loss on the records
 gives per-PFT parameter gradients. Not differentiable: model.yaml options (static), the setup
@@ -264,7 +263,7 @@ from domain.yaml/params read at setup (canopy height, beta profiles, root profil
 texture → constants are differentiable only as given arrays), C3/C4. Iterative solvers use
 implicit-function gradients that do not change forward values. Forward mode (`jax.jvp`,
 `jax.jacfwd`) works too: the coupled flux-profile solve `tridiag_2eq` is a
-`jax.lax.custom_linear_solve` (decision 104), and the other solvers' gradients are
+`jax.lax.custom_linear_solve` (decisions.md 104), and the other solvers' gradients are
 mode-independent.
 
 ---
@@ -347,9 +346,8 @@ flowchart TB
 
 ---
 
-## Things that differ from the plan or look stale
+## Known open issues
 
-Listed in [`open_items.md`](open_items.md): O17 (no built-in model.yaml), O20 (static
-numeric options), O65 (`checkpoint_steps`), O66 (setup-only PFT parameters), O67 (1-based
-optics), O68 (stale docstrings), O69 (output accumulation vs the plan's description).
-`State.canopy.co2` is carried but held at the reference value (numerics doc §4.5).
+Listed in [`open_items.md`](open_items.md): O20 (`nitrogen_decay_kn` is a static option, not
+a differentiable parameter), O66 (PFT parameters read only at setup have no gradient through
+a run). `State.canopy.co2` is carried but held at the reference value (numerics doc §4.5).

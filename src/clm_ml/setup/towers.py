@@ -1,4 +1,4 @@
-"""The forcing of tower runs at setup (Phase 7.4): one :class:`TowerForcingSource` per
+"""The forcing of tower runs at setup: one :class:`TowerForcingSource` per
 gridcell (its tower meteorology files and CLM history file), and the first step's values
 the setup needs (meteorology, initial soil temperature, acclimation temperature).
 
@@ -90,7 +90,7 @@ def gridcell_sources(run) -> list:
 
 def acclimation_temperature(run, source, first_tref: float) -> float:
     """The initial acclimation temperature of a gridcell (K): the first step's air
-    temperature (``running_mean``, decision 15), or the mean over the whole run, read chunk
+    temperature (``running_mean``), or the mean over the whole run, read chunk
     by chunk (``run_mean``, Fortran ``init_acclim``; validation only)."""
     if run.config.processes.photosynthesis.temperature_acclimation != "run_mean":
         return (0.0 + float(first_tref)) / float(1)

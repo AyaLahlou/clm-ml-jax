@@ -12,7 +12,7 @@ NAN = float("nan")
 
 @pytest.mark.parametrize("k, name", list(enumerate(tables.SOIL_TEXTURES)))
 def test_texture_class_takes_its_own_row(k, name):
-    """Issue 21: a texture class gets its own sand, clay and Clapp-Hornberger values
+    """A texture class gets its own sand, clay and Clapp-Hornberger values
     (SoilTexMod.F90; Fortran's class number m indexes its 1-based tables), every class
     including the last (clay)."""
     z, dz, zi = soil.soil_layers()

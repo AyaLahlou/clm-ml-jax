@@ -1,7 +1,7 @@
 """
 Forcing: one chunk of everything prescribed from outside the model.
 
-A run reads its forcing a chunk at a time (modernization plan §6.9), so memory depends on
+A run reads its forcing a chunk at a time, so memory depends on
 the chunk length, not the run length. A chunk of ``n_steps`` model steps holds
 ``n_steps + 2`` records along its time axis: one **halo** record before the first step, the
 steps themselves, and one halo record after the last step. The halos are the neighbouring
@@ -94,7 +94,7 @@ def chunk_run_steps(run_n_steps: int, first_step: int, n_steps: int) -> list[int
 
 
 class ForcingSource(Protocol):
-    """Where a run's forcing comes from (plan §6.9): any object that returns one chunk.
+    """Where a run's forcing comes from: any object that returns one chunk.
 
     ``chunk(first_step, n_steps)`` returns the :class:`Forcing` for run steps
     ``first_step ... first_step + n_steps - 1`` with one halo record at each end, already at

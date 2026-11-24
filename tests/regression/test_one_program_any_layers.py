@@ -1,5 +1,5 @@
 """
-Phase 5b done-when test: one compiled program serves patches with different layer counts.
+One compiled program serves patches with different layer counts.
 
 Two CHATS7 models in one process with the same ``max_layers`` (50): the default layer
 spacing (46 layers: 20 within the canopy, 26 above) and explicit counts (10 within, 10

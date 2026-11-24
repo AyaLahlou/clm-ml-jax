@@ -1,4 +1,4 @@
-"""clm_ml.processes.atm_forcing (Phase 7.2, process 3), checked against the interpolation it
+"""clm_ml.processes.atm_forcing, checked against the interpolation it
 describes."""
 
 import jax

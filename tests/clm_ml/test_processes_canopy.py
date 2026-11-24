@@ -1,4 +1,4 @@
-"""clm_ml.processes.canopy (Phase 7.2, process 10) and the sub-step options
+"""clm_ml.processes.canopy and the sub-step options
 (``clm_ml.options.substep_options``).
 
 The physics is checked against hand-computed canopy totals, the conservation of plant area and
@@ -17,8 +17,8 @@ from clm_ml.options import DEFAULT_OPTIONS, substep_options  # noqa: E402
 from clm_ml.processes import canopy  # noqa: E402
 from clm_ml.state import PatchLayers  # noqa: E402
 
-N_SLOTS = 6  # layer slots; legacy arrays have N_SLOTS + 1 entries (index 0 unused/ground)
-N_CAN = 4  # layers in use (legacy slots 1..4; 0-based 0..3)
+N_SLOTS = 6  # layer slots; level arrays (ground + layer tops) have N_SLOTS + 1 entries
+N_CAN = 4  # layers in use (slots 0..3)
 
 
 def test_substep_options_refuse_unsupported_variants():
@@ -162,7 +162,7 @@ def test_merge_sun_shade():
 
 
 def test_derivative_rules_are_substep_options():
-    """The derivative rules of decision 124: the water stress stabilized, the Obukhov length exact
+    """The derivative-only rules: the water stress stabilized, the Obukhov length exact
     unless asked for."""
     o = substep_options(DEFAULT_OPTIONS._replace(met_type=3))
     assert (o.water_stress_derivative, o.obukhov_derivative) == ("stabilized", "exact")

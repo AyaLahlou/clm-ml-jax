@@ -1,5 +1,5 @@
 """
-Named outputs and output files of the shared regression run (Phase 1 acceptance).
+Named outputs and output files of the shared regression run.
 
 The run itself is compared with the reference in ``test_end_to_end_regression.py``; this
 checks that the named outputs (stream ``step``) agree with the raw step fields (validation

@@ -1,7 +1,7 @@
 """
 The spatial domain: gridcells, the patches on them, and the soil columns under the patches.
 
-Vocabulary (modernization plan §3.1):
+Vocabulary:
 
 - **gridcell**: a location with its own atmospheric forcing.
 - **patch**: one PFT's canopy on a gridcell, with an area ``weight``. The unit of
@@ -187,7 +187,7 @@ def load_towers(path: Path) -> dict[str, TowerSpec]:
 
 @dataclasses.dataclass(frozen=True)
 class LatLonMap:
-    """Where a grid run's gridcells go in its latitude-longitude output (decision 108): the
+    """Where a grid run's gridcells go in its latitude-longitude output: the
     axes of the map (the whole surface-data grid for a global run, its rows and columns
     inside the box of a region) and each gridcell's (row, column) on them."""
 
@@ -202,13 +202,13 @@ class Gridcells:
     latitude: np.ndarray  # (ng,)
     longitude: np.ndarray  # (ng,)
     measurement_height: np.ndarray  # (ng,) m
-    # Grid domains (Phase 6b): each gridcell's (row, column) on the surface-data grid
+    # Grid domains: each gridcell's (row, column) on the surface-data grid
     grid_index: Optional[np.ndarray] = None  # (ng, 2) int
     # Grid domains on a regular latitude-longitude grid: the gridcell output's map
     latlon: Optional[LatLonMap] = None
-    # Grid domains: written with the gridcell output, for totals (decision 108). Area (km2)
+    # Grid domains: written with the gridcell output, for totals. Area (km2)
     # and land fraction as CLM's history (land_mask file); the fraction of the land covered
-    # by PFTs 1-16 in the surface data, which the patches represent (decision 28)
+    # by PFTs 1-16 in the surface data, which the patches represent
     area: Optional[np.ndarray] = None  # (ng,) km2
     land_fraction: Optional[np.ndarray] = None  # (ng,)
     vegetated_fraction: Optional[np.ndarray] = None  # (ng,)
@@ -226,7 +226,7 @@ class Patches:
     stem_area_profile_beta: np.ndarray  # (np, 2)
     n_layers_within: np.ndarray  # (np,) int, 0 = model.yaml canopy_layers
     n_layers_above: np.ndarray  # (np,) int, 0 = model.yaml canopy_layers
-    # Grid domains (Phase 6b): canopy bottom (m, from the surface data; not used by the
+    # Grid domains: canopy bottom (m, from the surface data; not used by the
     # leaf-area profile, see clm_ml.grid) and the forcing height of each patch (m, CLM's
     # 30 m + z0m + displacement height); None for towers (the gridcell's height)
     canopy_bottom: Optional[np.ndarray] = None  # (np,)
@@ -346,7 +346,7 @@ class Domain:
     def layer_counts(self, config: ModelConfig) -> list[int]:
         """Number of canopy-air layers per patch (ground to measurement height).
 
-        Same rule as the legacy ``initVerticalStructure``: the patch's own counts
+        Same rule as Fortran ``initVerticalStructure``: the patch's own counts
         (``domain.yaml``) when given, else model.yaml's explicit counts, else from the spacing;
         a patch without its own canopy height takes its PFT's default height.
 
@@ -364,7 +364,7 @@ class Domain:
         for i, htop in enumerate(self.patches.canopy_height):
             zref = self.gridcells.measurement_height[self.patches.gridcell_index[i]]
             zref = zref if own is None else own[i]
-            zref = 30.0 if np.isnan(zref) else zref  # legacy default for tower_ht = -999
+            zref = 30.0 if np.isnan(zref) else zref  # default height for tower_ht = -999
             if np.isnan(htop) or htop <= 0.0:
                 htop = default_canopy_height(int(self.patches.pft_index[i]))
             if self.patches.n_layers_within[i] > 0:

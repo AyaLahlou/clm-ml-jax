@@ -17,10 +17,13 @@ whether the model departs from Fortran CLM-ml v2 / CTSM because of it.
   - *departure:* **Departure from Fortran: yes/no**: whether the decision makes the model
     compute something different from CLM-ml v2 (or, for global runs, from CTSM 5.4/CDEPS).
 - **Superseded decisions stay**, marked, with a pointer to what replaced them.
-- The older documents remain the detailed record (measurements, alternatives, probes):
+- The older documents were the detailed record (measurements, alternatives, probes):
   `modernization_plan.md` §0 and §8, `phase7_scope.md` (D1-D12), `phase7_decisions.md`
   (C0-C35), `global_input.md` (input decisions 1-8, G1-G20, open issues),
-  `numerics_and_regression.md`, `phase6_progress.md` (review items R1-R11).
+  `phase6_progress.md` (review items R1-R11), and the GPU and gradient logs
+  (`gpu_progress.md`, `gradient_progress.md`). They were deleted in Phase 9.0 (decision 128)
+  and remain in git history: `git show 4f33cd7:docs/design/<file>`. `Source:` lines that
+  name them refer to that version.
 - Open questions and tasks are not decisions: they belong in [`open_items.md`](open_items.md).
 
 ### Old IDs to new IDs
@@ -131,8 +134,8 @@ differs from Fortran, and a skeleton of what runs when); and two scripts, `examp
 (any tower, CHATS7 by default) and `examples/run_global.py` (the 1° grid, whole globe by
 default). Phase 8 closes with them. The documentation site, the generated settings reference,
 the guides, the further examples (calibration, ensemble), the Fortran-users page, the API
-reference, the formatting clean-up and the 1.0.0 release are Phase 9 (`phase9_scope.md`;
-open items O45-O52, O24).
+reference, the formatting clean-up and the 1.0.0 release are Phase 9
+(open items O45-O52, O24).
 Reason: the maintainer's decision: enough for a user to install and run now; the formal
 documentation later.
 Source: maintainer, 2026-11-01.
@@ -147,10 +150,55 @@ functions or plotting.
 Reason: quick to reuse by changing a few values; the case folder records the run.
 Source: maintainer, 2026-11-05.
 
+**128. Phase 9 starts with a clean-up (9.0): code comments describe the model, not its history**
+2026-11-24 · Phase 9.0 · maintainer · in force · Departure from Fortran: no
+Before the documentation, the repository is cleaned in three steps: 9.0a code comments,
+docstrings, messages and option explanations; 9.0b documents and other files; 9.0c a
+discussion of what documentation to write. In the code (`src/`): no references to phases,
+decisions, open items, issues, rounds or the refactor, and no pointers to `docs/design/`;
+comments say what the code does and why. Fortran is cited as module and subroutine
+(`Fortran reference: Module::Subroutine`), without line numbers. A departure from CLM-ml v2
+gets one short line saying what differs and the scientific reason, without a decision number.
+Tests keep a decision number where a test checks that decision, without phase or refactor
+wording. The development logs in `docs/design/` (phase, GPU and gradient logs, plan, input
+notes, API sketch) are deleted, not archived: they stay in git history. The numbers 126 and
+127 are used on branch `chats_demos` (not merged), so this is 128.
+Reason: the code is read by scientists who need to know what it computes and where it comes
+from in Fortran, not how it was developed; the history is in git and this register.
+Source: maintainer, 2026-11-24.
+
+**129. Phase 9 documentation is small: enough for colleagues to start quickly**
+2026-11-24 · Phase 9.0c · maintainer · in force (narrows 103 and the Phase 9 scope) · Departure from Fortran: no
+The goal is that colleagues can pick the model up and get started quickly, not a formal
+release of a new model. Sphinx (MyST Markdown, the furo theme) in `docs/`, built by CI on
+every push to `main` and published on GitHub Pages; warnings are errors. Six pages: home,
+getting started, your own tower, a settings reference generated from the code's option
+declarations and `PARAM_SPECS`, how the model works (the existing page, with known
+limitations), and examples. Examples are plain scripts: `run_tower.py`, `run_global.py`
+and `plot_global_diag.py` (kept apart: `run_global.py` only sets a case up, decision 110),
+and a new `sensitivity_tower.py` (gradients of daily
+latent heat and GPP with respect to a few parameters on a CHATS7 day, checked against finite
+differences); the tower examples run in CI in a short version. Not done: a calibration
+example, per-topic guides, a Fortran-users page (a paragraph on `clm-ml convert` instead),
+an API reference, a changelog, a version tag or release (not yet). `sphinx`, `myst-parser`
+and `furo` join the dev extras.
+Reason: the audience is colleagues starting to use the model; a generated settings reference
+cannot go out of date.
+Source: maintainer, 2026-11-24.
+
+**130. Python 3.11 or newer, JAX 0.10.2 or newer**
+2026-11-24 · Phase 9 · maintainer · in force (revises 7's Python version) · Departure from Fortran: no
+The package requires Python ≥ 3.11 and `jax`/`jaxlib` ≥ 0.10.2 (`pyproject.toml`); CI tests
+Python 3.11 and 3.12; black and ruff target 3.11.
+Reason: JAX 0.10.2, the version of the regression reference (decision 105), does not support
+Python 3.10, so CI's 3.10 job installed JAX 0.6.2 and failed two tests; the old lower bound
+(`jax>=0.4.30`) let any install pick a JAX the model is not tested with.
+Source: maintainer, 2026-11-24 (CI of pull request 6).
+
 ## B. Configuration and user interface
 
 **7. Names and platform**
-2026-10-27 · plan · maintainer · in force · Departure from Fortran: no
+2026-10-27 · plan · maintainer · in force (Python version revised by 130) · Departure from Fortran: no
 Import as `import clm_ml`; install name `clm-ml-jax`; command-line tool `clm-ml`
 (`run | check | convert | params`); Python ≥ 3.10.
 Reason: short, conventional names; 3.10 is the oldest Python the dependencies support well.
@@ -299,7 +347,7 @@ reads only these and the data files they name, never a compset by name. Every fi
 keys are errors, and `clm-ml upgrade DIR` rewrites a folder to the current layout keeping the
 user's values. Folders are generated from compsets (`clm-ml new DIR --from COMPSET`); each setting
 lives in one file; each run writes a copy of the four files into its output. Details:
-[`experiment_folders.md`](experiment_folders.md).
+`experiment_folders.md` (git history).
 Reason: one start point where every user setting is visible and the required ones are marked,
 for ecologists; one definition of every option in the code (as jax-gcm), so files, errors and
 reference documentation agree.

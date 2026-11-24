@@ -1,8 +1,7 @@
-"""Tower forcing read chunk by chunk (Phase 7.4; from ``clm_ml.legacy.forcing``): the tower
-meteorology files and the CLM history file of one gridcell as :class:`clm_ml.forcing.Forcing`
-chunks (one halo record at each end), interpolated to the model step when it is shorter than
-the data interval, with user land-data files in place of the history's leaf/stem area or soil
-water when given.
+"""Tower forcing read chunk by chunk: the tower meteorology files and the CLM history file of
+one gridcell as :class:`clm_ml.forcing.Forcing` chunks (one halo record at each end),
+interpolated to the model step when it is shorter than the data interval, with user land-data
+files in place of the history's leaf/stem area or soil water when given.
 
 Fortran reference: CLM-ml v2 ``TowerMetMod.F90``, ``clmDataMod.F90`` (readers);
 ``CLMml_driver.F90`` (the time loop's reads).
@@ -101,14 +100,14 @@ class TowerForcingSource:
     n_steps: int  # steps in the whole run
     history_index: Callable[[int], int]
     tower_height: float
-    # The model step and the data interval (decision 13): equal -> records are steps;
+    # The model step and the data interval: equal -> records are steps;
     # otherwise the records are interpolated to the model step.
     record_seconds: int = 1800
     step_seconds: int = 1800
     run_start: Optional[dt.datetime] = None  # needed when interpolating
     lat: float = 0.0  # degrees, for the solar zenith angle (coszen interpolation)
     lon: float = 0.0
-    # Prescribed land data from user files (decision 14) instead of the CLM history file:
+    # Prescribed land data from user files instead of the CLM history file:
     # daily or monthly records, linear between interval midpoints. None: CLM history.
     vegetation_file: Optional[str] = None  # LAI, SAI (m2 m-2)
     soil_water_file: Optional[str] = None  # H2OSOI (m3 m-3), the model's soil layers

@@ -6,9 +6,7 @@ leafy layers ``first_leafy .. n_within - 1``); levels are the ground (0) and the
 bands are 0-based (0 visible, 1 near infrared); leaves 0 sunlit, 1 shaded. The scheme is a
 variant chosen by name (``SOLAR_RADIATION``, model.yaml ``processes.radiation.solar``):
 ``two_stream`` (Fortran ``light_type = 2``, CLM-ml v2's default); ``norman`` (Fortran
-``light_type = 1``) is registered but not supported (Phase 7 decision D8: its JAX translation
-was never validated and stops at the first CHATS7 step; the translation is in the git history,
-``src/clm_ml/legacy/solar_radiation.py`` at commit 1f1b651, for the fix after Phase 8: C34).
+``light_type = 1``) is registered but not supported.
 
 Fortran reference: CLM-ml v2 ``MLSolarRadiationMod.F90::SolarRadiation``, ``TwoStream``.
 Bonan (2019) Climate Change and Terrestrial Ecosystem Modeling, chapter 14; Bonan et al.
@@ -143,8 +141,7 @@ def canopy_optics(
 
     # Two-stream avmu. p2 is negative for a negative leaf angle index (grasses, crops) and
     # is used with its sign, as Fortran does; |chil| >= 0.01 keeps it away from 0, and the
-    # guard only keeps the division finite (decision 120: max(p2, 1e-10) replaced every
-    # negative p2 by 1e-10)
+    # guard only keeps the division finite (max(p2, 1e-10) would replace every negative p2)
     p1_safe = jnp.maximum(p1, 1.0e-10)
     p2_safe = jnp.where(p2 < 0.0, jnp.minimum(p2, -1.0e-10), jnp.maximum(p2, 1.0e-10))
     avmu_s = (1.0 - p1_safe / p2_safe * jnp.log((p1_safe + p2_safe) / p1_safe)) / p2_safe
@@ -407,16 +404,11 @@ def two_stream(
 
 
 def norman(*args, **kwargs):
-    """Norman (1979) radiative transfer: registered but not supported (Phase 7 decision D8).
+    """Norman (1979) radiative transfer: registered but not supported.
 
-    Fortran reference: MLSolarRadiationMod.F90::Norman. The legacy JAX translation (never
-    validated; stops at the first CHATS7 step with a conservation error) is in the git
-    history (``src/clm_ml/legacy/solar_radiation.py`` at 1f1b651) for the fix after Phase 8.
+    Fortran reference: MLSolarRadiationMod.F90::Norman.
     """
-    raise NotImplementedError(
-        "solar_radiation: norman is not supported (Phase 7 decision D8; see the plan, "
-        "'After Phase 8: unsupported variants'); use two_stream"
-    )
+    raise NotImplementedError("solar_radiation: norman is not supported; use two_stream")
 
 
 #: Radiative transfer variants by name (model.yaml ``processes.radiation.solar``).

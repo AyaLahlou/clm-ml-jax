@@ -114,3 +114,7 @@ Thumbs.db
 
 # outputs of the runs in configs/
 configs/*/output/
+
+# Documentation build and the generated settings reference
+docs/_build/
+docs/reference/settings.md

@@ -1,8 +1,8 @@
-"""clm_ml.processes.math: the tridiagonal solvers as scans (Phase 7.2, process 1).
+"""clm_ml.processes.math: the tridiagonal solvers as scans.
 
 The Fortran golden tests check every routine against Fortran (unguarded pivots); these check
 the guarded variant used by the solar radiation and soil temperature solves, and the
-derivatives of the coupled solver ``tridiag_2eq`` in both modes (decision 104, O71).
+derivatives of the coupled solver ``tridiag_2eq`` in both modes.
 """
 
 import jax
@@ -48,7 +48,7 @@ def test_guard_keeps_a_zero_pivot_finite():
     assert np.all(np.isfinite(np.asarray(tridiag(a, b, c, r, min_pivot=1.0e-10))))
 
 
-# -- tridiag_2eq: derivatives (decision 104) ------------------------------------------------
+# -- tridiag_2eq: derivatives -------------------------------------------------------------
 
 N2 = 9
 
@@ -138,7 +138,7 @@ def test_tridiag_2eq_batches_and_compiles():
 
 
 def test_unrolled_solves_match_the_loops():
-    """The solves with their rows written out (numerics.solver_loops, decision 117) do the
+    """The solves with their rows written out (numerics.solver_loops) do the
     loops' operations in the loops' order."""
     a, b, c, r = _system(43, 5)
     for min_pivot in (None, 1.0e-10):

@@ -1,9 +1,9 @@
 """
-Several models of the same tower in one Python process (plan Phase 5a, decision 20): each
+Several models of the same tower in one Python process: each
 model holds its own options and parameters, so a model with Medlyn stomatal conductance
 created after a WUE model does not change the WUE model's results, and gives the same
 results as when it is alone in its process. A model of another tower (a copy of CHATS7
-under another name) is accepted since Phase 6 step 2 (per-site data in the containers): it
+under another name) is accepted (per-site data are inputs): it
 gives CHATS7's results and leaves the first model's results unchanged.
 """
 

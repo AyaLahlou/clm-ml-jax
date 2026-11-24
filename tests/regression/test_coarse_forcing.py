@@ -1,5 +1,5 @@
 """
-A configurable model step with interpolated forcing (decision 13), end to end: CHATS7 forced
+A configurable model step with interpolated forcing, end to end: CHATS7 forced
 by 6-hourly means of its own half-hourly data, run at a 30-minute model step, against the
 normal half-hourly-forced run. The forcing is interpolated back to 30 minutes
 (clm_ml.forcing_interpolation), so the daily incoming shortwave is conserved; the fluxes differ

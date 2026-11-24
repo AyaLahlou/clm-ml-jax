@@ -1,13 +1,10 @@
 """
-Model state of one patch (Phase 7.1, plan §6.6): 0-based arrays without a patch axis.
+Model state of one patch: 0-based arrays without a patch axis.
 
 A time step is ``state -> state`` given forcing and parameters. :class:`State` holds the
 prognostic variables carried from one step to the next (the ``lax.scan`` carry of a chunk, and
-what a restart stores); :class:`Diagnostics` the step's results that outputs and checks read
-(decision D6 of the Phase 7 scope); :class:`StepState` both. :class:`PatchLayers` is the
-patch's fixed layer grid. The fields of the state were found by setting each field of the
-legacy containers to NaN before a step and seeing whether the NaN reaches the results
-(Phase 3e; docs/design/numerics_and_regression.md §4.4).
+what a restart stores); :class:`Diagnostics` the step's results that outputs and checks read;
+:class:`StepState` both. :class:`PatchLayers` is the patch's fixed layer grid.
 
 Axes (all 0-based):
 
@@ -42,8 +39,9 @@ class CanopyState(NamedTuple):
     intercepted_water: Array  # (layer,) kg m-2
     ground_temperature: Array  # () K
     # Air temperature that photosynthesis acclimates to: by default a 10-day running mean of
-    # the forcing air temperature, updated each step (decision 15); or the whole-run mean
-    # (Fortran CLM-ml v2, set once at initialization; validation only).
+    # the forcing air temperature, updated each step (differs from CLM-ml v2: a long run cannot
+    # know its whole-run mean in advance); or the whole-run mean (Fortran CLM-ml v2, set once
+    # at initialization; validation only).
     acclimation_temperature: Array  # () K
     # Steps averaged into the running mean so far (its weight is 1 / min(steps, period)).
     acclimation_steps: Array  # ()
@@ -64,10 +62,8 @@ class State(NamedTuple):
 
 class Diagnostics(NamedTuple):
     """A step's results read by the output variables (``clm_ml.outputs``), the legacy ``.out``
-    files and the conservation checks; nothing else (D6: the other fields of the legacy
-    container are listed in ``docs/design/phase7_removed_diagnostics.md``). Names are the
-    legacy container's (CLM-ml v2 ``mlcanopy_type``), shapes 0-based; they get readable names
-    with the outputs in Phase 7.6. Canopy totals are per m2 ground."""
+    files and the conservation checks; nothing else. Names are CLM-ml v2's (``mlcanopy_type``),
+    shapes 0-based; the outputs give them readable names. Canopy totals are per m2 ground."""
 
     # Forcing at the reference height (interpolated to the step)
     tref_forcing: Array  # () air temperature, K
@@ -139,7 +135,7 @@ class Diagnostics(NamedTuple):
     gac_profile: Array  # (layer,) aerodynamic conductance for scalars, mol m-2 s-1
     lsc_profile: Array  # (layer,) leaf-specific conductance, mmol H2O m-2 leaf s-1 MPa-1
     lwp_mean_profile: Array  # (layer,) leaf water potential, sunlit/shaded mean, MPa
-    td_profile: Array  # (layer,) transmittance of diffuse radiation (issue 14 check)
+    td_profile: Array  # (layer,) diffuse transmittance (checked: > 1 in very thin layers)
     lwdwn_profile: Array  # (level,) downward longwave at the ground and each layer, W m-2
     lwupw_profile: Array  # (level,) upward longwave at the ground and each layer, W m-2
     swbeam_profile: Array  # (level, band) direct beam shortwave, W m-2
@@ -156,14 +152,12 @@ class Diagnostics(NamedTuple):
     tleaf_hist_leaf: Array  # (layer, leaf) leaf temperature (output), K
     lwp_hist_leaf: Array  # (layer, leaf) leaf water potential (output), MPa
     # Largest error of each Fortran conservation check in the step
-    # (MLCanopyFluxesType.BALANCE_CHECKS), checked on the host
+    # (``clm_ml.checks.BALANCE_CHECKS``), checked on the host
     balance_error: Array  # (check,)
 
 
 class StepState(NamedTuple):
-    """One step's result: the prognostic state and the diagnostics. (The values carried
-    within a step and the step's inputs join it when the physics moves to this state,
-    Phase 7.2.)"""
+    """One step's result: the prognostic state and the diagnostics."""
 
     state: State
     diagnostics: Diagnostics
@@ -172,9 +166,9 @@ class StepState(NamedTuple):
 class PatchLayers(NamedTuple):
     """The patch's layer grid, fixed at setup (counts and heights; masks as properties)."""
 
-    n_layers: Array  # () layers in use (legacy ncan)
-    n_within: Array  # () layers within the canopy (legacy ntop: layers 0 .. n_within-1)
-    first_leafy: Array  # () lowest layer with leaves (legacy nbot - 1)
+    n_layers: Array  # () layers in use (CLM-ml v2 ncan)
+    n_within: Array  # () layers within the canopy (CLM-ml v2 ntop: layers 0 .. n_within-1)
+    first_leafy: Array  # () lowest layer with leaves (CLM-ml v2 nbot - 1)
     dz: Array  # (layer,) layer thickness, m
     zs: Array  # (layer,) height at the layer's middle, m
     zw: Array  # (level,) height of the ground (0) and the layers' tops, m

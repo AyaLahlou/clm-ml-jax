@@ -1,4 +1,4 @@
-"""clm_ml.processes.flux_profile and clm_ml.processes.water_vapor (Phase 7.2, process 8).
+"""clm_ml.processes.flux_profile and clm_ml.processes.water_vapor.
 
 The physics is checked with Fortran's own checks of the implicit solution (``ErrorCheck01``:
 the leaf and soil fluxes equal those of the implicit solution; ``ErrorCheck02``: energy and
@@ -19,7 +19,7 @@ from clm_ml.processes import water_vapor as wv  # noqa: E402
 from clm_ml.state import PatchLayers  # noqa: E402
 
 # 7 slots: layer 0 without plant area, 1-3 leafy, 4-5 above the canopy, 6 padding
-N_SLOTS, NCAN, NTOP, NBOT = 7, 6, 4, 2  # legacy 1-based counts
+N_SLOTS, NCAN, NTOP, NBOT = 7, 6, 4, 2  # Fortran-style counts (1-based layer numbers)
 DPAI = np.array([0.0, 0.6, 0.9, 0.5, 0.0, 0.0, 0.0])
 DTIME = 300.0
 # tolerances of Fortran's checks (W/m2 for fluxes, K and Pa for temperatures and pressure)

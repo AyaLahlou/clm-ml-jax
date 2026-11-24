@@ -55,7 +55,7 @@ from clm_ml.state import PatchLayers
 _AH12_0: float = 0.89
 _AH12_1: float = -0.07
 _AH12_2: float = 2.19
-#: Secant steps of the Obukhov-length solver (numerics_and_regression.md §4.1)
+#: Secant steps of the Obukhov-length solver
 OBU_ITERATIONS = 25
 
 
@@ -69,7 +69,7 @@ class PsihatTable(NamedTuple):
 
 class RSLTables(NamedTuple):
     """The psihat lookup tables for momentum and scalars, on one pair of grids (as in
-    CLM-ml v2's ``psihat.nc``; decision 115): a place found on the grids serves both tables."""
+    CLM-ml v2's ``psihat.nc``): a place found on the grids serves both tables."""
 
     zdt: Array  # (nZ,) (z - h) / (h - d), decreasing
     dtl: Array  # (nL,) (h - d) / L, increasing
@@ -89,8 +89,7 @@ class RSLTables(NamedTuple):
 #: ``jnp.searchsorted`` method: ``loop`` is a binary search as a compiled loop (fastest on the
 #: CPU), ``unrolled`` the same binary search without the loop, ``compare_all`` a comparison
 #: with every grid value. All return the same indices. On a GPU every loop iteration is a
-#: separate command, and these searches were 89 % of a step's loop iterations
-#: (docs/design/gpu_progress.md, decision 114).
+#: separate command, and these searches are most of a step's loop iterations.
 TABLE_SEARCH = {"loop": "scan", "unrolled": "scan_unrolled", "compare_all": "compare_all"}
 
 
@@ -361,8 +360,8 @@ class ObuInputs(NamedTuple):
     rhomol: Array  # molar density, mol/m3
     taf: Array  # air temperature at the canopy top, K
     qaf: Array  # specific humidity at the canopy top, kg/kg
-    #: largest (zref - zdisp)/obu in stable conditions (the PFT's ``zeta_max_stable``,
-    #: decision 123); NO_ZETA_LIMIT: none, as Fortran
+    #: largest (zref - zdisp)/obu in stable conditions (the PFT's ``zeta_max_stable``);
+    #: NO_ZETA_LIMIT: none, as Fortran
     zeta_max: Array = NO_ZETA_LIMIT
 
 
@@ -392,8 +391,9 @@ def obukhov_terms(
 
     Fortran reference: MLCanopyTurbulenceMod.F90::ObuFunc (Bonan et al. 2018, eqs. A1-A9,
     Harman 2012 beta). Fortran's check ``zref > zdisp`` is left out (compiled code).
-    Not Fortran: the stable limit ``inp.zeta_max`` on the stability at the reference height
-    (decision 123).
+    Not in CLM-ml v2: the stable limit ``inp.zeta_max`` on the stability at the reference
+    height (CLM's ``zetamaxstable``): on calm nights short canopies otherwise switch between
+    collapsed and recovered turbulence from stage to stage.
     """
     eps = jnp.asarray(1e-30)
     obu_cur = jnp.where(
@@ -428,8 +428,8 @@ def obukhov_terms(
         return LcL, beta, inp.ztop - hc_minus_d
 
     # In stable conditions also (zref - zdisp)/obu <= zeta_max, with the displacement height
-    # of the Lc-limited length (decision 123; CLM FrictionVelocityMod: zeta = zldis/obu <=
-    # zetamaxstable; not in Fortran CLM-ml); beta and the displacement height follow the
+    # of the Lc-limited length (CLM FrictionVelocityMod: zeta = zldis/obu <=
+    # zetamaxstable; not in CLM-ml v2); beta and the displacement height follow the
     # limited length
     _, _, zdisp_first = beta_and_displacement(obu_cur)
     obu_cur = jnp.where(
@@ -483,17 +483,16 @@ def obukhov_length(
     """The Obukhov length (m): ``OBU_ITERATIONS`` secant steps from 100 m and -100 m on
     ``obu_new(obu) - obu``. The forward value is the solver's answer; its gradient is the
     implicit-function one, ``-dF/dtheta / dF/dobu`` (``dF/dobu`` exactly, by forward-mode
-    differentiation of the residual at the solution, decision 119: a finite difference with
+    differentiation of the residual at the solution: a finite difference with
     a 1 m step was up to 49 % off where ``|obu|`` is ~10 m; the correction skipped where
     ``|dF/dobu| <= 1e-6``), applied as
-    ``obu - (step - stop_gradient(step))`` so it never changes the forward value
-    (numerics_and_regression.md §2). Differentiating through the iterations instead gives
+    ``obu - (step - stop_gradient(step))`` so it never changes the forward value.
+    Differentiating through the iterations instead gives
     exploding gradients (|J|^25, ~1e144 observed). ``unroll``: the secant steps written out
-    instead of a compiled loop (the same steps; ``numerics.solver_loops``, decision 117).
+    instead of a compiled loop (the same steps; ``numerics.solver_loops``).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::GetObu (Fortran solves with the hybrid
-    secant/Brent ``MLMathToolsMod::hybrid``, tol = 0.1 m; 25 fixed secant steps here,
-    numerics_and_regression.md §4.1).
+    secant/Brent ``MLMathToolsMod::hybrid``, tol = 0.1 m; 25 fixed secant steps here).
     """
     inp = ObuInputs(*(jnp.asarray(v) for v in inp))
     obu0, obu1 = jnp.asarray(100.0), jnp.asarray(-100.0)
@@ -510,7 +509,7 @@ def obukhov_length(
     )
 
     # Implicit-function gradient: the residual's dependence on the inputs, divided by its
-    # slope in obu at the solution (exact, with the inputs held constant; decision 119)
+    # slope in obu at the solution (exact, with the inputs held constant)
     f0 = _obu_residual(obu, inp, tables, sparse_canopy, table_search)
     held = ObuInputs(*(jax.lax.stop_gradient(v) for v in inp))
     df_dobu = jax.lax.stop_gradient(
@@ -772,11 +771,11 @@ def harman_finnigan(
     aerodynamic conductances. Forcing at ``zref``: ``pref`` (Pa), ``uref``, ``thref``,
     ``thvref``, ``qref``, ``rhomol``. ``table_search``: how the psihat tables are searched
     (:data:`TABLE_SEARCH`). ``unroll``: the Obukhov and roughness-length iterations written
-    out instead of compiled loops (``numerics.solver_loops``, decision 117).
+    out instead of compiled loops (``numerics.solver_loops``).
     ``zeta_max_stable``: the PFT's largest stability at the reference height in stable
-    conditions (decision 123; the default is no limit, as Fortran). ``obu``: an Obukhov length
-    (m) to use instead of solving it (the derivative rule of decision 124 evaluates the
-    turbulence along it).
+    conditions (not in CLM-ml v2; the default is no limit, as Fortran). ``obu``: an Obukhov
+    length (m) to use instead of solving it (the stabilized derivative rule of
+    ``numerics.obukhov_derivative`` evaluates the turbulence along it).
 
     Fortran reference: MLCanopyTurbulenceMod.F90::HF2008 (Bonan et al. 2018).
     Reads: ``tair_profile``, ``eair_profile``, ``pref_forcing``, ``ztop_canopy``,
@@ -795,9 +794,8 @@ def harman_finnigan(
     if obu is None:
         obu = obukhov_length(inp, tables, sparse_canopy, table_search, unroll)
     t = obukhov_terms(obu, inp, tables, sparse_canopy, table_search)
-    # Rounded as stored (Fortran's ustar(p), beta(p), ...; the legacy code wrote them to the
-    # container): otherwise XLA may fold e.g. (a / b) / beta in u(h) = u*/beta into
-    # a / (b beta), 1 ulp off (Phase 7 decision C15)
+    # Rounded as stored (Fortran's ustar(p), beta(p), ...): otherwise XLA may fold e.g.
+    # (a / b) / beta in u(h) = u*/beta into a / (b beta), 1 ulp off
     t = jax.lax.optimization_barrier(t)
     z0m = roughness_length(ztop, t.zdisp, t.obu, t.beta, t.PrSc, zref, tables, table_search, unroll)
 

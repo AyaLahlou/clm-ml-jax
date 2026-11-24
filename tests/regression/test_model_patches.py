@@ -1,5 +1,5 @@
 """
-Phase 6 step 3 test of the in-process model (``clm_ml.model.Model``) with several patches.
+The in-process model (``clm_ml.model.Model``) with several patches.
 
 One gridcell with two patches of different PFTs (the CHATS7 walnut, weight 0.6, and a
 needleleaf evergreen tree, weight 0.4), the step batched over the patches:
