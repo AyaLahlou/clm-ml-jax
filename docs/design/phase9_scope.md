@@ -31,6 +31,9 @@ plus bit for bit and the noise twin. 9.0b the documents and other files (develop
 deleted, CLAUDE.md shortened, README and CONTRIBUTING cleaned). 9.0c a discussion of what
 documentation to write (§2 below), before any is written.
 
+Status: 9.0a done 2026-11-24 (4f33cd7); 9.0b done 2026-11-24 (13 development logs deleted,
+CLAUDE.md shortened, the remaining documents cleaned); 9.0c next.
+
 ## 1. What Phase 9 documents (settled in 8a)
 
 - Experiment folders: `run.yaml`, `domain.yaml`, `model.yaml`, `params.yaml`, complete and

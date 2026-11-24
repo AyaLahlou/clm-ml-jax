@@ -125,7 +125,7 @@ clm-ml run chats7 --set params.broadleaf_deciduous_temperate_tree.vcmax25=100
 ## Tests
 
 The JAX model is checked against the Fortran model routine by routine (160+ tests) and end to
-end (CHATS7, May 2007). Every change must also pass a bit-for-bit regression test:
+end (CHATS7, May 2007). Every change must also pass a regression test against a recorded reference run:
 
 ```bash
 pip install -e ".[dev]"

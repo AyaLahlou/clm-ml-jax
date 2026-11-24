@@ -20,6 +20,10 @@ group and in the summary table. When an item is settled, move it to "Recently cl
 the commit and, if a decision was made, its number in [`decisions.md`](decisions.md).
 The model as it is now: [`model_overview.md`](model_overview.md).
 
+**Sources:** the development logs named under "Source" (`global_input.md`,
+`phase6_progress.md`, `phase7_*.md`, `gpu_progress.md`, `gradient_progress.md`, the plan) were
+deleted in Phase 9.0 (decision 128); read them with `git show 4f33cd7:docs/design/<file>`.
+
 ## Summary
 
 | ID | Title | Kind | Target | Decides |
@@ -603,7 +607,7 @@ The model as it is now: [`model_overview.md`](model_overview.md).
 - **What:** the maintainer's use is sensitivity experiments (parameters, states, forcings),
   at a tower first and globally later. Speed first, then the quality and accuracy of the
   gradients (zeros, NaNs, agreement with finite differences). Branch `gpu_grad` (from
-  `gpu_opt`); log [`gradient_progress.md`](gradient_progress.md).
+  `gpu_opt`); log `gradient_progress.md` (git history).
 - **Round 1 (2026-11-14, measurements only):** the gradient timings up to 2026-11-13 were of
   the second call, which is not steady (decision 118). Steady state: a tower on the CPU runs
   forward at 9.3 ms per step, one forward-mode derivative at 17, the reverse-mode gradient

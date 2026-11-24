@@ -227,7 +227,7 @@ def implicit(
     solve's loops over layers written out (``math.tridiag``).
 
     Fortran reference: MLFluxProfileSolutionMod.F90::ImplicitFluxProfileSolution (with
-    ``LeafFluxes`` and ``SoilFluxes``; the CO2 profile set to ``co2ref`` stays in the adapter).
+    ``LeafFluxes`` and ``SoilFluxes``; the CO2 profile set to ``co2ref`` is done in ``canopy``).
     Reads: ``dpai_profile``, ``fwet_profile``, ``fdry_profile``, ``fracsun_profile``,
     ``cpleaf_profile``, ``gac_profile``, ``tair_bef_profile``, ``eair_bef_profile``,
     ``gbh_leaf``, ``gbv_leaf``, ``gs_leaf``, ``rnleaf_leaf``, ``tleaf_bef_leaf``, the soil

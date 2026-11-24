@@ -6,7 +6,7 @@ dependencies:
   - python=3.11
   - pip
   - pip:
-      # JAX 0.10.2 with the CUDA 12 plugin (decision 105, O73): the regression reference is
+      # JAX 0.10.2 with the CUDA 12 plugin : the regression reference is
       # recorded with this version. On nodes without a GPU (e.g. derecho1, CPU compute nodes)
       # set JAX_PLATFORMS=cpu, or the plugin prints a CUDA_ERROR_NO_DEVICE traceback at import
       # (harmless: JAX falls back to the CPU).

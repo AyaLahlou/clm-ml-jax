@@ -48,9 +48,8 @@ def bisection_traceable(
 
     Fortran reference: MLMathToolsMod.F90::bisection.
 
-    Same iterations and result as Fortran ``bisection`` (MLMathToolsMod.F90,
-    lines 249-310) and :func:`bisection_scalar`: halve while ``|b - a| > tol``
-    (at most ``itmax`` times), keeping the half where ``f(a) * f(c) < 0``
+    Same iterations and result as Fortran ``bisection`` and :func:`bisection_scalar`: halve
+    while ``|b - a| > tol`` (at most ``itmax`` times), keeping the half where ``f(a) * f(c) < 0``
     puts the root in ``[a, c]``, and return the **last midpoint** ``c``.
 
     ``lax.while_loop`` cannot be reverse-differentiated, so this is a

@@ -17,10 +17,13 @@ whether the model departs from Fortran CLM-ml v2 / CTSM because of it.
   - *departure:* **Departure from Fortran: yes/no**: whether the decision makes the model
     compute something different from CLM-ml v2 (or, for global runs, from CTSM 5.4/CDEPS).
 - **Superseded decisions stay**, marked, with a pointer to what replaced them.
-- The older documents remain the detailed record (measurements, alternatives, probes):
+- The older documents were the detailed record (measurements, alternatives, probes):
   `modernization_plan.md` §0 and §8, `phase7_scope.md` (D1-D12), `phase7_decisions.md`
   (C0-C35), `global_input.md` (input decisions 1-8, G1-G20, open issues),
-  `numerics_and_regression.md`, `phase6_progress.md` (review items R1-R11).
+  `phase6_progress.md` (review items R1-R11), and the GPU and gradient logs
+  (`gpu_progress.md`, `gradient_progress.md`). They were deleted in Phase 9.0 (decision 128)
+  and remain in git history: `git show 4f33cd7:docs/design/<file>`. `Source:` lines that
+  name them refer to that version.
 - Open questions and tasks are not decisions: they belong in [`open_items.md`](open_items.md).
 
 ### Old IDs to new IDs
@@ -316,7 +319,7 @@ reads only these and the data files they name, never a compset by name. Every fi
 keys are errors, and `clm-ml upgrade DIR` rewrites a folder to the current layout keeping the
 user's values. Folders are generated from compsets (`clm-ml new DIR --from COMPSET`); each setting
 lives in one file; each run writes a copy of the four files into its output. Details:
-[`experiment_folders.md`](experiment_folders.md).
+`experiment_folders.md` (git history).
 Reason: one start point where every user setting is visible and the required ones are marked,
 for ecologists; one definition of every option in the code (as jax-gcm), so files, errors and
 reference documentation agree.
