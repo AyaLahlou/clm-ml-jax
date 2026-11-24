@@ -40,11 +40,11 @@ Guidance for Claude (and other contributors) working in this repository.
 
 ## Status and where to resume
 
-- **Phase 9** (documentation and release; branch `phase9/docs`; `docs/design/phase9_scope.md`).
-  9.0 is a clean-up first (decision 128): 9.0a code comments (done), 9.0b documents and other
-  files, 9.0c a discussion of what documentation to write, before any is written.
 - **Done:** Phases 0-8 (the modernization), GPU optimization (the 1° globe 2.85× faster on one
-  A100), gradient accuracy work (decisions 118-125), all on `main`.
+  A100), gradient accuracy work (decisions 118-125), and Phase 9 (2026-11-24, branch
+  `phase9/docs`): a clean-up of comments and documents (decision 128) and a small
+  documentation site for colleagues (decision 129; Sphinx in `docs/`, GitHub Pages from
+  `main`). No release or version tag yet. Open work: `docs/design/open_items.md`.
 - **Branch `chats_demos`** (not merged, kept apart by the maintainer): gradient experiments at
   CHATS (`experiments/chats_gradients/`), open items O82-O85 and decisions 126-127 recorded
   there only.
@@ -188,7 +188,7 @@ examples/              run_tower.py, run_global.py, plot_global_diag.py
 jobs/                  PBS scripts for Derecho GPU jobs
 docs/how_the_model_works.md   for users: organization, a run's skeleton, differences from Fortran
 docs/design/           decisions.md, open_items.md, model_overview.md,
-                       numerics_and_regression.md, phase9_scope.md
+                       numerics_and_regression.md
 ```
 
 **Experiment folders:** an experiment is a folder with four complete files: `run.yaml` (when

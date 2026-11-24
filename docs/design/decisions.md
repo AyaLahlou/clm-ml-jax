@@ -134,8 +134,8 @@ differs from Fortran, and a skeleton of what runs when); and two scripts, `examp
 (any tower, CHATS7 by default) and `examples/run_global.py` (the 1° grid, whole globe by
 default). Phase 8 closes with them. The documentation site, the generated settings reference,
 the guides, the further examples (calibration, ensemble), the Fortran-users page, the API
-reference, the formatting clean-up and the 1.0.0 release are Phase 9 (`phase9_scope.md`;
-open items O45-O52, O24).
+reference, the formatting clean-up and the 1.0.0 release are Phase 9
+(open items O45-O52, O24).
 Reason: the maintainer's decision: enough for a user to install and run now; the formal
 documentation later.
 Source: maintainer, 2026-11-01.
@@ -168,7 +168,7 @@ from in Fortran, not how it was developed; the history is in git and this regist
 Source: maintainer, 2026-11-24.
 
 **129. Phase 9 documentation is small: enough for colleagues to start quickly**
-2026-11-24 · Phase 9.0c · maintainer · in force (narrows 103 and `phase9_scope.md` §3) · Departure from Fortran: no
+2026-11-24 · Phase 9.0c · maintainer · in force (narrows 103 and the Phase 9 scope) · Departure from Fortran: no
 The goal is that colleagues can pick the model up and get started quickly, not a formal
 release of a new model. Sphinx (MyST Markdown, the furo theme) in `docs/`, built by CI on
 every push to `main` and published on GitHub Pages; warnings are errors. Six pages: home,

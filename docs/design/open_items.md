@@ -6,8 +6,8 @@ One list of everything still open after Phase 7, gathered from the design docume
 CLAUDE.md, the code, and the Phase 8 survey. Each item keeps its original IDs under
 "Source" so its history can be traced. Items appearing in several places are merged.
 
-**Status (2026-11-01): Phase 8 closed** (8b reduced to a README, one docs page and two
-examples: decision 103); the documentation items are Phase 9, scoped in `phase9_scope.md`.
+**Status (2026-11-24): Phase 9 closed** (a clean-up and a small documentation site:
+decisions 128, 129); the scope document was deleted at its close (git history).
 
 **Targets:** **8a** = housekeeping before the documentation; **9** = documentation and
 release (was 8b; decision 103); **after 8** = after Phase 8 (already planned that way); **known** = a known model
