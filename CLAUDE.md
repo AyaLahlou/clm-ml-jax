@@ -269,6 +269,7 @@ python timing/time_offline.py                              # wall-clock time of 
 python timing/time_model.py [--steps 8] [--no-grad]        # chunk + gradient timing/memory
 
 black --check --line-length 100 src tests timing examples && ruff check src tests timing examples   # CI lint
+sphinx-build -W --keep-going -b html docs docs/_build/html   # documentation (warnings are errors; CI publishes main on GitHub Pages)
 ```
 
 If `pytest-cov` is missing, run pytest with `-p no:cacheprovider -o addopts=""`.

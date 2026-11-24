@@ -97,7 +97,10 @@ Fortran validation tests: capture golden I/O from the Fortran build, add the JSO
 black --check --line-length 100 src tests timing examples && ruff check src tests timing examples
 ```
 
-Both run in CI.
+Both run in CI, as does the documentation build
+(`sphinx-build -W --keep-going -b html docs docs/_build/html`; warnings are errors). The settings
+reference is generated from the option declarations (`docs/_ext/settings_reference.py`), so a
+new setting's explanation is its documentation.
 
 ## Workflow
 

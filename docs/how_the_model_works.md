@@ -8,7 +8,7 @@ to `src/clm_ml/` unless they start with the repository's top folders (`configs/`
 
 **Contents:** 1. What the model computes · 2. How the code is organized · 3. Skeleton: what
 runs when · 4. Three kinds of value · 5. How the JAX version differs from Fortran ·
-6. Gradients · 7. Where to read more
+6. Gradients · 7. Known limitations · 8. Where to read more
 
 ---
 
@@ -349,7 +349,42 @@ heat, in two 1° boxes, one month each.
 
 ---
 
-## 7. Where to read more
+## 7. Known limitations
+
+What the model does not do, or does differently from what a user might expect:
+
+- **Model limitations of CLM-ml v2** (science questions, unchanged): near-ground air several
+  degrees too warm in strongly stable conditions (first-order closure cannot represent
+  non-local mixing in the canopy); daytime latent heat biased high at CHATS (about
+  70 W m⁻²); soil heat flux biased high; soil moisture prescribed, not predicted.
+- **No snow and no frozen soil water:** there is no snowpack on the ground, and all
+  prescribed soil water is liquid.
+- **No bare ground:** every patch has a canopy; a patch with almost no leaves is a sparse
+  canopy, not bare soil.
+- **Solvers** run a fixed number of iterations instead of Fortran's tolerances, and Fortran's
+  checks of the implicit flux-profile solution are not run; results agree with Fortran within
+  the validation tolerance.
+- **Transpiration and canopy-evaporation latent heat** outputs use the last sub-step's latent
+  heat of vaporization; on steps where the air crosses 0 °C they are slightly off.
+- **Not differentiable:** the nitrogen-profile coefficient (`nitrogen_profile`, a model.yaml
+  setting) and the PFT parameters used only at setup (root profile, C3/C4 pathway, default
+  canopy heights and leaf/stem profiles) give zero gradient through `Model`.
+- **Gradients** over many days of water-stressed weather use derivative rules that are not
+  the exact derivative of the forward values (section 6).
+- **Grid runs:** orbital parameters are those of the start year; real 1° patches amplify
+  round-off (a 1e-15 change in leaf area can move latent heat by several W m⁻² in some
+  patches after sunrise); a patch that fails a check still counts in its chunk's gridcell
+  means.
+- **Output caveats:** layers above a patch's top layer are NaN; `soil_water_stress` is 1
+  with the WUE stomatal scheme (which uses leaf water potential instead);
+  `stem_area_added` is the stem area added to keep every leafy layer above the minimum plant
+  area.
+- `Model.chunks()` starts at step 1 (the setup runs step 0).
+
+The open issues are tracked in
+[`docs/design/open_items.md`](repo:docs/design/open_items.md).
+
+## 8. Where to read more
 
 - `README.md`: install and run CHATS7.
 - `examples/run_tower.py`, `examples/run_global.py`: a tower run and a global run from Python.

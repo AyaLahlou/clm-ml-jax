@@ -10,8 +10,8 @@ results as the Fortran model ([gbonan/CLM-ml_v2.CHATS](https://github.com/gbonan
 and adds GPU execution, gradients for calibration and sensitivity analysis, and runs from one
 flux tower up to the whole globe.
 
-How the model is organized, what runs when, and how it differs from the Fortran:
-[`docs/how_the_model_works.md`](docs/how_the_model_works.md).
+**Documentation:** <https://linniahawkins.github.io/clm-ml-jax/> (getting started, your own
+tower, examples, how the model works, every setting).
 
 ---
 

@@ -94,14 +94,14 @@ deleted in Phase 9.0 (decision 128); read them with `git show 4f33cd7:docs/desig
 | O69 | ~~Plan says output is a nested scan (records × steps); the code is one scan with a record slot per step~~ (closed: plan and CLAUDE.md corrected) | housekeeping | closed | I |
 | O70 | ~~Implement experiment folders~~ (closed: decision 91 implemented) | housekeeping | closed | I |
 | **5. Documentation (Phase 9)** |||||
-| O45 | Getting-started guide (a README version in 8b) | documentation | 9 | I |
-| O46 | Reference of every YAML key, generated from the code | documentation | 9 | I |
-| O47 | Examples: gradient calibration, ensemble, multi-tower (tower and global scripts in 8b) | documentation | 9 | M (calibration target) |
-| O48 | Page for Fortran CLM-ml users (namelist and option codes to YAML) | documentation | 9 | I |
-| O49 | API reference from docstrings | documentation | 9 | I |
-| O50 | CONTRIBUTING: "add a process variant", testing tiers, regression policy | documentation | 9 | I |
-| O51 | Output caveats for users (`soil_water_stress` = 1 with WUE; NaN above the top layer; `stem_area_added`) | documentation | 9 | I |
-| O52 | Release 1.0.0: version, CHANGELOG, CITATION.cff, tag | documentation | 9 | M |
+| O45 | ~~Getting-started guide (a README version in 8b)~~ (closed 2026-11-24: getting started page; decision 129) | documentation | 9 | I |
+| O46 | ~~Reference of every YAML key, generated from the code~~ (closed 2026-11-24: generated settings reference; decision 129) | documentation | 9 | I |
+| O47 | ~~Examples: gradient calibration, ensemble, multi-tower (tower and global scripts in 8b)~~ (closed 2026-11-24: examples: tower, sensitivity, global; no calibration example; decision 129) | documentation | 9 | M (calibration target) |
+| O48 | ~~Page for Fortran CLM-ml users (namelist and option codes to YAML)~~ (closed 2026-11-24: a `clm-ml convert` section in getting started; decision 129) | documentation | 9 | I |
+| O49 | API reference from docstrings (not in Phase 9: decision 129) | documentation | 9 | I |
+| O50 | CONTRIBUTING: "add a process variant", testing tiers, regression policy (not in Phase 9: decision 129) | documentation | 9 | I |
+| O51 | ~~Output caveats for users (`soil_water_stress` = 1 with WUE; NaN above the top layer; `stem_area_added`)~~ (closed 2026-11-24: known limitations and output caveats in how_the_model_works.md; decision 129) | documentation | 9 | I |
+| O52 | Release 1.0.0: version, CHANGELOG, CITATION.cff, tag (not in Phase 9: decision 129) | documentation | 9 | M |
 | **6. Deferred to after Phase 8** |||||
 | O53 | Round-off amplification in real 1° patches (issue 10) | science issue | after 8 | M |
 | O54 | Bare-ground patches (issue 13) | deferred feature | after 8 | M |

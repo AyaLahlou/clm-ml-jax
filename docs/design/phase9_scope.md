@@ -32,7 +32,8 @@ deleted, CLAUDE.md shortened, README and CONTRIBUTING cleaned). 9.0c a discussio
 documentation to write (§2 below), before any is written.
 
 Status: 9.0a done 2026-11-24 (4f33cd7); 9.0b done 2026-11-24 (13 development logs deleted,
-CLAUDE.md shortened, the remaining documents cleaned); 9.0c next.
+CLAUDE.md shortened, the remaining documents cleaned); 9.0c done 2026-11-24 (decision 129). 9.1-9.6 built
+2026-11-24 on `phase9/docs`; GitHub Pages to be enabled in the repository settings.
 
 ## 1. What Phase 9 documents (settled in 8a)
 
@@ -61,21 +62,21 @@ CLAUDE.md shortened, the remaining documents cleaned); 9.0c next.
    guides, reference, examples), `docs/design/` kept as the development record, linked but
    not part of the user guide.
 
-## 3. Packages
+## 3. Packages (narrowed by decision 129, 2026-11-24)
+
+Goal: colleagues can pick the model up and get started quickly; not a formal release.
 
 | Package | Content | Open items |
 |---|---|---|
-| 9.1 | Documentation site: tool, structure, theme, CI build with warnings as errors | — |
-| 9.2 | Getting started: install, `clm-ml new`, check, run one CHATS7 day, read the netCDF with xarray, a first plot; the four files explained | O45 |
-| 9.3 | Reference of every setting, generated from the code (`yaml_schema.option` explanations, choices, defaults, Fortran names, `when` conditions); params table from `PARAM_SPECS`; a test that it is current | O46 |
-| 9.4 | Guides: your own tower (domain.yaml), your own parameters (params.yaml), output streams, restarts and long runs, grid runs, GPUs and devices, calibration with `Model` | — |
-| 9.5 | Examples run in CI (short versions): gradient calibration, ensemble (`vmap` over parameters), multi-tower and multi-patch, grid | O47 |
-| 9.6 | For Fortran CLM-ml users: namelist keys and option codes to the YAML settings, generated from `clm_ml/io/namelist.py` and `config.to_fortran_codes` | O48 |
-| 9.7 | API reference of the five public names (docstrings), and a pass over docstrings still worded in legacy terms | O49 |
-| 9.8 | Known issues and limitations page (from `open_items.md`, §4) and output caveats | O51 |
-| 9.9 | CONTRIBUTING final pass (process variants, tests, regression policy) | O50 |
-| 9.10 | Formatting clean-up: consistent style of the documents and docstrings, the README folded into the docs site, `docs/how_the_model_works.md` and `docs/design/model_overview.md` reconciled | — |
-| 9.11 | Release 1.0.0: version, CHANGELOG (Phases 0-8 summarized from `decisions.md`), `CITATION.cff` version, tag and GitHub release; `main` moved to the release commit | O52, O24 |
+| 9.1 | Sphinx site in `docs/` (MyST, furo), CI build with warnings as errors, GitHub Pages on every push to `main` | — |
+| 9.2 | Home and getting started: install, run one CHATS7 day, read the output with xarray, a plot, `--set`, a paragraph on `clm-ml convert` | O45, O48 |
+| 9.3 | Your own tower: `domain.yaml`, forcing and CLM history files, layer counts, `params.yaml` | — |
+| 9.4 | Settings reference generated from the code (option declarations, `PARAM_SPECS`) | O46 |
+| 9.5 | How the model works (existing page) with known limitations and output caveats | O51 |
+| 9.6 | Examples: `run_tower.py`, `run_global.py` and `plot_global_diag.py` (kept apart, decision 110), new `sensitivity_tower.py`; tower examples in CI (short) | O47 |
+
+Not done (decision 129): calibration example, per-topic guides, Fortran-users page, API
+reference, changelog, version tag and release.
 
 ## 4. Known issues the documentation must state (deferred to after Phase 8)
 

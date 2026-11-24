@@ -167,6 +167,25 @@ Reason: the code is read by scientists who need to know what it computes and whe
 from in Fortran, not how it was developed; the history is in git and this register.
 Source: maintainer, 2026-11-24.
 
+**129. Phase 9 documentation is small: enough for colleagues to start quickly**
+2026-11-24 · Phase 9.0c · maintainer · in force (narrows 103 and `phase9_scope.md` §3) · Departure from Fortran: no
+The goal is that colleagues can pick the model up and get started quickly, not a formal
+release of a new model. Sphinx (MyST Markdown, the furo theme) in `docs/`, built by CI on
+every push to `main` and published on GitHub Pages; warnings are errors. Six pages: home,
+getting started, your own tower, a settings reference generated from the code's option
+declarations and `PARAM_SPECS`, how the model works (the existing page, with known
+limitations), and examples. Examples are plain scripts: `run_tower.py`, `run_global.py`
+and `plot_global_diag.py` (kept apart: `run_global.py` only sets a case up, decision 110),
+and a new `sensitivity_tower.py` (gradients of daily
+latent heat and GPP with respect to a few parameters on a CHATS7 day, checked against finite
+differences); the tower examples run in CI in a short version. Not done: a calibration
+example, per-topic guides, a Fortran-users page (a paragraph on `clm-ml convert` instead),
+an API reference, a changelog, a version tag or release (not yet). `sphinx`, `myst-parser`
+and `furo` join the dev extras.
+Reason: the audience is colleagues starting to use the model; a generated settings reference
+cannot go out of date.
+Source: maintainer, 2026-11-24.
+
 ## B. Configuration and user interface
 
 **7. Names and platform**
