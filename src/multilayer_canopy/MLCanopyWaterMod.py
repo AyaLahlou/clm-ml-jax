@@ -95,15 +95,12 @@ def CanopyWettedFraction(
         dpai_safe = jnp.where(has_pai, dpai_v, 1.0)  # avoid /0
         h2ocanmx = dewmx * dpai_safe
 
-        # Fortran lines 63-68
-        # Guard base of fractional power against zero to prevent inf
-        # gradients.  0^0.67 → grad = 0.67*0^(-0.33) = inf.  Inside
-        # jnp.where the inf gradient × 0 mask = NaN.  Clamp to tiny
-        # positive floor so gradient stays finite.
-        _eps_pow = jnp.asarray(1.0e-30)
-        fwet_base = jnp.maximum(h2ocan_v / h2ocanmx, _eps_pow)
+        # Use the dry branch at zero, where the wet-side derivative is singular.
+        water_ratio = h2ocan_v / h2ocanmx
+        is_wet = has_pai & (water_ratio > 0.0)
+        fwet_base = jnp.where(is_wet, water_ratio, 1.0)
         fwet_v = jnp.where(
-            has_pai,
+            is_wet,
             jnp.minimum(
                 fwet_base**fwet_exponent,
                 maximum_leaf_wetted_fraction,
