@@ -1,0 +1,16 @@
+# CPU regression and golden-case checks on Linux with CPython 3.12.
+# The publication environment also needs a Fortran toolchain and input data.
+certifi==2025.8.3
+cftime==1.6.4.post1
+iniconfig==2.1.0
+jax==0.7.1
+jaxlib==0.7.1
+ml_dtypes==0.5.3
+netCDF4==1.7.3
+numpy==2.2.6
+opt_einsum==3.4.0
+packaging==25.0
+pluggy==1.6.0
+Pygments==2.19.2
+pytest==8.4.2
+scipy==1.15.3

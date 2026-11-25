@@ -1,5 +1,11 @@
 # GitHub specific files and directories
-.github/
+.github/*
+!.github/workflows/
+.github/workflows/*
+!.github/workflows/scientific-validation.yml
+
+# Local paper files
+/paper/
 
 # Python
 __pycache__/

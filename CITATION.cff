@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, cite the exact release or commit used. Cite the original CLM-ML model separately."
+title: "CLM-ML-JAX"
+type: software
+authors:
+  - family-names: Lahlou
+    given-names: Aya
+repository-code: "https://github.com/AyaLahlou/clm-ml-jax"
+abstract: "JAX implementation of the Community Land Model with Multi-Layer Canopy."
