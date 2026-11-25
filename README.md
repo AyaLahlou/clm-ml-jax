@@ -145,9 +145,9 @@ Please cite the software (`CITATION.cff`) and the model it translates:
 ```bibtex
 @software{clm_ml_jax,
   title  = {CLM-ML-JAX: the CLM-ml v2 multilayer canopy model in JAX},
-  author = {Hawkins, Linnia and Lahlou, Aya},
+  author = {Lahlou, Aya and Hawkins, Linnia},
   year   = {2026},
-  url    = {https://github.com/linniahawkins/clm-ml-jax},
+  url    = {https://github.com/AyaLahlou/clm-ml-jax},
   note   = {JAX translation of CLM-ml v2 (Bonan et al.)}
 }
 ```

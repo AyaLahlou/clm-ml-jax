@@ -382,6 +382,15 @@ also cite the CLM-ml v2 papers (Bonan et al. 2021, 2026).
 Reason: the maintainer's decision.
 Source: open_items O23, O37.
 
+**131. README citation: Aya Lahlou first author, her repository**
+2026-11-25 · branch `upstream_refactor` · maintainer · in force · Departure from Fortran: n/a
+The README's software citation lists Lahlou, Aya and Hawkins, Linnia, with
+github.com/AyaLahlou/clm-ml-jax as its URL. This revises 97 for the README citation only:
+`CITATION.cff`, `pyproject.toml`, the README badge, clone and documentation links still follow
+97 (not yet decided).
+Reason: the maintainer's decision, for the pull request into the upstream repository.
+Source: maintainer, 2026-11-25.
+
 **98. Release: `main` at the end of 8a, 1.0.0 at the end of 8b, GitHub only**
 2026-11-01 · Phase 8a · maintainer · in force, revised by 103 (`main` moved at the end of 8a, 2026-11-01; 1.0.0 at the end of Phase 9) · Departure from Fortran: n/a
 `main` is fast-forwarded to the phase branch when 8a closes (no pull request; it holds nothing
